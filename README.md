@@ -1,24 +1,14 @@
-# Create View from Qubole Table
-When creating a view file in Looker, and when using a Qubole table, you cannot choose the "Create View From Table" option. You have to write a View file manually.
-This script allows a user to input a table they wish to create a view from, and it will generate a View file.
-
+# Getting Results of APA Team
+The purpose of this app is to list the match scores for an APA team so you can see how each player has been performing this season. 
 
 ## To run:
-1. Run `pip3 install -r requirements.txt` to install necessary Python libraries
-    > If you do not have pip3, run `brew install pip3`
-
-    > If you do not have Homebrew installed, double check if you're a developer
-
-2. Run `python3 converter.py -t <TABLE_NAME>` to generate the View file
-    > Example: `python3 converter.py -t egdp_prod_demand_solutions.booking_commission_eps_taap_report_v1`
-
-    > If chromedriver is giving you issues, follow the steps in the [Fixing Chromedriver](#fixing-chromedriver) section
-3. The resulting file will be sent to an `output.txt` file in this directory. You can manually copy/paste this into Looker
-
-### Fixing Chromedriver
-1. [Download](https://chromedriver.chromium.org/downloads) the correct chromedriver based on which version of Chrome you use
-2. Delete the old chromedriver and move the Chromedriver executable you just donwloaded to this directory. Make sure to name it "chromedriver"
-3. Run `chmod 755 chromedriver` to change permissions on your chromedriver
-
-If you run into a message that says "macOS cannot verify that this app is free from malware", go to:
-System Preferences --> Security and Privacy --> General, and click on the "Open Anyway" box for Chromedriver.
+### Setup
+1. Create a Python virtual environment by running `python3 -m venv env`
+2. Activate the virtual environment by running `source env/bin/activate` 
+3. Run `pip3 install -r requirements.txt` to install necessary Python libraries
+### Inserting team and player information
+1. Open the application.yml file. This is where you will list the division and player and/or team you want to look up.
+2. Insert the link for your division here. You will need to go to the APA website to retrieve this URL
+3. Insert the name of the team you want to look up
+4. Insert your APA credentials at the bottom of this file. The application.yml file is included in the .gitignore, but PLEASE DO NOT ACCIDENTALLY PUSH YOUR APA CREDENTIALS TO THIS REPO
+5. Run `python3 converter.py`
