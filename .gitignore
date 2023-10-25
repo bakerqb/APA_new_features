@@ -1,0 +1,7 @@
+env
+__pycache__
+.vscode
+.gitignore.swp
+chromedriver
+output.txt
+.DS_Store
