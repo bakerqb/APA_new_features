@@ -1,20 +1,18 @@
-import Score
+import dataClasses.IScore as IScore
 
 class PlayerResult:
-    def __init__(self, team_name: str, player_name: str, skill_level: int, score: Score):
+    def __init__(self, team_name: str, player_name: str, skill_level: int, score: IScore):
         self.team_name = team_name
         self.player_name = player_name
         self.skill_level = skill_level
         self.score = score
-        self.did_win = score.get_match_pts_earned() > 10
 
     def get_player_result(self):
         return {
             "team_name": self.team_name,
             "player_name": self.player_name,
             "skill_level": self.skill_level,
-            "score": self.score.get_score(),
-            "did_win": self.did_win
+            "score": self.score.get_score()
         }
     
     def get_player_name(self):
@@ -28,6 +26,3 @@ class PlayerResult:
     
     def get_score(self):
         return self.score
-    
-    def get_did_win(self):
-        return self.did_win
