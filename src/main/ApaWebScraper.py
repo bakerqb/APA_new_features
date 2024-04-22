@@ -82,12 +82,7 @@ class ApaWebScraper:
             
             match_links = self.scrapeTeamMatchesForTeam('Team Schedule & Results', sessionSeason, sessionYear, is_eight_ball)
             match_links = match_links + self.scrapeTeamMatchesForTeam('Playoffs', sessionSeason, sessionYear, is_eight_ball)
-            num_team_matches = 0
-            if is_eight_ball:
-                num_team_matches = self.db.countEightBallTeamMatch()
-            else:
-                num_team_matches = self.db.countNineBallTeamMatch()
-            print("Total team matches in database = {}".format(num_team_matches))
+            print("Total team matches in database = {}".format(self.db.countTeamMatches(is_eight_ball)))
             self.getTeamMatchResults(match_links, is_eight_ball)
         
         
@@ -104,14 +99,9 @@ class ApaWebScraper:
                 link = match.get_attribute("href")
                 teamMatchId = link.split("/")[-1]
                 apa_datetime = self.apaDateToDatetime(match.text.split(' | ')[-1])
-                if isEightBall and not self.db.isValueInEightBallTeamMatchTable(teamMatchId):
+                if not self.db.isValueInTeamMatchTable(teamMatchId, isEightBall):
                     match_links.append(link)
-                    self.db.addEightBallTeamMatchValue(teamMatchId, apa_datetime, sessionSeason, sessionYear)
-
-                if not isEightBall and not self.db.isValueInNineBallTeamMatchTable(teamMatchId):
-                    match_links.append(link)
-                    self.db.addNineBallTeamMatchValue(teamMatchId, apa_datetime, sessionSeason, sessionYear)
-                
+                    self.db.addTeamMatchValue(teamMatchId, apa_datetime, sessionSeason, sessionYear, isEightBall)
                 
         return match_links
     
@@ -193,10 +183,7 @@ class ApaWebScraper:
             else:
                 self.db.addNineBallPlayerMatchValue(match)
         
-        if is_eight_ball:
-            print("Total player matches in database = {}".format(str(self.db.countEightBallPlayerMatch())))
-        else:
-            print("Total player matches in database = {}".format(str(self.db.countNineBallPlayerMatch())))
+        print("Total player matches in database = {}".format(str(self.db.countPlayerMatches(is_eight_ball))))
         
 
     def getRoster(self):

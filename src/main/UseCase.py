@@ -87,7 +87,7 @@ class UseCase:
         self.db.createNineBallMatrixMedian()
 
     def printNineBallTeamResults(self, sessionSeason, sessionYear, teamName):
-        playerMatches = self.db.getNineBallTeamResults(sessionSeason, sessionYear, teamName)
+        playerMatches = self.db.getTeamResults(sessionSeason, sessionYear, teamName, False)
         playerMatchObjList = []
         for playerMatch in playerMatches:
             playerMatchObjList.append(self.converter.toNineBallPlayerMatch(playerMatch))
@@ -119,7 +119,7 @@ class UseCase:
     
 
     def printEightBallTeamResults(self, sessionSeason, sessionYear, teamName):
-        playerMatches = self.db.getEightBallTeamResults(sessionSeason, sessionYear, teamName)
+        playerMatches = self.db.getTeamResults(sessionSeason, sessionYear, teamName, True)
         playerMatchObjList = []
         for playerMatch in playerMatches:
             playerMatchObjList.append(self.converter.toEightBallPlayerMatch(playerMatch))
