@@ -1,0 +1,69 @@
+apa_website:
+  login_link: https://accounts.poolplayers.com/login
+  dashboard_link: https://league.poolplayers.com/dashboard
+  # Should follow format https://league.poolplayers.com/<region>/disions/<leagueId>/standings
+  # https://league.poolplayers.com/centralchicago/divisions/366534/standings/
+  # Fall 2023 Tuesday: https://league.poolplayers.com/centralchicago/divisions/373316
+  # Fall 2023 Monday: https://league.poolplayers.com/centralchicago/divisions/373319
+  # Fall 2023 Thursday: https://league.poolplayers.com/centralchicago/divisions/373318
+  # Spring 2024 Monday: https://league.poolplayers.com/centralchicago/divisions/379653
+  # Spring 2024 Thursday: https://league.poolplayers.com/centralchicago/divisions/379652
+  division_link: https://league.poolplayers.com/centralchicago/divisions/379653
+  base_link: https://league.poolplayers.com
+  session_link: https://league.poolplayers.com/centralchicago/divisions/session/
+  starting_session: 78
+  current_session: 132
+wait_times:
+  implicit_wait_time: 10
+  sleep_time: 3
+player_in_question: Quinn Baker
+team_in_question: Miniclip
+# VVVVVV  MUST BE IN ALL CAPS  VVVVVV
+session_season_in_question: SPRING
+session_year_in_question: 2024
+# VVVVVV  Either "8-ball" or "9-ball"  VVVVVV
+game: 9-ball
+debug_mode: false
+nine_ball_data:
+  division_link: https://league.poolplayers.com/centralchicago/divisions/379653
+  my_team_name: Miniclip
+  my_player_name: Quinn Baker
+eight_ball_data:
+  division_link: https://league.poolplayers.com/centralchicago/divisions/379652
+  my_team_name: The Final Boss
+  my_player_name: Quinn Baker
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+apa_credentials:
+  email: #
+  password: #
