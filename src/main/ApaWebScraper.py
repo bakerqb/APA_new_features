@@ -178,10 +178,7 @@ class ApaWebScraper:
         for match_link in match_links:
             matches = matches + self.getPlayerMatchesFromTeamMatch(match_link, is_eight_ball)
         for match in matches:
-            if is_eight_ball:
-                self.db.addEightBallPlayerMatchValue(match)
-            else:
-                self.db.addNineBallPlayerMatchValue(match)
+            self.db.addPlayerMatchValue(match, is_eight_ball)
         
         print("Total player matches in database = {}".format(str(self.db.countPlayerMatches(is_eight_ball))))
         

@@ -14,10 +14,11 @@ class Database:
         return 'Eight' if isEightBall else 'Nine'
     
     ############### Game agnostic functions ###############
-    def deleteSessionData(self, isEightBall):
+    def deleteSessionData(self):
         sessionSeason = self.config.get('session_season_in_question')
         sessionYear = self.config.get('session_year_in_question')
-        game = self.getGame(isEightBall)
+        game = self.config.get('game')
+        game = self.getGame(game == '8-ball')
 
         self.cur.execute("DELETE FROM {}BallPlayerMatch AS p WHERE p.teamMatchId IN (SELECT t.teamMatchId FROM {}BallTeamMatch AS t WHERE t.sessionSeason = '{}' AND t.sessionYear = {})".format(game, game, sessionSeason, str(sessionYear)))
         self.cur.execute("DELETE FROM {}BallTeamMatch WHERE sessionSeason = '{}' AND sessionYear = {}".format(game, sessionSeason, str(sessionYear)))
@@ -116,7 +117,7 @@ class Database:
         game = self.getGame(isEightBall)
         for playerResult in playerMatch.getPlayerMatchResult():
             
-            self.cur.execute(self.formatScoreInsertQuery(playerResult.get_score()))
+            self.cur.execute(self.formatScoreInsertQuery(playerResult.get_score(), isEightBall))
         scoreId = int(self.cur.execute("SELECT last_insert_rowid() FROM NineBallScore").fetchone()[0])
         
         player_match_id = playerMatch.getPlayerMatchId()
