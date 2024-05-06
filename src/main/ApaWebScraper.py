@@ -37,10 +37,12 @@ class ApaWebScraper:
         self.driver.get(self.config.get('apa_website').get('login_link'))
 
         # Login
+        APA_EMAIL = os.environ['APA_EMAIL']
+        APA_PASSWORD = os.environ['APA_PASSWORD']
         username_element = self.driver.find_element(By.ID, 'email')
-        username_element.send_keys(self.config.get('apa_credentials').get('email'))
+        username_element.send_keys(APA_EMAIL)
         password_element = self.driver.find_element(By.ID, 'password')
-        password_element.send_keys(self.config.get('apa_credentials').get('password'))
+        password_element.send_keys(APA_PASSWORD)
         password_element.send_keys(Keys.ENTER)
         time.sleep(self.config.get('wait_times').get('sleep_time'))
         continue_link = self.driver.find_element(By.XPATH, "//button[text()='Continue']")
