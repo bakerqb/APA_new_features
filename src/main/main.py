@@ -15,8 +15,11 @@ def main():
     
     # db.deleteNineBallSeason()
 
-    useCase.getUpcomingTeamResults()
-    useCase.printUpcomingTeamResults()
+    # useCase.getUpcomingTeamResults()
+    # useCase.printUpcomingTeamResults()
+
+    useCase.printUpcomingTeamResultsJson()
+
     # useCase.printEightBallTeamResultsAfterNameChange("SPRING", 2024, ["The Final Boss", "Sir-Scratch-A Lot"])
     # for item in db.getRubbishMatches():
     #     print(item)

@@ -4,6 +4,7 @@ from Database import Database
 from converter.Converter import Converter
 from utils.utils import color_plain_text
 from datetime import datetime
+import json
 
 class UseCase:
     def __init__(self):
@@ -30,20 +31,38 @@ class UseCase:
             self.apaWebScraper.scrapeDivision(nine_ball_data.get('division_link'), False)
 
     def printUpcomingTeamResults(self):
+        sessionSeason = self.config.get('session_season_in_question')
+        sessionYear = self.config.get('session_year_in_question')
+
         if self.isEightBallUpcoming():
             eight_ball_data = self.config.get('eight_ball_data')
-            sessionSeason = self.config.get('session_season_in_question')
-            sessionYear = self.config.get('session_year_in_question')
             teamName = self.apaWebScraper.getOpponentTeamName(eight_ball_data.get('my_team_name'), eight_ball_data.get('division_link'))
-            
             self.printEightBallTeamResults(sessionSeason, sessionYear, teamName)
         else:
             nine_ball_data = self.config.get('nine_ball_data')
-
-            sessionSeason = self.config.get('session_season_in_question')
-            sessionYear = self.config.get('session_year_in_question')
             teamName = self.apaWebScraper.getOpponentTeamName(nine_ball_data.get('my_team_name'), nine_ball_data.get('division_link'))
             self.printNineBallTeamResults(sessionSeason, sessionYear, teamName)
+    
+    def printUpcomingTeamResultsJson(self):
+        isEightBall = self.isEightBallUpcoming()
+        sessionSeason = self.config.get('session_season_in_question')
+        sessionYear = self.config.get('session_year_in_question')
+        data = self.config.get('eight_ball_data') if isEightBall else self.config.get('nine_ball_data')
+        teamName = self.apaWebScraper.getOpponentTeamName(data.get('my_team_name'), data.get('division_link'))
+        self.printTeamResultsJson(sessionSeason, sessionYear, teamName, isEightBall)
+
+    def printTeamResultsJson(self, sessionSeason, sessionYear, teamName, isEightBall):
+        playerMatches = self.db.getTeamResults(sessionSeason, sessionYear, teamName, isEightBall)
+        roster = []
+        if isEightBall:
+            roster = self.db.getEightBallRoster(sessionSeason, sessionYear, teamName)
+        else:
+            roster = self.db.getNineBallRoster(sessionSeason, sessionYear, teamName)
+        newRoster = []
+        for player in roster:
+            newRoster.append(player[0])
+        print(json.dumps(self.converter.toTeamResultsJson(teamName, sessionSeason, sessionYear, isEightBall, newRoster, playerMatches), indent=2))
+        
     
     def isEightBallUpcoming(self):
         today_weekday = datetime.now().weekday()
