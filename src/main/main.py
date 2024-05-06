@@ -17,7 +17,7 @@ def main():
 
     useCase.getUpcomingTeamResults()
     useCase.printUpcomingTeamResults()
-    # useCase.printEightBallTeamResults("SPRING", 2024, "Chalkie's Children")
+    # useCase.printEightBallTeamResultsAfterNameChange("SPRING", 2024, ["The Final Boss", "Sir-Scratch-A Lot"])
     # for item in db.getRubbishMatches():
     #     print(item)
     

@@ -22,8 +22,7 @@ class UseCase:
             i += 1
     
     def getUpcomingTeamResults(self):
-        isEightBall = self.isEightBallUpcoming()
-        if isEightBall:
+        if self.isEightBallUpcoming():
             eight_ball_data = self.config.get('eight_ball_data')
             self.apaWebScraper.scrapeDivision(eight_ball_data.get('division_link'), True)
         else:
@@ -31,8 +30,7 @@ class UseCase:
             self.apaWebScraper.scrapeDivision(nine_ball_data.get('division_link'), False)
 
     def printUpcomingTeamResults(self):
-        isEightBall = self.isEightBallUpcoming()
-        if isEightBall:
+        if self.isEightBallUpcoming():
             eight_ball_data = self.config.get('eight_ball_data')
             sessionSeason = self.config.get('session_season_in_question')
             sessionYear = self.config.get('session_year_in_question')
@@ -135,4 +133,26 @@ class UseCase:
                     playerMatchMap[player[0]].append(playerMatchObj)
 
         for playerName in playerMatchMap.keys():
-            self.printPlayerMatchesForPlayer(playerName, playerMatchMap[playerName])      
+            self.printPlayerMatchesForPlayer(playerName, playerMatchMap[playerName])
+
+    def printEightBallTeamResultsAfterNameChange(self, sessionSeason, sessionYear, teamNames):
+        playerMatches = []
+        for teamName in teamNames:
+            playerMatches += self.db.getTeamResults(sessionSeason, sessionYear, teamName, True)
+        
+        playerMatchObjList = []
+        for playerMatch in playerMatches:
+            playerMatchObjList.append(self.converter.toEightBallPlayerMatch(playerMatch))
+        roster = self.db.getEightBallRoster(sessionSeason, sessionYear, teamName)
+        
+        playerMatchMap = {}
+        for player in roster:
+            playerMatchMap[player[0]] = []
+
+        for playerMatchObj in playerMatchObjList:
+            for player in roster:
+                if playerMatchObj.isPlayedBy(player[0]):
+                    playerMatchMap[player[0]].append(playerMatchObj)
+
+        for playerName in playerMatchMap.keys():
+            self.printPlayerMatchesForPlayer(playerName, playerMatchMap[playerName])
