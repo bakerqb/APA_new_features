@@ -13,6 +13,12 @@ class Database:
     def getGame(self, isEightBall):
         return 'Eight' if isEightBall else 'Nine'
     
+    def getMedian(self, scores):
+        nums = []
+        for item in scores:
+            nums.append(item[0])
+        return statistics.median(nums)
+    
     ############### Game agnostic functions ###############
     def deleteSessionData(self):
         sessionSeason = self.config.get('session_season_in_question')
@@ -346,10 +352,3 @@ class Database:
                 "UNION " +
                 """SELECT n.player_name2 AS playerName FROM EightBallPlayerMatch n LEFT JOIN EightBallTeamMatch t ON n.teamMatchId = t.teamMatchId WHERE team_name2 = "{}" AND sessionSeason = "{}" AND sessionYear = {})""".format(teamName, sessionSeason, sessionYear)
         ).fetchall()
-    
-    
-    def getMedian(self, scores):
-        nums = []
-        for item in scores:
-            nums.append(item[0])
-        return statistics.median(nums)
