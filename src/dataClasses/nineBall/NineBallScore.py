@@ -11,7 +11,7 @@ class NineBallScore(IScore):
         self.ball_pts_earned = int(ball_pts_earned)
         self.ball_pts_needed = int(ball_pts_needed)
 
-    def get_score(self):
+    def toJson(self):
         return {
             "match_pts_earned": self.match_pts_earned,
             "ball_pts_earned": self.ball_pts_earned,

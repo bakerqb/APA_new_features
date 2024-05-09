@@ -11,7 +11,7 @@ class EightBallScore(IScore):
         self.games_won = int(games_won)
         self.games_needed = int(games_needed)
 
-    def get_score(self):
+    def toJson(self):
         return {
             "match_pts_earned": self.match_pts_earned,
             "games_won": self.games_won,

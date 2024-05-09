@@ -1,5 +1,5 @@
 class IScore:
-    def get_score(self):
+    def toJson(self):
         pass
     
     def get_did_win(self):

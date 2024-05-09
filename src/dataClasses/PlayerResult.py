@@ -7,12 +7,12 @@ class PlayerResult:
         self.skill_level = skill_level
         self.score = score
 
-    def get_player_result(self):
+    def toJson(self):
         return {
             "team_name": self.team_name,
             "player_name": self.player_name,
             "skill_level": self.skill_level,
-            "score": self.score.get_score()
+            "score": self.score.toJson()
         }
     
     def get_player_name(self):

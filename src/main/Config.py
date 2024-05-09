@@ -16,4 +16,5 @@ class Config:
             if name in files:
                 return os.path.join(root, name)
 
-        
+    def getSessionConfig(self, isEightBall):
+        return self.config.get('eight_ball_data') if isEightBall else self.config.get('nine_ball_data')
