@@ -11,7 +11,7 @@ class NineBallPlayerMatch(IPlayerMatch):
     def __init__(self):
         pass
 
-    def initWithDiv(self, matchDiv, team_name1: str, team_name2: str, playerMatchId: int, teamMatchId: int):
+    def initWithDiv(self, matchDiv, team_name1: str, team_name2: str, playerMatchId: int, teamMatchId: int, datePlayed):
         mapper = NineBallSkillLevelMapper()
         
         text_elements = matchDiv.text.split('\n')
@@ -41,20 +41,7 @@ class NineBallPlayerMatch(IPlayerMatch):
         match_pts_earned2 = text_elements[7]
 
         return self.initWithDirectInfo(playerMatchId, teamMatchId, player_name1, team_name1, skill_level1, match_pts_earned1, ball_pts_earned1, ball_pts_needed1,
-                   player_name2, team_name2, skill_level2, match_pts_earned2, ball_pts_earned2, ball_pts_needed2)
-    
-    def initWithDirectInfo(self, playerMatchId, teamMatchId, player_name1, team_name1, skill_level1, match_pts_earned1, ball_pts_earned1, ball_pts_needed1,
-                   player_name2, team_name2, skill_level2, match_pts_earned2, ball_pts_earned2, ball_pts_needed2):
-        score1 = NineBallScore(match_pts_earned1, ball_pts_earned1, ball_pts_needed1)
-        score2 = NineBallScore(match_pts_earned2, ball_pts_earned2, ball_pts_needed2)
-
-        self.playerResults = []
-        self.playerResults.append(PlayerResult(team_name1, player_name1, skill_level1, score1))
-        self.playerResults.append(PlayerResult(team_name2, player_name2, skill_level2, score2))
-        self.playerMatchId = playerMatchId
-        self.teamMatchId = teamMatchId
-        return self
-
+                   player_name2, team_name2, skill_level2, match_pts_earned2, ball_pts_earned2, ball_pts_needed2, datePlayed, False)
     
     def pretty_print(self, player_in_question):
         self.proper_playerResult_order_with_player(player_in_question)
@@ -91,7 +78,3 @@ class NineBallPlayerMatch(IPlayerMatch):
             color_player(p2, "{} Match Points".format(p2.get_score().get_match_pts_earned()))
         )
         print(line4)
-
-        
-    
-    

@@ -122,8 +122,8 @@ class Database:
     def addPlayerMatchValue(self, playerMatch, isEightBall):
         game = self.getGame(isEightBall)
         for playerResult in playerMatch.getPlayerMatchResult():
-            
             self.cur.execute(self.formatScoreInsertQuery(playerResult.get_score(), isEightBall))
+
         scoreId = int(self.cur.execute("SELECT last_insert_rowid() FROM NineBallScore").fetchone()[0])
         
         player_match_id = playerMatch.getPlayerMatchId()
@@ -158,6 +158,27 @@ class Database:
                 str(score.get_ball_pts_earned()), 
                 str(score.get_ball_pts_needed())
             )
+        
+    def getTeamRoster(self, sessionSeason, sessionYear, teamName, isEightBall):
+        gamePrefix = "Eight" if isEightBall else "Nine"
+        teamName = teamName.replace('"', '\'')
+        players = self.cur.execute(
+            "SELECT DISTINCT playerName FROM " +
+                """(SELECT n.player_name1 AS playerName FROM {}BallPlayerMatch n LEFT JOIN {}BallTeamMatch t ON n.teamMatchId = t.teamMatchId WHERE team_name1 = "{}" AND sessionSeason = "{}" AND sessionYear = {} """.format(gamePrefix, gamePrefix, teamName, sessionSeason, sessionYear) +
+                "UNION " +
+                """SELECT n.player_name2 AS playerName FROM {}BallPlayerMatch n LEFT JOIN {}BallTeamMatch t ON n.teamMatchId = t.teamMatchId WHERE team_name2 = "{}" AND sessionSeason = "{}" AND sessionYear = {})""".format(gamePrefix, gamePrefix, teamName, sessionSeason, sessionYear)
+        ).fetchall()
+        roster = []
+        for player in players:
+            roster.append(player[0])
+        return roster
+    
+    def getDatePlayed(self, teamMatchId: int, isEightBall: bool):
+        gamePrefix = "Eight" if isEightBall else "Nine"
+        return self.cur.execute(
+            "SELECT datePlayed FROM {}BallTeamMatch WHERE teamMatchId = {}".format(gamePrefix, str(teamMatchId))
+        ).fetchone()[0]
+
     
     ############### 9 Ball functions ###############
     def isNineBallDivisionTableFull(self, count):
@@ -280,15 +301,6 @@ class Database:
             "ORDER BY t.datePlayed"
         ).fetchall()
     
-    def getNineBallRoster(self, sessionSeason, sessionYear, teamName):
-        teamName = teamName.replace('"', '\'')
-        return self.cur.execute(
-            "SELECT DISTINCT playerName FROM " +
-                """(SELECT n.player_name1 AS playerName FROM NineBallPlayerMatch n LEFT JOIN NineBallTeamMatch t ON n.teamMatchId = t.teamMatchId WHERE team_name1 = "{}" AND sessionSeason = "{}" AND sessionYear = {} """.format(teamName, sessionSeason, sessionYear) +
-                "UNION " +
-                """SELECT n.player_name2 AS playerName FROM NineBallPlayerMatch n LEFT JOIN NineBallTeamMatch t ON n.teamMatchId = t.teamMatchId WHERE team_name2 = "{}" AND sessionSeason = "{}" AND sessionYear = {})""".format(teamName, sessionSeason, sessionYear)
-        ).fetchall()
-    
     def getNineBallPlayersAboveSkillLevel(self, skill_level):
         return self.cur.execute(
             "SELECT DISTINCT playerName, skillLevel, MAX(datePlayed) FROM " +
@@ -343,12 +355,3 @@ class Database:
     
     def getEightBallDivisionLinks(self):
         return self.cur.execute("SELECT * FROM EightBallDivision").fetchall()
-    
-    def getEightBallRoster(self, sessionSeason, sessionYear, teamName):
-        teamName = teamName.replace('"', '\'')
-        return self.cur.execute(
-            "SELECT DISTINCT playerName FROM " +
-                """(SELECT n.player_name1 AS playerName FROM EightBallPlayerMatch n LEFT JOIN EightBallTeamMatch t ON n.teamMatchId = t.teamMatchId WHERE team_name1 = "{}" AND sessionSeason = "{}" AND sessionYear = {} """.format(teamName, sessionSeason, sessionYear) +
-                "UNION " +
-                """SELECT n.player_name2 AS playerName FROM EightBallPlayerMatch n LEFT JOIN EightBallTeamMatch t ON n.teamMatchId = t.teamMatchId WHERE team_name2 = "{}" AND sessionSeason = "{}" AND sessionYear = {})""".format(teamName, sessionSeason, sessionYear)
-        ).fetchall()

@@ -2,8 +2,6 @@ import sys
 import os
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-from dataClasses.PlayerResult import PlayerResult
-from .EightBallScore import EightBallScore
 from utils.utils import *
 from dataClasses.IPlayerMatch import IPlayerMatch
 
@@ -11,7 +9,7 @@ class EightBallPlayerMatch(IPlayerMatch):
     def __init__(self):
         pass
     
-    def initWithDiv(self, matchDiv, team_name1: str, team_name2: str, playerMatchId: int, teamMatchId: int):
+    def initWithDiv(self, matchDiv, team_name1: str, team_name2: str, playerMatchId: int, teamMatchId: int, datePlayed):
         text_elements = matchDiv.text.split('\n')
         text_elements = remove_elements(text_elements, 'LAG')
         text_elements = remove_elements(text_elements, 'SL')
@@ -39,20 +37,7 @@ class EightBallPlayerMatch(IPlayerMatch):
         match_pts_earned2 = text_elements[7]
 
         return self.initWithDirectInfo(playerMatchId, teamMatchId, player_name1, team_name1, skill_level1, match_pts_earned1, games_won1, games_needed1,
-                   player_name2, team_name2, skill_level2, match_pts_earned2, games_won2, games_needed2)
-        
-
-    def initWithDirectInfo(self, playerMatchId, teamMatchId, player_name1, team_name1, skill_level1, match_pts_earned1, games_won1, games_needed1,
-                   player_name2, team_name2, skill_level2, match_pts_earned2, games_won2, games_needed2):
-        score1 = EightBallScore(match_pts_earned1, games_won1, games_needed1)
-        score2 = EightBallScore(match_pts_earned2, games_won2, games_needed2)
-
-        self.playerResults = []
-        self.playerResults.append(PlayerResult(team_name1, player_name1, skill_level1, score1))
-        self.playerResults.append(PlayerResult(team_name2, player_name2, skill_level2, score2))
-        self.playerMatchId = playerMatchId
-        self.teamMatchId = teamMatchId
-        return self
+                   player_name2, team_name2, skill_level2, match_pts_earned2, games_won2, games_needed2, datePlayed, True)
     
     def pretty_print(self, player_in_question):
         self.proper_playerResult_order_with_player(player_in_question)
@@ -89,10 +74,3 @@ class EightBallPlayerMatch(IPlayerMatch):
             color_player(p2, "{} Match Points".format(p2.get_score().get_match_pts_earned()))
         )
         print(line4)
-
-        
-
-
-        
-    
-    

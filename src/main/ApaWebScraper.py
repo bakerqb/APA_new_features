@@ -9,6 +9,7 @@ from Config import Config
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from dataClasses.nineBall.NineBallPlayerMatch import NineBallPlayerMatch
 from dataClasses.eightBall.EightBallPlayerMatch import EightBallPlayerMatch
+from converter.Converter import Converter
 from Database import Database
 import calendar
 
@@ -17,6 +18,7 @@ class ApaWebScraper:
     #### Startup ####
     def __init__(self):
         self.config = Config().getConfig()
+        self.converter = Converter()
         self.driver = None
         self.db = Database()
     
@@ -155,17 +157,13 @@ class ApaWebScraper:
         player_matches = []
         player_match_id = 0
         team_match_id = link.split('/')[-1]
+        date_played = self.db.getDatePlayed(team_match_id, is_eight_ball)
         for individual_match in individual_matches:
             if 'LAG' not in individual_match.text:
                 continue
             player_match_id += 1
-            player_match = None
-            if not is_eight_ball:
-                player_match = NineBallPlayerMatch()
-                player_match.initWithDiv(individual_match, team_name1, team_name2, player_match_id, team_match_id)
-            else:
-                player_match = EightBallPlayerMatch()
-                player_match = player_match.initWithDiv(individual_match, team_name1, team_name2, player_match_id, team_match_id)
+            player_match = self.converter.toPlayerMatchWithDiv(individual_match, team_name1, team_name2, player_match_id, team_match_id, date_played, is_eight_ball)
+
             if player_match.getPlayerMatchResult()[0].get_skill_level() is not None and player_match.getPlayerMatchResult()[1].get_skill_level() is not None:
                 player_matches.append(player_match)
             
