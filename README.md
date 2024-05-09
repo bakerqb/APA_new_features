@@ -36,4 +36,6 @@ Let's say you want to find which opponent your 8 ball team is playing next and p
 
 
 ## <u>Data structures</u>
-
+The use case that this app was intended for is to print a player's team results. You can see how the json of this is structured in the `src/resources/teamResults.json` file.
+To see how the classes are structured, this diagram is a rough representation of how the various classes are organized:
+![image](src/resources/dataStructures.png)
