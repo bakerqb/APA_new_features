@@ -21,8 +21,8 @@ class UseCase:
         self.getTeamResults(sessionSeason, sessionYear, teamName, isEightBall).printPlayerMatchesPerPlayer()
 
     def printUpcomingTeamResults(self) -> None:
-        sessionSeason = self.config.get('session_season_in_question')
-        sessionYear = self.config.get('session_year_in_question')
+        sessionSeason = self.config.getConfig().get('session_season_in_question')
+        sessionYear = self.config.getConfig().get('session_year_in_question')
         isEightBall = self.isEightBallUpcoming()
         sessionConfig = self.config.getSessionConfig(isEightBall)
         teamName = self.apaWebScraper.getOpponentTeamName(sessionConfig.get('my_team_name'), sessionConfig.get('division_link'))
@@ -75,8 +75,8 @@ class UseCase:
 
     def scrapeAllNineBallSessionLinks(self) -> None:
         sessions_with_no_data = [89, 91, 92, 93, 100, 101, 105, 106, 110, 114, 115, 116, 120, 121, 122, 126, 127, 128, 131, 132]
-        starting_session = self.config.get('apa_website').get('starting_session')
-        current_session = self.config.get('apa_website').get('current_session')
+        starting_session = self.config.getConfig().get('apa_website').get('starting_session')
+        current_session = self.config.getConfig().get('apa_website').get('current_session')
         if self.db.isNineBallDivisionTableFull(current_session - starting_session - len(sessions_with_no_data) + 1):
             print("NineBallDivision table up to date. No scraping needed")
             return
