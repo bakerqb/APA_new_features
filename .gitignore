@@ -5,5 +5,6 @@ __pycache__
 chromedriver
 output.txt
 .DS_Store
-application.yml
+src/resources/application.yml
 results.db
+src/main/main.py
