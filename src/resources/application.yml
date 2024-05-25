@@ -22,7 +22,7 @@ team_in_question: Miniclip
 session_season_in_question: SPRING
 session_year_in_question: 2024
 # VVVVVV  Either "8-ball" or "9-ball"  VVVVVV
-game: 9-ball
+game: 8-ball
 debug_mode: false
 nine_ball_data:
   division_link: https://league.poolplayers.com/centralchicago/divisions/379653

@@ -1,10 +1,13 @@
-from UseCase import UseCase
-from Database import Database
-from ApaWebScraper import ApaWebScraper
-from Config import Config
+import os
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from src.main.UseCase import UseCase
+from src.main.Database import Database
+from src.main.ApaWebScraper import ApaWebScraper
+from src.main.Config import Config
 from waitress import serve
 from flask import Flask, render_template, request, url_for
-import os
 
 
 import jinja2
