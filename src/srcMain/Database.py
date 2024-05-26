@@ -1,6 +1,6 @@
 import sqlite3
 from tabulate import tabulate
-from Config import Config
+from src.srcMain.Config import Config
 import statistics
 
 class Database:

@@ -1,1692 +1,1922 @@
 {
-  "teamName": "Miniclip",
-  "sessionSeason": "SPRING",
-  "sessionYear": 2024,
-  "game": "9-ball",
+  "game": "8-ball",
   "playerMatches": {
-    "Alex Nguyen": [
+    "Adam Corbett": [
       {
+        "datePlayed": "2024-02-01",
+        "playerMatchId": 2,
         "playerResults": [
           {
-            "team_name": "Miniclip",
-            "player_name": "Alex Nguyen",
-            "skill_level": 1,
+            "player_name": "Lalo Cortez",
             "score": {
-              "match_pts_earned": 16,
-              "ball_pts_earned": 14,
-              "ball_pts_needed": 14
-            }
-          },
-          {
-            "team_name": "Kickin' like Bruce",
-            "player_name": "Cynthia Tang",
+              "games_needed": 2,
+              "games_won": 2,
+              "match_pts_earned": 2
+            },
             "skill_level": 3,
-            "score": {
-              "match_pts_earned": 4,
-              "ball_pts_earned": 12,
-              "ball_pts_needed": 25
-            }
-          }
-        ],
-        "playerMatchId": 2,
-        "datePlayed": "2024-02-26"
-      },
-      {
-        "playerResults": [
-          {
-            "team_name": "Miniclip",
-            "player_name": "Alex Nguyen",
-            "skill_level": 1,
-            "score": {
-              "match_pts_earned": 6,
-              "ball_pts_earned": 10,
-              "ball_pts_needed": 14
-            }
+            "team_name": "full time"
           },
           {
-            "team_name": "Kickin' like Bruce",
-            "player_name": "Jason Mui",
-            "skill_level": 5,
+            "player_name": "Adam Corbett",
             "score": {
-              "match_pts_earned": 14,
-              "ball_pts_earned": 38,
-              "ball_pts_needed": 38
-            }
+              "games_needed": 6,
+              "games_won": 2,
+              "match_pts_earned": 0
+            },
+            "skill_level": 7,
+            "team_name": "The Final Boss"
           }
-        ],
-        "playerMatchId": 3,
-        "datePlayed": "2024-02-26"
+        ]
       },
       {
-        "playerResults": [
-          {
-            "team_name": "Miniclip",
-            "player_name": "Alex Nguyen",
-            "skill_level": 1,
-            "score": {
-              "match_pts_earned": 8,
-              "ball_pts_earned": 13,
-              "ball_pts_needed": 14
-            }
-          },
-          {
-            "team_name": "Murderball",
-            "player_name": "Adam Fellon",
-            "skill_level": 2,
-            "score": {
-              "match_pts_earned": 12,
-              "ball_pts_earned": 19,
-              "ball_pts_needed": 19
-            }
-          }
-        ],
-        "playerMatchId": 3,
-        "datePlayed": "2024-03-04"
-      },
-      {
-        "playerResults": [
-          {
-            "team_name": "kthnx",
-            "player_name": "Don Wakeling",
-            "skill_level": 9,
-            "score": {
-              "match_pts_earned": 7,
-              "ball_pts_earned": 63,
-              "ball_pts_needed": 75
-            }
-          },
-          {
-            "team_name": "Miniclip",
-            "player_name": "Alex Nguyen",
-            "skill_level": 1,
-            "score": {
-              "match_pts_earned": 13,
-              "ball_pts_earned": 14,
-              "ball_pts_needed": 14
-            }
-          }
-        ],
+        "datePlayed": "2024-02-08",
         "playerMatchId": 5,
-        "datePlayed": "2024-03-18"
-      },
-      {
         "playerResults": [
           {
-            "team_name": "Miniclip",
-            "player_name": "Alex Nguyen",
-            "skill_level": 1,
+            "player_name": "Adam Corbett",
             "score": {
-              "match_pts_earned": 8,
-              "ball_pts_earned": 13,
-              "ball_pts_needed": 14
-            }
+              "games_needed": 5,
+              "games_won": 5,
+              "match_pts_earned": 2
+            },
+            "skill_level": 7,
+            "team_name": "The Final Boss"
           },
           {
-            "team_name": "Amateur Hour",
-            "player_name": "Shag Birkos",
-            "skill_level": 6,
+            "player_name": "Pubo Huang",
             "score": {
-              "match_pts_earned": 12,
-              "ball_pts_earned": 46,
-              "ball_pts_needed": 46
-            }
+              "games_needed": 5,
+              "games_won": 1,
+              "match_pts_earned": 0
+            },
+            "skill_level": 7,
+            "team_name": "Sweet Baby Charles"
           }
-        ],
+        ]
+      },
+      {
+        "datePlayed": "2024-02-15",
         "playerMatchId": 3,
-        "datePlayed": "2024-04-08"
-      },
-      {
         "playerResults": [
           {
-            "team_name": "No English",
-            "player_name": "Toby Chen",
-            "skill_level": 8,
+            "player_name": "Ben Lewis",
             "score": {
-              "match_pts_earned": 17,
-              "ball_pts_earned": 65,
-              "ball_pts_needed": 65
-            }
+              "games_needed": 4,
+              "games_won": 1,
+              "match_pts_earned": 0
+            },
+            "skill_level": 6,
+            "team_name": "Not Ben's Team"
           },
           {
-            "team_name": "Miniclip",
-            "player_name": "Alex Nguyen",
-            "skill_level": 1,
+            "player_name": "Adam Corbett",
             "score": {
-              "match_pts_earned": 3,
-              "ball_pts_earned": 5,
-              "ball_pts_needed": 14
-            }
+              "games_needed": 5,
+              "games_won": 5,
+              "match_pts_earned": 2
+            },
+            "skill_level": 7,
+            "team_name": "The Final Boss"
           }
-        ],
-        "playerMatchId": 2,
-        "datePlayed": "2024-04-15"
-      }
-    ],
-    "Brennan Reed": [
+        ]
+      },
       {
+        "datePlayed": "2024-02-22",
+        "playerMatchId": 1,
         "playerResults": [
           {
-            "team_name": "Kemet",
-            "player_name": "Rich Hubbard",
+            "player_name": "Adam Corbett",
+            "score": {
+              "games_needed": 5,
+              "games_won": 2,
+              "match_pts_earned": 0
+            },
+            "skill_level": 7,
+            "team_name": "The Final Boss"
+          },
+          {
+            "player_name": "Daniel Hahn",
+            "score": {
+              "games_needed": 4,
+              "games_won": 4,
+              "match_pts_earned": 2
+            },
+            "skill_level": 6,
+            "team_name": "Cue the Drinks"
+          }
+        ]
+      },
+      {
+        "datePlayed": "2024-03-07",
+        "playerMatchId": 5,
+        "playerResults": [
+          {
+            "player_name": "Adam Corbett",
+            "score": {
+              "games_needed": 5,
+              "games_won": 3,
+              "match_pts_earned": 0
+            },
+            "skill_level": 7,
+            "team_name": "The Final Boss"
+          },
+          {
+            "player_name": "Robert Mccoy",
+            "score": {
+              "games_needed": 2,
+              "games_won": 2,
+              "match_pts_earned": 2
+            },
             "skill_level": 4,
-            "score": {
-              "match_pts_earned": 8,
-              "ball_pts_earned": 28,
-              "ball_pts_needed": 31
-            }
-          },
-          {
-            "team_name": "Miniclip",
-            "player_name": "Brennan Reed",
-            "skill_level": 6,
-            "score": {
-              "match_pts_earned": 12,
-              "ball_pts_earned": 46,
-              "ball_pts_needed": 46
-            }
+            "team_name": "HoneyBadgerDontGiveAF$%K"
           }
-        ],
-        "playerMatchId": 5,
-        "datePlayed": "2024-02-05"
+        ]
       },
       {
+        "datePlayed": "2024-03-14",
+        "playerMatchId": 2,
         "playerResults": [
           {
-            "team_name": "Miniclip",
-            "player_name": "Brennan Reed",
-            "skill_level": 6,
+            "player_name": "Michael Prowicz",
             "score": {
-              "match_pts_earned": 4,
-              "ball_pts_earned": 24,
-              "ball_pts_needed": 46
-            }
-          },
-          {
-            "team_name": "Motley Crew",
-            "player_name": "Fedja Hadzimusic",
-            "skill_level": 6,
-            "score": {
-              "match_pts_earned": 16,
-              "ball_pts_earned": 46,
-              "ball_pts_needed": 46
-            }
-          }
-        ],
-        "playerMatchId": 1,
-        "datePlayed": "2024-02-12"
-      },
-      {
-        "playerResults": [
-          {
-            "team_name": "Miniclip",
-            "player_name": "Brennan Reed",
-            "skill_level": 6,
-            "score": {
-              "match_pts_earned": 15,
-              "ball_pts_earned": 46,
-              "ball_pts_needed": 46
-            }
-          },
-          {
-            "team_name": "Kickin' like Bruce",
-            "player_name": "Wayne Wong",
-            "skill_level": 6,
-            "score": {
-              "match_pts_earned": 5,
-              "ball_pts_earned": 30,
-              "ball_pts_needed": 46
-            }
-          }
-        ],
-        "playerMatchId": 4,
-        "datePlayed": "2024-02-26"
-      },
-      {
-        "playerResults": [
-          {
-            "team_name": "Miniclip",
-            "player_name": "Brennan Reed",
-            "skill_level": 6,
-            "score": {
-              "match_pts_earned": 2,
-              "ball_pts_earned": 16,
-              "ball_pts_needed": 46
-            }
-          },
-          {
-            "team_name": "Murderball",
-            "player_name": "Kipp Wallace",
-            "skill_level": 9,
-            "score": {
-              "match_pts_earned": 18,
-              "ball_pts_earned": 75,
-              "ball_pts_needed": 75
-            }
-          }
-        ],
-        "playerMatchId": 1,
-        "datePlayed": "2024-03-04"
-      },
-      {
-        "playerResults": [
-          {
-            "team_name": "kthnx",
-            "player_name": "Ace Fetherolf",
-            "skill_level": 2,
-            "score": {
-              "match_pts_earned": 6,
-              "ball_pts_earned": 13,
-              "ball_pts_needed": 19
-            }
-          },
-          {
-            "team_name": "Miniclip",
-            "player_name": "Brennan Reed",
-            "skill_level": 6,
-            "score": {
-              "match_pts_earned": 14,
-              "ball_pts_earned": 46,
-              "ball_pts_needed": 46
-            }
-          }
-        ],
-        "playerMatchId": 4,
-        "datePlayed": "2024-03-18"
-      },
-      {
-        "playerResults": [
-          {
-            "team_name": "No Ball Left Behind",
-            "player_name": "Jaime Townsend",
+              "games_needed": 3,
+              "games_won": 0,
+              "match_pts_earned": 0
+            },
             "skill_level": 5,
-            "score": {
-              "match_pts_earned": 6,
-              "ball_pts_earned": 29,
-              "ball_pts_needed": 38
-            }
+            "team_name": "Cogburn Leghorn"
           },
           {
-            "team_name": "Miniclip",
-            "player_name": "Brennan Reed",
-            "skill_level": 6,
+            "player_name": "Adam Corbett",
             "score": {
-              "match_pts_earned": 14,
-              "ball_pts_earned": 46,
-              "ball_pts_needed": 46
-            }
+              "games_needed": 5,
+              "games_won": 5,
+              "match_pts_earned": 3
+            },
+            "skill_level": 7,
+            "team_name": "The Final Boss"
           }
-        ],
-        "playerMatchId": 5,
-        "datePlayed": "2024-04-01"
+        ]
       },
       {
+        "datePlayed": "2024-03-21",
+        "playerMatchId": 4,
         "playerResults": [
           {
-            "team_name": "Miniclip",
-            "player_name": "Brennan Reed",
-            "skill_level": 6,
+            "player_name": "Adam Corbett",
             "score": {
-              "match_pts_earned": 2,
-              "ball_pts_earned": 15,
-              "ball_pts_needed": 46
-            }
+              "games_needed": 5,
+              "games_won": 3,
+              "match_pts_earned": 0
+            },
+            "skill_level": 7,
+            "team_name": "The Final Boss"
           },
           {
-            "team_name": "Amateur Hour",
-            "player_name": "Billy Fidanovski",
-            "skill_level": 6,
+            "player_name": "Cortlan Martin",
             "score": {
-              "match_pts_earned": 18,
-              "ball_pts_earned": 46,
-              "ball_pts_needed": 46
-            }
+              "games_needed": 2,
+              "games_won": 2,
+              "match_pts_earned": 2
+            },
+            "skill_level": 4,
+            "team_name": "Straight Shooters"
           }
-        ],
-        "playerMatchId": 5,
-        "datePlayed": "2024-04-08"
-      }
-    ],
-    "Chano Perez": [
+        ]
+      },
       {
+        "datePlayed": "2024-03-28",
+        "playerMatchId": 2,
         "playerResults": [
           {
-            "team_name": "kthnx",
-            "player_name": "Mercedez Jones",
-            "skill_level": 3,
+            "player_name": "D1000 Gaerig",
             "score": {
-              "match_pts_earned": 3,
-              "ball_pts_earned": 11,
-              "ball_pts_needed": 25
-            }
+              "games_needed": 4,
+              "games_won": 3,
+              "match_pts_earned": 1
+            },
+            "skill_level": 6,
+            "team_name": "Gussell's Sprouts"
           },
           {
-            "team_name": "Miniclip",
-            "player_name": "Chano Perez",
-            "skill_level": 2,
+            "player_name": "Adam Corbett",
             "score": {
-              "match_pts_earned": 17,
-              "ball_pts_earned": 19,
-              "ball_pts_needed": 19
-            }
+              "games_needed": 5,
+              "games_won": 5,
+              "match_pts_earned": 2
+            },
+            "skill_level": 7,
+            "team_name": "The Final Boss"
           }
-        ],
+        ]
+      },
+      {
+        "datePlayed": "2024-04-25",
+        "playerMatchId": 2,
+        "playerResults": [
+          {
+            "player_name": "Randall Davis",
+            "score": {
+              "games_needed": 3,
+              "games_won": 0,
+              "match_pts_earned": 0
+            },
+            "skill_level": 5,
+            "team_name": "Sweet Baby Charles"
+          },
+          {
+            "player_name": "Adam Corbett",
+            "score": {
+              "games_needed": 5,
+              "games_won": 5,
+              "match_pts_earned": 3
+            },
+            "skill_level": 7,
+            "team_name": "The Final Boss"
+          }
+        ]
+      },
+      {
+        "datePlayed": "2024-05-02",
+        "playerMatchId": 3,
+        "playerResults": [
+          {
+            "player_name": "Adam Corbett",
+            "score": {
+              "games_needed": 5,
+              "games_won": 4,
+              "match_pts_earned": 1
+            },
+            "skill_level": 7,
+            "team_name": "The Final Boss"
+          },
+          {
+            "player_name": "Alison Lewis",
+            "score": {
+              "games_needed": 3,
+              "games_won": 3,
+              "match_pts_earned": 2
+            },
+            "skill_level": 5,
+            "team_name": "Not Ben's Team"
+          }
+        ]
+      },
+      {
+        "datePlayed": "2024-05-09",
         "playerMatchId": 1,
-        "datePlayed": "2024-03-18"
-      },
-      {
         "playerResults": [
           {
-            "team_name": "No Ball Left Behind",
+            "player_name": "Daniel Hahn",
+            "score": {
+              "games_needed": 4,
+              "games_won": 1,
+              "match_pts_earned": 0
+            },
+            "skill_level": 6,
+            "team_name": "Cue the Drinks"
+          },
+          {
+            "player_name": "Adam Corbett",
+            "score": {
+              "games_needed": 5,
+              "games_won": 5,
+              "match_pts_earned": 2
+            },
+            "skill_level": 7,
+            "team_name": "The Final Boss"
+          }
+        ]
+      },
+      {
+        "datePlayed": "2024-05-16",
+        "playerMatchId": 2,
+        "playerResults": [
+          {
+            "player_name": "Adam Corbett",
+            "score": {
+              "games_needed": 5,
+              "games_won": 3,
+              "match_pts_earned": 0
+            },
+            "skill_level": 7,
+            "team_name": "The Final Boss"
+          },
+          {
             "player_name": "Jacob Goldman",
-            "skill_level": 3,
             "score": {
-              "match_pts_earned": 19,
-              "ball_pts_earned": 25,
-              "ball_pts_needed": 25
-            }
-          },
-          {
-            "team_name": "Miniclip",
-            "player_name": "Chano Perez",
+              "games_needed": 2,
+              "games_won": 2,
+              "match_pts_earned": 2
+            },
             "skill_level": 4,
-            "score": {
-              "match_pts_earned": 1,
-              "ball_pts_earned": 7,
-              "ball_pts_needed": 31
-            }
+            "team_name": "Pool Gods"
           }
-        ],
-        "playerMatchId": 3,
-        "datePlayed": "2024-04-01"
-      },
-      {
-        "playerResults": [
-          {
-            "team_name": "Miniclip",
-            "player_name": "Chano Perez",
-            "skill_level": 3,
-            "score": {
-              "match_pts_earned": 3,
-              "ball_pts_earned": 11,
-              "ball_pts_needed": 25
-            }
-          },
-          {
-            "team_name": "Amateur Hour",
-            "player_name": "Lisa Chun",
-            "skill_level": 3,
-            "score": {
-              "match_pts_earned": 17,
-              "ball_pts_earned": 25,
-              "ball_pts_needed": 25
-            }
-          }
-        ],
-        "playerMatchId": 1,
-        "datePlayed": "2024-04-08"
-      },
-      {
-        "playerResults": [
-          {
-            "team_name": "Miniclip",
-            "player_name": "Chano Perez",
-            "skill_level": 3,
-            "score": {
-              "match_pts_earned": 4,
-              "ball_pts_earned": 13,
-              "ball_pts_needed": 25
-            }
-          },
-          {
-            "team_name": "Kemet",
-            "player_name": "Quentin Cartwright",
-            "skill_level": 4,
-            "score": {
-              "match_pts_earned": 16,
-              "ball_pts_earned": 31,
-              "ball_pts_needed": 31
-            }
-          }
-        ],
-        "playerMatchId": 1,
-        "datePlayed": "2024-04-22"
-      },
-      {
-        "playerResults": [
-          {
-            "team_name": "Miniclip",
-            "player_name": "Chano Perez",
-            "skill_level": 3,
-            "score": {
-              "match_pts_earned": 4,
-              "ball_pts_earned": 12,
-              "ball_pts_needed": 25
-            }
-          },
-          {
-            "team_name": "Kemet",
-            "player_name": "Minnie Mendez",
-            "skill_level": 2,
-            "score": {
-              "match_pts_earned": 16,
-              "ball_pts_earned": 19,
-              "ball_pts_needed": 19
-            }
-          }
-        ],
-        "playerMatchId": 5,
-        "datePlayed": "2024-04-22"
-      },
-      {
-        "playerResults": [
-          {
-            "team_name": "Kickin' like Bruce",
-            "player_name": "Lyn Dumagpi",
-            "skill_level": 3,
-            "score": {
-              "match_pts_earned": 14,
-              "ball_pts_earned": 25,
-              "ball_pts_needed": 25
-            }
-          },
-          {
-            "team_name": "Miniclip",
-            "player_name": "Chano Perez",
-            "skill_level": 2,
-            "score": {
-              "match_pts_earned": 6,
-              "ball_pts_earned": 14,
-              "ball_pts_needed": 19
-            }
-          }
-        ],
-        "playerMatchId": 3,
-        "datePlayed": "2024-04-29"
+        ]
       }
     ],
-    "Jason Huffman": [
+    "Amy Konaszewski": [
       {
-        "playerResults": [
-          {
-            "team_name": "Kemet",
-            "player_name": "Reginald Van Julun Jr.",
-            "skill_level": 4,
-            "score": {
-              "match_pts_earned": 14,
-              "ball_pts_earned": 31,
-              "ball_pts_needed": 31
-            }
-          },
-          {
-            "team_name": "Miniclip",
-            "player_name": "Jason Huffman",
-            "skill_level": 4,
-            "score": {
-              "match_pts_earned": 6,
-              "ball_pts_earned": 22,
-              "ball_pts_needed": 31
-            }
-          }
-        ],
-        "playerMatchId": 1,
-        "datePlayed": "2024-02-05"
-      },
-      {
-        "playerResults": [
-          {
-            "team_name": "Miniclip",
-            "player_name": "Jason Huffman",
-            "skill_level": 4,
-            "score": {
-              "match_pts_earned": 5,
-              "ball_pts_earned": 19,
-              "ball_pts_needed": 31
-            }
-          },
-          {
-            "team_name": "Motley Crew",
-            "player_name": "Karsten Runquist",
-            "skill_level": 4,
-            "score": {
-              "match_pts_earned": 15,
-              "ball_pts_earned": 31,
-              "ball_pts_needed": 31
-            }
-          }
-        ],
+        "datePlayed": "2024-02-29",
         "playerMatchId": 2,
-        "datePlayed": "2024-02-12"
+        "playerResults": [
+          {
+            "player_name": "Todd Sporleder",
+            "score": {
+              "games_needed": 3,
+              "games_won": 3,
+              "match_pts_earned": 3
+            },
+            "skill_level": 4,
+            "team_name": "Pool Gods"
+          },
+          {
+            "player_name": "Amy Konaszewski",
+            "score": {
+              "games_needed": 2,
+              "games_won": 0,
+              "match_pts_earned": 0
+            },
+            "skill_level": 3,
+            "team_name": "The Final Boss"
+          }
+        ]
+      },
+      {
+        "datePlayed": "2024-03-21",
+        "playerMatchId": 1,
+        "playerResults": [
+          {
+            "player_name": "Amy Konaszewski",
+            "score": {
+              "games_needed": 2,
+              "games_won": 2,
+              "match_pts_earned": 2
+            },
+            "skill_level": 3,
+            "team_name": "The Final Boss"
+          },
+          {
+            "player_name": "Nick Farstveet",
+            "score": {
+              "games_needed": 2,
+              "games_won": 1,
+              "match_pts_earned": 1
+            },
+            "skill_level": 3,
+            "team_name": "Straight Shooters"
+          }
+        ]
+      },
+      {
+        "datePlayed": "2024-03-28",
+        "playerMatchId": 5,
+        "playerResults": [
+          {
+            "player_name": "Len Perez",
+            "score": {
+              "games_needed": 2,
+              "games_won": 0,
+              "match_pts_earned": 0
+            },
+            "skill_level": 3,
+            "team_name": "Gussell's Sprouts"
+          },
+          {
+            "player_name": "Amy Konaszewski",
+            "score": {
+              "games_needed": 2,
+              "games_won": 2,
+              "match_pts_earned": 3
+            },
+            "skill_level": 3,
+            "team_name": "The Final Boss"
+          }
+        ]
+      },
+      {
+        "datePlayed": "2024-04-11",
+        "playerMatchId": 3,
+        "playerResults": [
+          {
+            "player_name": "Amy Konaszewski",
+            "score": {
+              "games_needed": 2,
+              "games_won": 1,
+              "match_pts_earned": 1
+            },
+            "skill_level": 3,
+            "team_name": "The Final Boss"
+          },
+          {
+            "player_name": "Jorge Haro",
+            "score": {
+              "games_needed": 2,
+              "games_won": 2,
+              "match_pts_earned": 2
+            },
+            "skill_level": 3,
+            "team_name": "full time"
+          }
+        ]
+      },
+      {
+        "datePlayed": "2024-05-16",
+        "playerMatchId": 1,
+        "playerResults": [
+          {
+            "player_name": "Amy Konaszewski",
+            "score": {
+              "games_needed": 3,
+              "games_won": 1,
+              "match_pts_earned": 0
+            },
+            "skill_level": 3,
+            "team_name": "The Final Boss"
+          },
+          {
+            "player_name": "Theresa Srnick",
+            "score": {
+              "games_needed": 2,
+              "games_won": 2,
+              "match_pts_earned": 2
+            },
+            "skill_level": 2,
+            "team_name": "Pool Gods"
+          }
+        ]
       }
     ],
-    "Jiannan Zhu": [
+    "Christian Swafford": [
       {
+        "datePlayed": "2024-02-08",
+        "playerMatchId": 3,
         "playerResults": [
           {
-            "team_name": "Miniclip",
-            "player_name": "Jiannan Zhu",
-            "skill_level": 2,
-            "score": {
-              "match_pts_earned": 14,
-              "ball_pts_earned": 19,
-              "ball_pts_needed": 19
-            }
-          },
-          {
-            "team_name": "Kickin' like Bruce",
-            "player_name": "Lyn Dumagpi",
-            "skill_level": 3,
-            "score": {
-              "match_pts_earned": 6,
-              "ball_pts_earned": 17,
-              "ball_pts_needed": 25
-            }
-          }
-        ],
-        "playerMatchId": 1,
-        "datePlayed": "2024-02-26"
-      },
-      {
-        "playerResults": [
-          {
-            "team_name": "Miniclip",
-            "player_name": "Jiannan Zhu",
-            "skill_level": 2,
-            "score": {
-              "match_pts_earned": 7,
-              "ball_pts_earned": 15,
-              "ball_pts_needed": 19
-            }
-          },
-          {
-            "team_name": "No English",
-            "player_name": "Adrian Yang",
-            "skill_level": 5,
-            "score": {
-              "match_pts_earned": 13,
-              "ball_pts_earned": 38,
-              "ball_pts_needed": 38
-            }
-          }
-        ],
-        "playerMatchId": 4,
-        "datePlayed": "2024-03-11"
-      },
-      {
-        "playerResults": [
-          {
-            "team_name": "No Ball Left Behind",
-            "player_name": "Melanie Jones",
-            "skill_level": 2,
-            "score": {
-              "match_pts_earned": 6,
-              "ball_pts_earned": 13,
-              "ball_pts_needed": 19
-            }
-          },
-          {
-            "team_name": "Miniclip",
-            "player_name": "Jiannan Zhu",
-            "skill_level": 2,
-            "score": {
-              "match_pts_earned": 14,
-              "ball_pts_earned": 19,
-              "ball_pts_needed": 19
-            }
-          }
-        ],
-        "playerMatchId": 4,
-        "datePlayed": "2024-04-01"
-      },
-      {
-        "playerResults": [
-          {
-            "team_name": "No English",
             "player_name": "Christian Swafford",
-            "skill_level": 4,
             "score": {
-              "match_pts_earned": 13,
-              "ball_pts_earned": 31,
-              "ball_pts_needed": 31
-            }
-          },
-          {
-            "team_name": "Miniclip",
-            "player_name": "Jiannan Zhu",
-            "skill_level": 2,
-            "score": {
-              "match_pts_earned": 7,
-              "ball_pts_earned": 16,
-              "ball_pts_needed": 19
-            }
-          }
-        ],
-        "playerMatchId": 4,
-        "datePlayed": "2024-04-15"
-      },
-      {
-        "playerResults": [
-          {
-            "team_name": "Kickin' like Bruce",
-            "player_name": "Brian Hale",
-            "skill_level": 6,
-            "score": {
-              "match_pts_earned": 8,
-              "ball_pts_earned": 42,
-              "ball_pts_needed": 46
-            }
-          },
-          {
-            "team_name": "Miniclip",
-            "player_name": "Jiannan Zhu",
-            "skill_level": 2,
-            "score": {
-              "match_pts_earned": 12,
-              "ball_pts_earned": 19,
-              "ball_pts_needed": 19
-            }
-          }
-        ],
-        "playerMatchId": 4,
-        "datePlayed": "2024-04-29"
-      }
-    ],
-    "Michael Lauth": [
-      {
-        "playerResults": [
-          {
-            "team_name": "Kickin' like Bruce",
-            "player_name": "Jason Mui",
+              "games_needed": 4,
+              "games_won": 0,
+              "match_pts_earned": 0
+            },
             "skill_level": 5,
-            "score": {
-              "match_pts_earned": 6,
-              "ball_pts_earned": 27,
-              "ball_pts_needed": 38
-            }
+            "team_name": "The Final Boss"
           },
           {
-            "team_name": "Miniclip",
-            "player_name": "Michael Lauth",
-            "skill_level": 4,
+            "player_name": "Marc Boylan",
             "score": {
-              "match_pts_earned": 14,
-              "ball_pts_earned": 31,
-              "ball_pts_needed": 31
-            }
+              "games_needed": 4,
+              "games_won": 4,
+              "match_pts_earned": 3
+            },
+            "skill_level": 5,
+            "team_name": "Sweet Baby Charles"
           }
-        ],
-        "playerMatchId": 5,
-        "datePlayed": "2024-01-29"
+        ]
       },
       {
+        "datePlayed": "2024-02-15",
+        "playerMatchId": 4,
         "playerResults": [
           {
-            "team_name": "Kemet",
-            "player_name": "Quentin Cartwright",
-            "skill_level": 4,
+            "player_name": "Alison Lewis",
             "score": {
-              "match_pts_earned": 6,
-              "ball_pts_earned": 23,
-              "ball_pts_needed": 31
-            }
+              "games_needed": 4,
+              "games_won": 2,
+              "match_pts_earned": 0
+            },
+            "skill_level": 5,
+            "team_name": "Not Ben's Team"
           },
           {
-            "team_name": "Miniclip",
-            "player_name": "Michael Lauth",
-            "skill_level": 4,
+            "player_name": "Christian Swafford",
             "score": {
-              "match_pts_earned": 14,
-              "ball_pts_earned": 31,
-              "ball_pts_needed": 31
-            }
+              "games_needed": 4,
+              "games_won": 4,
+              "match_pts_earned": 2
+            },
+            "skill_level": 5,
+            "team_name": "The Final Boss"
           }
-        ],
-        "playerMatchId": 2,
-        "datePlayed": "2024-02-05"
+        ]
       },
       {
+        "datePlayed": "2024-02-29",
+        "playerMatchId": 4,
         "playerResults": [
           {
-            "team_name": "Miniclip",
-            "player_name": "Patrick Barrett",
-            "skill_level": 3,
+            "player_name": "Jared Schneider",
             "score": {
-              "match_pts_earned": 12,
-              "ball_pts_earned": 25,
-              "ball_pts_needed": 25
-            }
+              "games_needed": 4,
+              "games_won": 4,
+              "match_pts_earned": 2
+            },
+            "skill_level": 5,
+            "team_name": "Pool Gods"
           },
           {
-            "team_name": "Motley Crew",
-            "player_name": "Michael Lauth",
-            "skill_level": 4,
+            "player_name": "Christian Swafford",
             "score": {
-              "match_pts_earned": 8,
-              "ball_pts_earned": 29,
-              "ball_pts_needed": 31
-            }
+              "games_needed": 4,
+              "games_won": 3,
+              "match_pts_earned": 1
+            },
+            "skill_level": 5,
+            "team_name": "The Final Boss"
           }
-        ],
+        ]
+      },
+      {
+        "datePlayed": "2024-03-14",
         "playerMatchId": 3,
-        "datePlayed": "2024-02-12"
+        "playerResults": [
+          {
+            "player_name": "Donnie MacEachron",
+            "score": {
+              "games_needed": 4,
+              "games_won": 4,
+              "match_pts_earned": 3
+            },
+            "skill_level": 5,
+            "team_name": "Cogburn Leghorn"
+          },
+          {
+            "player_name": "Christian Swafford",
+            "score": {
+              "games_needed": 4,
+              "games_won": 0,
+              "match_pts_earned": 0
+            },
+            "skill_level": 5,
+            "team_name": "The Final Boss"
+          }
+        ]
+      },
+      {
+        "datePlayed": "2024-03-28",
+        "playerMatchId": 1,
+        "playerResults": [
+          {
+            "player_name": "Matt Dennewitz",
+            "score": {
+              "games_needed": 3,
+              "games_won": 0,
+              "match_pts_earned": 0
+            },
+            "skill_level": 4,
+            "team_name": "Gussell's Sprouts"
+          },
+          {
+            "player_name": "Christian Swafford",
+            "score": {
+              "games_needed": 3,
+              "games_won": 3,
+              "match_pts_earned": 3
+            },
+            "skill_level": 4,
+            "team_name": "The Final Boss"
+          }
+        ]
+      },
+      {
+        "datePlayed": "2024-04-11",
+        "playerMatchId": 5,
+        "playerResults": [
+          {
+            "player_name": "Christian Swafford",
+            "score": {
+              "games_needed": 3,
+              "games_won": 2,
+              "match_pts_earned": 1
+            },
+            "skill_level": 4,
+            "team_name": "The Final Boss"
+          },
+          {
+            "player_name": "Jorge Haro",
+            "score": {
+              "games_needed": 2,
+              "games_won": 2,
+              "match_pts_earned": 2
+            },
+            "skill_level": 3,
+            "team_name": "full time"
+          }
+        ]
+      },
+      {
+        "datePlayed": "2024-04-18",
+        "playerMatchId": 1,
+        "playerResults": [
+          {
+            "player_name": "Christian Swafford",
+            "score": {
+              "games_needed": 3,
+              "games_won": 3,
+              "match_pts_earned": 2
+            },
+            "skill_level": 4,
+            "team_name": "The Final Boss"
+          },
+          {
+            "player_name": "Jordan Pierce",
+            "score": {
+              "games_needed": 3,
+              "games_won": 1,
+              "match_pts_earned": 0
+            },
+            "skill_level": 4,
+            "team_name": "Chalkie's Children"
+          }
+        ]
+      },
+      {
+        "datePlayed": "2024-04-25",
+        "playerMatchId": 5,
+        "playerResults": [
+          {
+            "player_name": "Marc Boylan",
+            "score": {
+              "games_needed": 4,
+              "games_won": 4,
+              "match_pts_earned": 2
+            },
+            "skill_level": 5,
+            "team_name": "Sweet Baby Charles"
+          },
+          {
+            "player_name": "Christian Swafford",
+            "score": {
+              "games_needed": 4,
+              "games_won": 1,
+              "match_pts_earned": 0
+            },
+            "skill_level": 5,
+            "team_name": "The Final Boss"
+          }
+        ]
+      },
+      {
+        "datePlayed": "2024-05-09",
+        "playerMatchId": 2,
+        "playerResults": [
+          {
+            "player_name": "Yuvia Roman",
+            "score": {
+              "games_needed": 3,
+              "games_won": 3,
+              "match_pts_earned": 2
+            },
+            "skill_level": 4,
+            "team_name": "Cue the Drinks"
+          },
+          {
+            "player_name": "Christian Swafford",
+            "score": {
+              "games_needed": 4,
+              "games_won": 1,
+              "match_pts_earned": 0
+            },
+            "skill_level": 5,
+            "team_name": "The Final Boss"
+          }
+        ]
       }
     ],
-    "Patrick Barrett": [
+    "John Hopfinger": [
       {
-        "playerResults": [
-          {
-            "team_name": "Kickin' like Bruce",
-            "player_name": "Cynthia Tang",
-            "skill_level": 3,
-            "score": {
-              "match_pts_earned": 15,
-              "ball_pts_earned": 25,
-              "ball_pts_needed": 25
-            }
-          },
-          {
-            "team_name": "Miniclip",
-            "player_name": "Patrick Barrett",
-            "skill_level": 3,
-            "score": {
-              "match_pts_earned": 5,
-              "ball_pts_earned": 16,
-              "ball_pts_needed": 25
-            }
-          }
-        ],
-        "playerMatchId": 3,
-        "datePlayed": "2024-01-29"
-      },
-      {
-        "playerResults": [
-          {
-            "team_name": "Kemet",
-            "player_name": "MIKE Louie",
-            "skill_level": 8,
-            "score": {
-              "match_pts_earned": 13,
-              "ball_pts_earned": 65,
-              "ball_pts_needed": 65
-            }
-          },
-          {
-            "team_name": "Miniclip",
-            "player_name": "Patrick Barrett",
-            "skill_level": 3,
-            "score": {
-              "match_pts_earned": 7,
-              "ball_pts_earned": 20,
-              "ball_pts_needed": 25
-            }
-          }
-        ],
-        "playerMatchId": 3,
-        "datePlayed": "2024-02-05"
-      },
-      {
-        "playerResults": [
-          {
-            "team_name": "Miniclip",
-            "player_name": "Patrick Barrett",
-            "skill_level": 3,
-            "score": {
-              "match_pts_earned": 12,
-              "ball_pts_earned": 25,
-              "ball_pts_needed": 25
-            }
-          },
-          {
-            "team_name": "Motley Crew",
-            "player_name": "Michael Lauth",
-            "skill_level": 4,
-            "score": {
-              "match_pts_earned": 8,
-              "ball_pts_earned": 29,
-              "ball_pts_needed": 31
-            }
-          }
-        ],
-        "playerMatchId": 3,
-        "datePlayed": "2024-02-12"
-      },
-      {
-        "playerResults": [
-          {
-            "team_name": "Kemet",
-            "player_name": "Minnie Mendez",
-            "skill_level": 2,
-            "score": {
-              "match_pts_earned": 14,
-              "ball_pts_earned": 19,
-              "ball_pts_needed": 19
-            }
-          },
-          {
-            "team_name": "Miniclip",
-            "player_name": "Patrick Barrett",
-            "skill_level": 3,
-            "score": {
-              "match_pts_earned": 6,
-              "ball_pts_earned": 19,
-              "ball_pts_needed": 25
-            }
-          }
-        ],
+        "datePlayed": "2024-02-08",
         "playerMatchId": 1,
-        "datePlayed": "2024-02-19"
-      },
-      {
         "playerResults": [
           {
-            "team_name": "Miniclip",
-            "player_name": "Patrick Barrett",
-            "skill_level": 3,
-            "score": {
-              "match_pts_earned": 6,
-              "ball_pts_earned": 17,
-              "ball_pts_needed": 25
-            }
-          },
-          {
-            "team_name": "Murderball",
-            "player_name": "Molly Kathryn",
-            "skill_level": 3,
-            "score": {
-              "match_pts_earned": 14,
-              "ball_pts_earned": 25,
-              "ball_pts_needed": 25
-            }
-          }
-        ],
-        "playerMatchId": 4,
-        "datePlayed": "2024-03-04"
-      },
-      {
-        "playerResults": [
-          {
-            "team_name": "Miniclip",
-            "player_name": "Patrick Barrett",
-            "skill_level": 3,
-            "score": {
-              "match_pts_earned": 13,
-              "ball_pts_earned": 25,
-              "ball_pts_needed": 25
-            }
-          },
-          {
-            "team_name": "No English",
-            "player_name": "Toby Chen",
-            "skill_level": 8,
-            "score": {
-              "match_pts_earned": 7,
-              "ball_pts_earned": 55,
-              "ball_pts_needed": 65
-            }
-          }
-        ],
-        "playerMatchId": 1,
-        "datePlayed": "2024-03-11"
-      },
-      {
-        "playerResults": [
-          {
-            "team_name": "No Ball Left Behind",
-            "player_name": "Ashley Barnes",
-            "skill_level": 3,
-            "score": {
-              "match_pts_earned": 2,
-              "ball_pts_earned": 9,
-              "ball_pts_needed": 25
-            }
-          },
-          {
-            "team_name": "Miniclip",
-            "player_name": "Patrick Barrett",
-            "skill_level": 3,
-            "score": {
-              "match_pts_earned": 18,
-              "ball_pts_earned": 25,
-              "ball_pts_needed": 25
-            }
-          }
-        ],
-        "playerMatchId": 1,
-        "datePlayed": "2024-04-01"
-      },
-      {
-        "playerResults": [
-          {
-            "team_name": "Miniclip",
-            "player_name": "Patrick Barrett",
-            "skill_level": 4,
-            "score": {
-              "match_pts_earned": 15,
-              "ball_pts_earned": 31,
-              "ball_pts_needed": 31
-            }
-          },
-          {
-            "team_name": "Amateur Hour",
             "player_name": "John Hopfinger",
-            "skill_level": 4,
             "score": {
-              "match_pts_earned": 5,
-              "ball_pts_earned": 19,
-              "ball_pts_needed": 31
-            }
-          }
-        ],
-        "playerMatchId": 2,
-        "datePlayed": "2024-04-08"
-      },
-      {
-        "playerResults": [
+              "games_needed": 2,
+              "games_won": 2,
+              "match_pts_earned": 2
+            },
+            "skill_level": 2,
+            "team_name": "The Final Boss"
+          },
           {
-            "team_name": "No English",
-            "player_name": "Baby Shork Sato",
+            "player_name": "Mercedez Jones",
+            "score": {
+              "games_needed": 3,
+              "games_won": 1,
+              "match_pts_earned": 0
+            },
             "skill_level": 3,
-            "score": {
-              "match_pts_earned": 5,
-              "ball_pts_earned": 16,
-              "ball_pts_needed": 25
-            }
-          },
-          {
-            "team_name": "Miniclip",
-            "player_name": "Patrick Barrett",
-            "skill_level": 4,
-            "score": {
-              "match_pts_earned": 15,
-              "ball_pts_earned": 31,
-              "ball_pts_needed": 31
-            }
+            "team_name": "Sweet Baby Charles"
           }
-        ],
-        "playerMatchId": 1,
-        "datePlayed": "2024-04-15"
+        ]
       },
       {
-        "playerResults": [
-          {
-            "team_name": "No English",
-            "player_name": "Edward Torres",
-            "skill_level": 4,
-            "score": {
-              "match_pts_earned": 14,
-              "ball_pts_earned": 31,
-              "ball_pts_needed": 31
-            }
-          },
-          {
-            "team_name": "Miniclip",
-            "player_name": "Patrick Barrett",
-            "skill_level": 4,
-            "score": {
-              "match_pts_earned": 6,
-              "ball_pts_earned": 24,
-              "ball_pts_needed": 31
-            }
-          }
-        ],
+        "datePlayed": "2024-02-15",
         "playerMatchId": 5,
-        "datePlayed": "2024-04-15"
-      },
-      {
         "playerResults": [
           {
-            "team_name": "Miniclip",
-            "player_name": "Patrick Barrett",
-            "skill_level": 4,
+            "player_name": "Yoonjin Choo",
             "score": {
-              "match_pts_earned": 4,
-              "ball_pts_earned": 18,
-              "ball_pts_needed": 31
-            }
-          },
-          {
-            "team_name": "Kemet",
-            "player_name": "Reginald Van Julun Jr.",
-            "skill_level": 4,
-            "score": {
-              "match_pts_earned": 16,
-              "ball_pts_earned": 31,
-              "ball_pts_needed": 31
-            }
-          }
-        ],
-        "playerMatchId": 3,
-        "datePlayed": "2024-04-22"
-      },
-      {
-        "playerResults": [
-          {
-            "team_name": "Kickin' like Bruce",
-            "player_name": "Cynthia Tang",
+              "games_needed": 3,
+              "games_won": 1,
+              "match_pts_earned": 0
+            },
             "skill_level": 3,
-            "score": {
-              "match_pts_earned": 4,
-              "ball_pts_earned": 13,
-              "ball_pts_needed": 25
-            }
+            "team_name": "Not Ben's Team"
           },
           {
-            "team_name": "Miniclip",
-            "player_name": "Patrick Barrett",
-            "skill_level": 4,
+            "player_name": "John Hopfinger",
             "score": {
-              "match_pts_earned": 16,
-              "ball_pts_earned": 31,
-              "ball_pts_needed": 31
-            }
+              "games_needed": 2,
+              "games_won": 2,
+              "match_pts_earned": 2
+            },
+            "skill_level": 2,
+            "team_name": "The Final Boss"
           }
-        ],
+        ]
+      },
+      {
+        "datePlayed": "2024-02-29",
+        "playerMatchId": 5,
+        "playerResults": [
+          {
+            "player_name": "Reginald Van Julun Jr.",
+            "score": {
+              "games_needed": 4,
+              "games_won": 3,
+              "match_pts_earned": 1
+            },
+            "skill_level": 5,
+            "team_name": "Pool Gods"
+          },
+          {
+            "player_name": "John Hopfinger",
+            "score": {
+              "games_needed": 2,
+              "games_won": 2,
+              "match_pts_earned": 2
+            },
+            "skill_level": 3,
+            "team_name": "The Final Boss"
+          }
+        ]
+      },
+      {
+        "datePlayed": "2024-03-07",
+        "playerMatchId": 4,
+        "playerResults": [
+          {
+            "player_name": "John Hopfinger",
+            "score": {
+              "games_needed": 2,
+              "games_won": 2,
+              "match_pts_earned": 3
+            },
+            "skill_level": 3,
+            "team_name": "The Final Boss"
+          },
+          {
+            "player_name": "Jonna Robertson",
+            "score": {
+              "games_needed": 2,
+              "games_won": 0,
+              "match_pts_earned": 0
+            },
+            "skill_level": 3,
+            "team_name": "HoneyBadgerDontGiveAF$%K"
+          }
+        ]
+      },
+      {
+        "datePlayed": "2024-03-14",
+        "playerMatchId": 5,
+        "playerResults": [
+          {
+            "player_name": "Normand Burns",
+            "score": {
+              "games_needed": 3,
+              "games_won": 3,
+              "match_pts_earned": 3
+            },
+            "skill_level": 4,
+            "team_name": "Cogburn Leghorn"
+          },
+          {
+            "player_name": "John Hopfinger",
+            "score": {
+              "games_needed": 2,
+              "games_won": 0,
+              "match_pts_earned": 0
+            },
+            "skill_level": 3,
+            "team_name": "The Final Boss"
+          }
+        ]
+      },
+      {
+        "datePlayed": "2024-04-11",
         "playerMatchId": 2,
-        "datePlayed": "2024-04-29"
+        "playerResults": [
+          {
+            "player_name": "John Hopfinger",
+            "score": {
+              "games_needed": 3,
+              "games_won": 3,
+              "match_pts_earned": 3
+            },
+            "skill_level": 4,
+            "team_name": "The Final Boss"
+          },
+          {
+            "player_name": "Jack Ng",
+            "score": {
+              "games_needed": 4,
+              "games_won": 0,
+              "match_pts_earned": 0
+            },
+            "skill_level": 5,
+            "team_name": "full time"
+          }
+        ]
+      },
+      {
+        "datePlayed": "2024-04-18",
+        "playerMatchId": 3,
+        "playerResults": [
+          {
+            "player_name": "John Hopfinger",
+            "score": {
+              "games_needed": 3,
+              "games_won": 3,
+              "match_pts_earned": 2
+            },
+            "skill_level": 4,
+            "team_name": "The Final Boss"
+          },
+          {
+            "player_name": "Slick Lear",
+            "score": {
+              "games_needed": 4,
+              "games_won": 1,
+              "match_pts_earned": 0
+            },
+            "skill_level": 5,
+            "team_name": "Chalkie's Children"
+          }
+        ]
+      },
+      {
+        "datePlayed": "2024-04-25",
+        "playerMatchId": 3,
+        "playerResults": [
+          {
+            "player_name": "Charlie Fitzpatrick",
+            "score": {
+              "games_needed": 5,
+              "games_won": 5,
+              "match_pts_earned": 2
+            },
+            "skill_level": 6,
+            "team_name": "Sweet Baby Charles"
+          },
+          {
+            "player_name": "John Hopfinger",
+            "score": {
+              "games_needed": 3,
+              "games_won": 2,
+              "match_pts_earned": 1
+            },
+            "skill_level": 4,
+            "team_name": "The Final Boss"
+          }
+        ]
+      },
+      {
+        "datePlayed": "2024-05-02",
+        "playerMatchId": 2,
+        "playerResults": [
+          {
+            "player_name": "John Hopfinger",
+            "score": {
+              "games_needed": 3,
+              "games_won": 2,
+              "match_pts_earned": 1
+            },
+            "skill_level": 4,
+            "team_name": "The Final Boss"
+          },
+          {
+            "player_name": "Steven Nguyen",
+            "score": {
+              "games_needed": 2,
+              "games_won": 2,
+              "match_pts_earned": 2
+            },
+            "skill_level": 3,
+            "team_name": "Not Ben's Team"
+          }
+        ]
+      },
+      {
+        "datePlayed": "2024-05-16",
+        "playerMatchId": 5,
+        "playerResults": [
+          {
+            "player_name": "John Hopfinger",
+            "score": {
+              "games_needed": 3,
+              "games_won": 1,
+              "match_pts_earned": 0
+            },
+            "skill_level": 4,
+            "team_name": "The Final Boss"
+          },
+          {
+            "player_name": "Corey Gilbert",
+            "score": {
+              "games_needed": 5,
+              "games_won": 5,
+              "match_pts_earned": 2
+            },
+            "skill_level": 6,
+            "team_name": "Pool Gods"
+          }
+        ]
       }
     ],
     "Quinn Baker": [
       {
-        "playerResults": [
-          {
-            "team_name": "Kickin' like Bruce",
-            "player_name": "Wayne Wong",
-            "skill_level": 6,
-            "score": {
-              "match_pts_earned": 12,
-              "ball_pts_earned": 46,
-              "ball_pts_needed": 46
-            }
-          },
-          {
-            "team_name": "Miniclip",
-            "player_name": "Quinn Baker",
-            "skill_level": 6,
-            "score": {
-              "match_pts_earned": 8,
-              "ball_pts_earned": 41,
-              "ball_pts_needed": 46
-            }
-          }
-        ],
-        "playerMatchId": 4,
-        "datePlayed": "2024-01-29"
-      },
-      {
-        "playerResults": [
-          {
-            "team_name": "Miniclip",
-            "player_name": "Quinn Baker",
-            "skill_level": 6,
-            "score": {
-              "match_pts_earned": 18,
-              "ball_pts_earned": 46,
-              "ball_pts_needed": 46
-            }
-          },
-          {
-            "team_name": "Motley Crew",
-            "player_name": "Sean Cowhey",
-            "skill_level": 5,
-            "score": {
-              "match_pts_earned": 2,
-              "ball_pts_earned": 13,
-              "ball_pts_needed": 38
-            }
-          }
-        ],
-        "playerMatchId": 4,
-        "datePlayed": "2024-02-12"
-      },
-      {
-        "playerResults": [
-          {
-            "team_name": "Kemet",
-            "player_name": "Darryl Deveaux",
-            "skill_level": 6,
-            "score": {
-              "match_pts_earned": 6,
-              "ball_pts_earned": 36,
-              "ball_pts_needed": 46
-            }
-          },
-          {
-            "team_name": "Miniclip",
-            "player_name": "Quinn Baker",
-            "skill_level": 7,
-            "score": {
-              "match_pts_earned": 14,
-              "ball_pts_earned": 55,
-              "ball_pts_needed": 55
-            }
-          }
-        ],
-        "playerMatchId": 4,
-        "datePlayed": "2024-02-19"
-      },
-      {
-        "playerResults": [
-          {
-            "team_name": "Miniclip",
-            "player_name": "Quinn Baker",
-            "skill_level": 7,
-            "score": {
-              "match_pts_earned": 13,
-              "ball_pts_earned": 55,
-              "ball_pts_needed": 55
-            }
-          },
-          {
-            "team_name": "Kickin' like Bruce",
-            "player_name": "Brian Hale",
-            "skill_level": 6,
-            "score": {
-              "match_pts_earned": 7,
-              "ball_pts_earned": 39,
-              "ball_pts_needed": 46
-            }
-          }
-        ],
-        "playerMatchId": 5,
-        "datePlayed": "2024-02-26"
-      },
-      {
-        "playerResults": [
-          {
-            "team_name": "Miniclip",
-            "player_name": "Quinn Baker",
-            "skill_level": 7,
-            "score": {
-              "match_pts_earned": 5,
-              "ball_pts_earned": 37,
-              "ball_pts_needed": 55
-            }
-          },
-          {
-            "team_name": "No English",
-            "player_name": "Edward Torres",
-            "skill_level": 4,
-            "score": {
-              "match_pts_earned": 15,
-              "ball_pts_earned": 31,
-              "ball_pts_needed": 31
-            }
-          }
-        ],
-        "playerMatchId": 5,
-        "datePlayed": "2024-03-11"
-      },
-      {
-        "playerResults": [
-          {
-            "team_name": "No Ball Left Behind",
-            "player_name": "Mark Kierna",
-            "skill_level": 5,
-            "score": {
-              "match_pts_earned": 7,
-              "ball_pts_earned": 32,
-              "ball_pts_needed": 38
-            }
-          },
-          {
-            "team_name": "Miniclip",
-            "player_name": "Quinn Baker",
-            "skill_level": 7,
-            "score": {
-              "match_pts_earned": 13,
-              "ball_pts_earned": 55,
-              "ball_pts_needed": 55
-            }
-          }
-        ],
-        "playerMatchId": 2,
-        "datePlayed": "2024-04-01"
-      },
-      {
-        "playerResults": [
-          {
-            "team_name": "Miniclip",
-            "player_name": "Quinn Baker",
-            "skill_level": 7,
-            "score": {
-              "match_pts_earned": 6,
-              "ball_pts_earned": 41,
-              "ball_pts_needed": 55
-            }
-          },
-          {
-            "team_name": "Kemet",
-            "player_name": "Brendon Germany",
-            "skill_level": 8,
-            "score": {
-              "match_pts_earned": 14,
-              "ball_pts_earned": 65,
-              "ball_pts_needed": 65
-            }
-          }
-        ],
-        "playerMatchId": 2,
-        "datePlayed": "2024-04-22"
-      },
-      {
-        "playerResults": [
-          {
-            "team_name": "Kickin' like Bruce",
-            "player_name": "Bo Lee",
-            "skill_level": 6,
-            "score": {
-              "match_pts_earned": 13,
-              "ball_pts_earned": 46,
-              "ball_pts_needed": 46
-            }
-          },
-          {
-            "team_name": "Miniclip",
-            "player_name": "Quinn Baker",
-            "skill_level": 7,
-            "score": {
-              "match_pts_earned": 7,
-              "ball_pts_earned": 49,
-              "ball_pts_needed": 55
-            }
-          }
-        ],
-        "playerMatchId": 5,
-        "datePlayed": "2024-04-29"
-      }
-    ],
-    "Rob Scott": [
-      {
-        "playerResults": [
-          {
-            "team_name": "Kemet",
-            "player_name": "Minnie Mendez",
-            "skill_level": 2,
-            "score": {
-              "match_pts_earned": 3,
-              "ball_pts_earned": 8,
-              "ball_pts_needed": 19
-            }
-          },
-          {
-            "team_name": "Miniclip",
-            "player_name": "Rob Scott",
-            "skill_level": 3,
-            "score": {
-              "match_pts_earned": 17,
-              "ball_pts_earned": 0,
-              "ball_pts_needed": 25
-            }
-          }
-        ],
-        "playerMatchId": 4,
-        "datePlayed": "2024-02-05"
-      },
-      {
-        "playerResults": [
-          {
-            "team_name": "Miniclip",
-            "player_name": "Rob Scott",
-            "skill_level": 4,
-            "score": {
-              "match_pts_earned": 8,
-              "ball_pts_earned": 28,
-              "ball_pts_needed": 31
-            }
-          },
-          {
-            "team_name": "Motley Crew",
-            "player_name": "Tala Germani",
-            "skill_level": 2,
-            "score": {
-              "match_pts_earned": 12,
-              "ball_pts_earned": 19,
-              "ball_pts_needed": 19
-            }
-          }
-        ],
-        "playerMatchId": 5,
-        "datePlayed": "2024-02-12"
-      },
-      {
-        "playerResults": [
-          {
-            "team_name": "Kemet",
-            "player_name": "Reginald Van Julun Jr.",
-            "skill_level": 4,
-            "score": {
-              "match_pts_earned": 7,
-              "ball_pts_earned": 27,
-              "ball_pts_needed": 31
-            }
-          },
-          {
-            "team_name": "Miniclip",
-            "player_name": "Rob Scott",
-            "skill_level": 4,
-            "score": {
-              "match_pts_earned": 13,
-              "ball_pts_earned": 31,
-              "ball_pts_needed": 31
-            }
-          }
-        ],
-        "playerMatchId": 5,
-        "datePlayed": "2024-02-19"
-      },
-      {
-        "playerResults": [
-          {
-            "team_name": "Miniclip",
-            "player_name": "Rob Scott",
-            "skill_level": 4,
-            "score": {
-              "match_pts_earned": 8,
-              "ball_pts_earned": 28,
-              "ball_pts_needed": 31
-            }
-          },
-          {
-            "team_name": "Murderball",
-            "player_name": "Megan Lennon",
-            "skill_level": 3,
-            "score": {
-              "match_pts_earned": 12,
-              "ball_pts_earned": 25,
-              "ball_pts_needed": 25
-            }
-          }
-        ],
-        "playerMatchId": 5,
-        "datePlayed": "2024-03-04"
-      },
-      {
-        "playerResults": [
-          {
-            "team_name": "Miniclip",
-            "player_name": "Rob Scott",
-            "skill_level": 4,
-            "score": {
-              "match_pts_earned": 16,
-              "ball_pts_earned": 31,
-              "ball_pts_needed": 31
-            }
-          },
-          {
-            "team_name": "No English",
-            "player_name": "Abe Token Martinez",
-            "skill_level": 4,
-            "score": {
-              "match_pts_earned": 4,
-              "ball_pts_earned": 18,
-              "ball_pts_needed": 31
-            }
-          }
-        ],
-        "playerMatchId": 2,
-        "datePlayed": "2024-03-11"
-      },
-      {
-        "playerResults": [
-          {
-            "team_name": "kthnx",
-            "player_name": "Tyler Worrell",
-            "skill_level": 5,
-            "score": {
-              "match_pts_earned": 13,
-              "ball_pts_earned": 38,
-              "ball_pts_needed": 38
-            }
-          },
-          {
-            "team_name": "Miniclip",
-            "player_name": "Rob Scott",
-            "skill_level": 4,
-            "score": {
-              "match_pts_earned": 7,
-              "ball_pts_earned": 25,
-              "ball_pts_needed": 31
-            }
-          }
-        ],
-        "playerMatchId": 2,
-        "datePlayed": "2024-03-18"
-      }
-    ],
-    "Sam Rall": [
-      {
-        "playerResults": [
-          {
-            "team_name": "Kickin' like Bruce",
-            "player_name": "Victor Mui",
-            "skill_level": 4,
-            "score": {
-              "match_pts_earned": 19,
-              "ball_pts_earned": 31,
-              "ball_pts_needed": 31
-            }
-          },
-          {
-            "team_name": "Miniclip",
-            "player_name": "Sam Rall",
-            "skill_level": 4,
-            "score": {
-              "match_pts_earned": 1,
-              "ball_pts_earned": 6,
-              "ball_pts_needed": 31
-            }
-          }
-        ],
-        "playerMatchId": 2,
-        "datePlayed": "2024-01-29"
-      },
-      {
-        "playerResults": [
-          {
-            "team_name": "Kemet",
-            "player_name": "Rich Hubbard",
-            "skill_level": 4,
-            "score": {
-              "match_pts_earned": 6,
-              "ball_pts_earned": 24,
-              "ball_pts_needed": 31
-            }
-          },
-          {
-            "team_name": "Miniclip",
-            "player_name": "Sam Rall",
-            "skill_level": 4,
-            "score": {
-              "match_pts_earned": 14,
-              "ball_pts_earned": 31,
-              "ball_pts_needed": 31
-            }
-          }
-        ],
+        "datePlayed": "2024-02-01",
         "playerMatchId": 3,
-        "datePlayed": "2024-02-19"
-      },
-      {
         "playerResults": [
           {
-            "team_name": "Miniclip",
-            "player_name": "Sam Rall",
-            "skill_level": 4,
+            "player_name": "Prasanna Shanmuganathan",
             "score": {
-              "match_pts_earned": 4,
-              "ball_pts_earned": 17,
-              "ball_pts_needed": 31
-            }
+              "games_needed": 3,
+              "games_won": 0,
+              "match_pts_earned": 0
+            },
+            "skill_level": 4,
+            "team_name": "full time"
           },
           {
-            "team_name": "Murderball",
-            "player_name": "Josh Branchaud",
-            "skill_level": 5,
+            "player_name": "Quinn Baker",
             "score": {
-              "match_pts_earned": 16,
-              "ball_pts_earned": 38,
-              "ball_pts_needed": 38
-            }
+              "games_needed": 5,
+              "games_won": 5,
+              "match_pts_earned": 3
+            },
+            "skill_level": 6,
+            "team_name": "The Final Boss"
           }
-        ],
+        ]
+      },
+      {
+        "datePlayed": "2024-02-08",
         "playerMatchId": 2,
-        "datePlayed": "2024-03-04"
-      },
-      {
         "playerResults": [
           {
-            "team_name": "Miniclip",
-            "player_name": "Sam Rall",
-            "skill_level": 4,
+            "player_name": "Quinn Baker",
             "score": {
-              "match_pts_earned": 18,
-              "ball_pts_earned": 31,
-              "ball_pts_needed": 31
-            }
+              "games_needed": 5,
+              "games_won": 5,
+              "match_pts_earned": 3
+            },
+            "skill_level": 6,
+            "team_name": "The Final Boss"
           },
           {
-            "team_name": "No English",
-            "player_name": "Leanna Cheng",
-            "skill_level": 2,
+            "player_name": "Dallas Taylor",
             "score": {
-              "match_pts_earned": 2,
-              "ball_pts_earned": 7,
-              "ball_pts_needed": 19
-            }
+              "games_needed": 3,
+              "games_won": 0,
+              "match_pts_earned": 0
+            },
+            "skill_level": 4,
+            "team_name": "Sweet Baby Charles"
           }
-        ],
-        "playerMatchId": 3,
-        "datePlayed": "2024-03-11"
+        ]
       },
       {
+        "datePlayed": "2024-02-22",
+        "playerMatchId": 5,
         "playerResults": [
           {
-            "team_name": "kthnx",
-            "player_name": "Josh Korby",
-            "skill_level": 4,
+            "player_name": "Quinn Baker",
             "score": {
-              "match_pts_earned": 8,
-              "ball_pts_earned": 28,
-              "ball_pts_needed": 31
-            }
+              "games_needed": 5,
+              "games_won": 5,
+              "match_pts_earned": 2
+            },
+            "skill_level": 6,
+            "team_name": "The Final Boss"
           },
           {
-            "team_name": "Miniclip",
-            "player_name": "Sam Rall",
-            "skill_level": 4,
+            "player_name": "Yuvia Roman",
             "score": {
-              "match_pts_earned": 12,
-              "ball_pts_earned": 31,
-              "ball_pts_needed": 31
-            }
+              "games_needed": 3,
+              "games_won": 2,
+              "match_pts_earned": 1
+            },
+            "skill_level": 4,
+            "team_name": "Cue the Drinks"
           }
-        ],
-        "playerMatchId": 3,
-        "datePlayed": "2024-03-18"
+        ]
       },
       {
-        "playerResults": [
-          {
-            "team_name": "Miniclip",
-            "player_name": "Sam Rall",
-            "skill_level": 4,
-            "score": {
-              "match_pts_earned": 13,
-              "ball_pts_earned": 31,
-              "ball_pts_needed": 31
-            }
-          },
-          {
-            "team_name": "Amateur Hour",
-            "player_name": "Susan Conlon",
-            "skill_level": 3,
-            "score": {
-              "match_pts_earned": 7,
-              "ball_pts_earned": 21,
-              "ball_pts_needed": 25
-            }
-          }
-        ],
-        "playerMatchId": 4,
-        "datePlayed": "2024-04-08"
-      },
-      {
-        "playerResults": [
-          {
-            "team_name": "No English",
-            "player_name": "Abe Token Martinez",
-            "skill_level": 4,
-            "score": {
-              "match_pts_earned": 13,
-              "ball_pts_earned": 31,
-              "ball_pts_needed": 31
-            }
-          },
-          {
-            "team_name": "Miniclip",
-            "player_name": "Sam Rall",
-            "skill_level": 4,
-            "score": {
-              "match_pts_earned": 7,
-              "ball_pts_earned": 26,
-              "ball_pts_needed": 31
-            }
-          }
-        ],
-        "playerMatchId": 3,
-        "datePlayed": "2024-04-15"
-      },
-      {
-        "playerResults": [
-          {
-            "team_name": "Miniclip",
-            "player_name": "Sam Rall",
-            "skill_level": 4,
-            "score": {
-              "match_pts_earned": 13,
-              "ball_pts_earned": 31,
-              "ball_pts_needed": 31
-            }
-          },
-          {
-            "team_name": "Kemet",
-            "player_name": "Rich Hubbard",
-            "skill_level": 4,
-            "score": {
-              "match_pts_earned": 7,
-              "ball_pts_earned": 26,
-              "ball_pts_needed": 31
-            }
-          }
-        ],
-        "playerMatchId": 4,
-        "datePlayed": "2024-04-22"
-      },
-      {
-        "playerResults": [
-          {
-            "team_name": "Kickin' like Bruce",
-            "player_name": "Jason Mui",
-            "skill_level": 5,
-            "score": {
-              "match_pts_earned": 12,
-              "ball_pts_earned": 38,
-              "ball_pts_needed": 38
-            }
-          },
-          {
-            "team_name": "Miniclip",
-            "player_name": "Sam Rall",
-            "skill_level": 4,
-            "score": {
-              "match_pts_earned": 8,
-              "ball_pts_earned": 30,
-              "ball_pts_needed": 31
-            }
-          }
-        ],
+        "datePlayed": "2024-02-29",
         "playerMatchId": 1,
-        "datePlayed": "2024-04-29"
+        "playerResults": [
+          {
+            "player_name": "Reginald Van Julun Jr.",
+            "score": {
+              "games_needed": 4,
+              "games_won": 1,
+              "match_pts_earned": 0
+            },
+            "skill_level": 5,
+            "team_name": "Pool Gods"
+          },
+          {
+            "player_name": "Quinn Baker",
+            "score": {
+              "games_needed": 5,
+              "games_won": 5,
+              "match_pts_earned": 2
+            },
+            "skill_level": 6,
+            "team_name": "The Final Boss"
+          }
+        ]
+      },
+      {
+        "datePlayed": "2024-03-07",
+        "playerMatchId": 3,
+        "playerResults": [
+          {
+            "player_name": "Quinn Baker",
+            "score": {
+              "games_needed": 5,
+              "games_won": 5,
+              "match_pts_earned": 2
+            },
+            "skill_level": 6,
+            "team_name": "The Final Boss"
+          },
+          {
+            "player_name": "Robert Mccoy",
+            "score": {
+              "games_needed": 3,
+              "games_won": 1,
+              "match_pts_earned": 0
+            },
+            "skill_level": 4,
+            "team_name": "HoneyBadgerDontGiveAF$%K"
+          }
+        ]
+      },
+      {
+        "datePlayed": "2024-03-21",
+        "playerMatchId": 2,
+        "playerResults": [
+          {
+            "player_name": "Quinn Baker",
+            "score": {
+              "games_needed": 5,
+              "games_won": 5,
+              "match_pts_earned": 2
+            },
+            "skill_level": 6,
+            "team_name": "The Final Boss"
+          },
+          {
+            "player_name": "Adam Foxman",
+            "score": {
+              "games_needed": 5,
+              "games_won": 4,
+              "match_pts_earned": 1
+            },
+            "skill_level": 6,
+            "team_name": "Straight Shooters"
+          }
+        ]
+      },
+      {
+        "datePlayed": "2024-03-28",
+        "playerMatchId": 4,
+        "playerResults": [
+          {
+            "player_name": "Grace Kim",
+            "score": {
+              "games_needed": 2,
+              "games_won": 1,
+              "match_pts_earned": 1
+            },
+            "skill_level": 3,
+            "team_name": "Gussell's Sprouts"
+          },
+          {
+            "player_name": "Quinn Baker",
+            "score": {
+              "games_needed": 5,
+              "games_won": 5,
+              "match_pts_earned": 2
+            },
+            "skill_level": 6,
+            "team_name": "The Final Boss"
+          }
+        ]
+      },
+      {
+        "datePlayed": "2024-04-18",
+        "playerMatchId": 2,
+        "playerResults": [
+          {
+            "player_name": "Quinn Baker",
+            "score": {
+              "games_needed": 5,
+              "games_won": 4,
+              "match_pts_earned": 1
+            },
+            "skill_level": 6,
+            "team_name": "The Final Boss"
+          },
+          {
+            "player_name": "Valentin Isasi",
+            "score": {
+              "games_needed": 3,
+              "games_won": 3,
+              "match_pts_earned": 2
+            },
+            "skill_level": 4,
+            "team_name": "Chalkie's Children"
+          }
+        ]
+      },
+      {
+        "datePlayed": "2024-05-02",
+        "playerMatchId": 4,
+        "playerResults": [
+          {
+            "player_name": "Quinn Baker",
+            "score": {
+              "games_needed": 5,
+              "games_won": 5,
+              "match_pts_earned": 2
+            },
+            "skill_level": 6,
+            "team_name": "The Final Boss"
+          },
+          {
+            "player_name": "Ben Lewis",
+            "score": {
+              "games_needed": 5,
+              "games_won": 4,
+              "match_pts_earned": 1
+            },
+            "skill_level": 6,
+            "team_name": "Not Ben's Team"
+          }
+        ]
+      },
+      {
+        "datePlayed": "2024-05-16",
+        "playerMatchId": 3,
+        "playerResults": [
+          {
+            "player_name": "Quinn Baker",
+            "score": {
+              "games_needed": 5,
+              "games_won": 5,
+              "match_pts_earned": 2
+            },
+            "skill_level": 6,
+            "team_name": "The Final Boss"
+          },
+          {
+            "player_name": "Chris Bridges",
+            "score": {
+              "games_needed": 4,
+              "games_won": 2,
+              "match_pts_earned": 0
+            },
+            "skill_level": 5,
+            "team_name": "Pool Gods"
+          }
+        ]
+      }
+    ],
+    "Senol Demirbala Bellante": [
+      {
+        "datePlayed": "2024-02-01",
+        "playerMatchId": 1,
+        "playerResults": [
+          {
+            "player_name": "Lalo Cortez",
+            "score": {
+              "games_needed": 2,
+              "games_won": 0,
+              "match_pts_earned": 3
+            },
+            "skill_level": 3,
+            "team_name": "full time"
+          },
+          {
+            "player_name": "Senol Demirbala Bellante",
+            "score": {
+              "games_needed": 0,
+              "games_won": 0,
+              "match_pts_earned": 0
+            },
+            "skill_level": 0,
+            "team_name": "The Final Boss"
+          }
+        ]
+      },
+      {
+        "datePlayed": "2024-02-08",
+        "playerMatchId": 4,
+        "playerResults": [
+          {
+            "player_name": "Senol Demirbala Bellante",
+            "score": {
+              "games_needed": 2,
+              "games_won": 1,
+              "match_pts_earned": 1
+            },
+            "skill_level": 3,
+            "team_name": "The Final Boss"
+          },
+          {
+            "player_name": "Michael Young",
+            "score": {
+              "games_needed": 3,
+              "games_won": 3,
+              "match_pts_earned": 2
+            },
+            "skill_level": 4,
+            "team_name": "Sweet Baby Charles"
+          }
+        ]
+      },
+      {
+        "datePlayed": "2024-02-15",
+        "playerMatchId": 1,
+        "playerResults": [
+          {
+            "player_name": "Caitlin McDonald",
+            "score": {
+              "games_needed": 3,
+              "games_won": 3,
+              "match_pts_earned": 2
+            },
+            "skill_level": 4,
+            "team_name": "Not Ben's Team"
+          },
+          {
+            "player_name": "Senol Demirbala Bellante",
+            "score": {
+              "games_needed": 2,
+              "games_won": 1,
+              "match_pts_earned": 1
+            },
+            "skill_level": 3,
+            "team_name": "The Final Boss"
+          }
+        ]
+      },
+      {
+        "datePlayed": "2024-02-22",
+        "playerMatchId": 3,
+        "playerResults": [
+          {
+            "player_name": "Senol Demirbala Bellante",
+            "score": {
+              "games_needed": 3,
+              "games_won": 3,
+              "match_pts_earned": 3
+            },
+            "skill_level": 3,
+            "team_name": "The Final Boss"
+          },
+          {
+            "player_name": "Jill Murphy",
+            "score": {
+              "games_needed": 2,
+              "games_won": 0,
+              "match_pts_earned": 0
+            },
+            "skill_level": 2,
+            "team_name": "Cue the Drinks"
+          }
+        ]
+      },
+      {
+        "datePlayed": "2024-03-07",
+        "playerMatchId": 2,
+        "playerResults": [
+          {
+            "player_name": "Senol Demirbala Bellante",
+            "score": {
+              "games_needed": 2,
+              "games_won": 2,
+              "match_pts_earned": 2
+            },
+            "skill_level": 3,
+            "team_name": "The Final Boss"
+          },
+          {
+            "player_name": "Lauren Patterson",
+            "score": {
+              "games_needed": 2,
+              "games_won": 1,
+              "match_pts_earned": 1
+            },
+            "skill_level": 3,
+            "team_name": "HoneyBadgerDontGiveAF$%K"
+          }
+        ]
+      },
+      {
+        "datePlayed": "2024-03-14",
+        "playerMatchId": 1,
+        "playerResults": [
+          {
+            "player_name": "Jay Ramirez",
+            "score": {
+              "games_needed": 2,
+              "games_won": 0,
+              "match_pts_earned": 0
+            },
+            "skill_level": 3,
+            "team_name": "Cogburn Leghorn"
+          },
+          {
+            "player_name": "Senol Demirbala Bellante",
+            "score": {
+              "games_needed": 2,
+              "games_won": 2,
+              "match_pts_earned": 3
+            },
+            "skill_level": 3,
+            "team_name": "The Final Boss"
+          }
+        ]
+      },
+      {
+        "datePlayed": "2024-03-21",
+        "playerMatchId": 5,
+        "playerResults": [
+          {
+            "player_name": "Senol Demirbala Bellante",
+            "score": {
+              "games_needed": 2,
+              "games_won": 2,
+              "match_pts_earned": 3
+            },
+            "skill_level": 3,
+            "team_name": "The Final Boss"
+          },
+          {
+            "player_name": "Sebastian Torres",
+            "score": {
+              "games_needed": 3,
+              "games_won": 0,
+              "match_pts_earned": 0
+            },
+            "skill_level": 4,
+            "team_name": "Straight Shooters"
+          }
+        ]
+      },
+      {
+        "datePlayed": "2024-04-18",
+        "playerMatchId": 5,
+        "playerResults": [
+          {
+            "player_name": "Senol Demirbala Bellante",
+            "score": {
+              "games_needed": 3,
+              "games_won": 3,
+              "match_pts_earned": 2
+            },
+            "skill_level": 4,
+            "team_name": "The Final Boss"
+          },
+          {
+            "player_name": "Slick Lear",
+            "score": {
+              "games_needed": 4,
+              "games_won": 3,
+              "match_pts_earned": 1
+            },
+            "skill_level": 5,
+            "team_name": "Chalkie's Children"
+          }
+        ]
+      },
+      {
+        "datePlayed": "2024-04-25",
+        "playerMatchId": 4,
+        "playerResults": [
+          {
+            "player_name": "Mercedez Jones",
+            "score": {
+              "games_needed": 3,
+              "games_won": 0,
+              "match_pts_earned": 0
+            },
+            "skill_level": 4,
+            "team_name": "Sweet Baby Charles"
+          },
+          {
+            "player_name": "Senol Demirbala Bellante",
+            "score": {
+              "games_needed": 3,
+              "games_won": 3,
+              "match_pts_earned": 3
+            },
+            "skill_level": 4,
+            "team_name": "The Final Boss"
+          }
+        ]
+      },
+      {
+        "datePlayed": "2024-05-09",
+        "playerMatchId": 3,
+        "playerResults": [
+          {
+            "player_name": "Mark Howard",
+            "score": {
+              "games_needed": 5,
+              "games_won": 2,
+              "match_pts_earned": 0
+            },
+            "skill_level": 7,
+            "team_name": "Cue the Drinks"
+          },
+          {
+            "player_name": "Senol Demirbala Bellante",
+            "score": {
+              "games_needed": 3,
+              "games_won": 3,
+              "match_pts_earned": 2
+            },
+            "skill_level": 5,
+            "team_name": "The Final Boss"
+          }
+        ]
+      }
+    ],
+    "Thomas Bulvan": [
+      {
+        "datePlayed": "2024-02-01",
+        "playerMatchId": 4,
+        "playerResults": [
+          {
+            "player_name": "Jorge Haro",
+            "score": {
+              "games_needed": 2,
+              "games_won": 1,
+              "match_pts_earned": 1
+            },
+            "skill_level": 3,
+            "team_name": "full time"
+          },
+          {
+            "player_name": "Thomas Bulvan",
+            "score": {
+              "games_needed": 2,
+              "games_won": 2,
+              "match_pts_earned": 2
+            },
+            "skill_level": 3,
+            "team_name": "The Final Boss"
+          }
+        ]
+      },
+      {
+        "datePlayed": "2024-02-22",
+        "playerMatchId": 4,
+        "playerResults": [
+          {
+            "player_name": "Thomas Bulvan",
+            "score": {
+              "games_needed": 2,
+              "games_won": 2,
+              "match_pts_earned": 2
+            },
+            "skill_level": 3,
+            "team_name": "The Final Boss"
+          },
+          {
+            "player_name": "Doobs Huffman",
+            "score": {
+              "games_needed": 4,
+              "games_won": 3,
+              "match_pts_earned": 1
+            },
+            "skill_level": 5,
+            "team_name": "Cue the Drinks"
+          }
+        ]
+      },
+      {
+        "datePlayed": "2024-02-29",
+        "playerMatchId": 3,
+        "playerResults": [
+          {
+            "player_name": "Chris Bridges",
+            "score": {
+              "games_needed": 3,
+              "games_won": 3,
+              "match_pts_earned": 2
+            },
+            "skill_level": 4,
+            "team_name": "Pool Gods"
+          },
+          {
+            "player_name": "Thomas Bulvan",
+            "score": {
+              "games_needed": 3,
+              "games_won": 2,
+              "match_pts_earned": 1
+            },
+            "skill_level": 4,
+            "team_name": "The Final Boss"
+          }
+        ]
+      },
+      {
+        "datePlayed": "2024-03-14",
+        "playerMatchId": 4,
+        "playerResults": [
+          {
+            "player_name": "Matt Stoecker",
+            "score": {
+              "games_needed": 2,
+              "games_won": 2,
+              "match_pts_earned": 3
+            },
+            "skill_level": 3,
+            "team_name": "Cogburn Leghorn"
+          },
+          {
+            "player_name": "Thomas Bulvan",
+            "score": {
+              "games_needed": 2,
+              "games_won": 0,
+              "match_pts_earned": 0
+            },
+            "skill_level": 3,
+            "team_name": "The Final Boss"
+          }
+        ]
+      },
+      {
+        "datePlayed": "2024-04-11",
+        "playerMatchId": 1,
+        "playerResults": [
+          {
+            "player_name": "Thomas Bulvan",
+            "score": {
+              "games_needed": 3,
+              "games_won": 2,
+              "match_pts_earned": 1
+            },
+            "skill_level": 4,
+            "team_name": "The Final Boss"
+          },
+          {
+            "player_name": "Lalo Cortez",
+            "score": {
+              "games_needed": 3,
+              "games_won": 3,
+              "match_pts_earned": 2
+            },
+            "skill_level": 4,
+            "team_name": "full time"
+          }
+        ]
+      },
+      {
+        "datePlayed": "2024-04-18",
+        "playerMatchId": 4,
+        "playerResults": [
+          {
+            "player_name": "Thomas Bulvan",
+            "score": {
+              "games_needed": 3,
+              "games_won": 1,
+              "match_pts_earned": 0
+            },
+            "skill_level": 4,
+            "team_name": "The Final Boss"
+          },
+          {
+            "player_name": "Chalkie Aguirre",
+            "score": {
+              "games_needed": 4,
+              "games_won": 4,
+              "match_pts_earned": 2
+            },
+            "skill_level": 5,
+            "team_name": "Chalkie's Children"
+          }
+        ]
+      },
+      {
+        "datePlayed": "2024-04-25",
+        "playerMatchId": 1,
+        "playerResults": [
+          {
+            "player_name": "Dennis Parish",
+            "score": {
+              "games_needed": 2,
+              "games_won": 1,
+              "match_pts_earned": 1
+            },
+            "skill_level": 2,
+            "team_name": "Sweet Baby Charles"
+          },
+          {
+            "player_name": "Thomas Bulvan",
+            "score": {
+              "games_needed": 3,
+              "games_won": 3,
+              "match_pts_earned": 2
+            },
+            "skill_level": 3,
+            "team_name": "The Final Boss"
+          }
+        ]
+      },
+      {
+        "datePlayed": "2024-05-02",
+        "playerMatchId": 1,
+        "playerResults": [
+          {
+            "player_name": "Thomas Bulvan",
+            "score": {
+              "games_needed": 2,
+              "games_won": 2,
+              "match_pts_earned": 3
+            },
+            "skill_level": 3,
+            "team_name": "The Final Boss"
+          },
+          {
+            "player_name": "Sam Luker",
+            "score": {
+              "games_needed": 2,
+              "games_won": 0,
+              "match_pts_earned": 0
+            },
+            "skill_level": 3,
+            "team_name": "Not Ben's Team"
+          }
+        ]
+      },
+      {
+        "datePlayed": "2024-05-09",
+        "playerMatchId": 4,
+        "playerResults": [
+          {
+            "player_name": "Jill Murphy",
+            "score": {
+              "games_needed": 2,
+              "games_won": 1,
+              "match_pts_earned": 1
+            },
+            "skill_level": 2,
+            "team_name": "Cue the Drinks"
+          },
+          {
+            "player_name": "Thomas Bulvan",
+            "score": {
+              "games_needed": 3,
+              "games_won": 3,
+              "match_pts_earned": 2
+            },
+            "skill_level": 3,
+            "team_name": "The Final Boss"
+          }
+        ]
+      },
+      {
+        "datePlayed": "2024-05-16",
+        "playerMatchId": 4,
+        "playerResults": [
+          {
+            "player_name": "Thomas Bulvan",
+            "score": {
+              "games_needed": 2,
+              "games_won": 2,
+              "match_pts_earned": 3
+            },
+            "skill_level": 3,
+            "team_name": "The Final Boss"
+          },
+          {
+            "player_name": "Todd Sporleder",
+            "score": {
+              "games_needed": 3,
+              "games_won": 0,
+              "match_pts_earned": 0
+            },
+            "skill_level": 4,
+            "team_name": "Pool Gods"
+          }
+        ]
+      }
+    ],
+    "William Morgan": [
+      {
+        "datePlayed": "2024-02-01",
+        "playerMatchId": 5,
+        "playerResults": [
+          {
+            "player_name": "Benjamin Miranda",
+            "score": {
+              "games_needed": 2,
+              "games_won": 1,
+              "match_pts_earned": 1
+            },
+            "skill_level": 3,
+            "team_name": "full time"
+          },
+          {
+            "player_name": "William Morgan",
+            "score": {
+              "games_needed": 2,
+              "games_won": 2,
+              "match_pts_earned": 2
+            },
+            "skill_level": 3,
+            "team_name": "The Final Boss"
+          }
+        ]
+      },
+      {
+        "datePlayed": "2024-02-15",
+        "playerMatchId": 2,
+        "playerResults": [
+          {
+            "player_name": "Chris Degrange",
+            "score": {
+              "games_needed": 4,
+              "games_won": 2,
+              "match_pts_earned": 0
+            },
+            "skill_level": 5,
+            "team_name": "Not Ben's Team"
+          },
+          {
+            "player_name": "William Morgan",
+            "score": {
+              "games_needed": 2,
+              "games_won": 2,
+              "match_pts_earned": 2
+            },
+            "skill_level": 3,
+            "team_name": "The Final Boss"
+          }
+        ]
+      },
+      {
+        "datePlayed": "2024-02-22",
+        "playerMatchId": 2,
+        "playerResults": [
+          {
+            "player_name": "William Morgan",
+            "score": {
+              "games_needed": 2,
+              "games_won": 0,
+              "match_pts_earned": 0
+            },
+            "skill_level": 3,
+            "team_name": "The Final Boss"
+          },
+          {
+            "player_name": "Anthony Hernandez",
+            "score": {
+              "games_needed": 2,
+              "games_won": 2,
+              "match_pts_earned": 3
+            },
+            "skill_level": 3,
+            "team_name": "Cue the Drinks"
+          }
+        ]
+      },
+      {
+        "datePlayed": "2024-03-07",
+        "playerMatchId": 1,
+        "playerResults": [
+          {
+            "player_name": "William Morgan",
+            "score": {
+              "games_needed": 2,
+              "games_won": 2,
+              "match_pts_earned": 2
+            },
+            "skill_level": 3,
+            "team_name": "The Final Boss"
+          },
+          {
+            "player_name": "Paige Baker",
+            "score": {
+              "games_needed": 2,
+              "games_won": 1,
+              "match_pts_earned": 1
+            },
+            "skill_level": 3,
+            "team_name": "HoneyBadgerDontGiveAF$%K"
+          }
+        ]
+      },
+      {
+        "datePlayed": "2024-03-21",
+        "playerMatchId": 3,
+        "playerResults": [
+          {
+            "player_name": "William Morgan",
+            "score": {
+              "games_needed": 2,
+              "games_won": 2,
+              "match_pts_earned": 2
+            },
+            "skill_level": 3,
+            "team_name": "The Final Boss"
+          },
+          {
+            "player_name": "Brent Crawford",
+            "score": {
+              "games_needed": 2,
+              "games_won": 1,
+              "match_pts_earned": 1
+            },
+            "skill_level": 3,
+            "team_name": "Straight Shooters"
+          }
+        ]
+      },
+      {
+        "datePlayed": "2024-03-28",
+        "playerMatchId": 3,
+        "playerResults": [
+          {
+            "player_name": "Jeffrey Guss",
+            "score": {
+              "games_needed": 6,
+              "games_won": 6,
+              "match_pts_earned": 3
+            },
+            "skill_level": 7,
+            "team_name": "Gussell's Sprouts"
+          },
+          {
+            "player_name": "William Morgan",
+            "score": {
+              "games_needed": 2,
+              "games_won": 0,
+              "match_pts_earned": 0
+            },
+            "skill_level": 3,
+            "team_name": "The Final Boss"
+          }
+        ]
+      },
+      {
+        "datePlayed": "2024-04-11",
+        "playerMatchId": 4,
+        "playerResults": [
+          {
+            "player_name": "William Morgan",
+            "score": {
+              "games_needed": 2,
+              "games_won": 0,
+              "match_pts_earned": 0
+            },
+            "skill_level": 3,
+            "team_name": "The Final Boss"
+          },
+          {
+            "player_name": "Prasanna Shanmuganathan",
+            "score": {
+              "games_needed": 4,
+              "games_won": 4,
+              "match_pts_earned": 3
+            },
+            "skill_level": 5,
+            "team_name": "full time"
+          }
+        ]
       }
     ]
-  }
+  },
+  "sessionSeason": "SPRING",
+  "sessionYear": 2024,
+  "teamName": "The Final Boss"
 }

@@ -2,6 +2,7 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    /* background-image: url("https://matchroompool.com/wp-content/uploads/Albin-Ouschan-2023-Mosconi-Cup-scaled.jpg") */
 }
 
 body {
@@ -19,5 +20,10 @@ body {
 input, button {
     font-size: 2rem;
     padding: 1rem;
-    border-radius: 10px;
+    border-radius: 100px;
+}
+
+table, th, td {
+    border: 1px solid;
+    float: left
 }
