@@ -10,7 +10,7 @@ class Database:
         self.cur = self.con.cursor()
         self.config = Config().getConfig()
     
-    def getGame(self, isEightBall):
+    def getGamePrefix(self, isEightBall):
         return 'Eight' if isEightBall else 'Nine'
     
     def getMedian(self, scores):
@@ -23,53 +23,52 @@ class Database:
     def deleteSessionData(self):
         sessionSeason = self.config.get('session_season_in_question')
         sessionYear = self.config.get('session_year_in_question')
-        game = self.config.get('game')
-        game = self.getGame(game == '8-ball')
+        gamePrefix = self.getGamePrefix(self.config.get('game') == '8-ball')
 
-        self.cur.execute("DELETE FROM {}BallPlayerMatch AS p WHERE p.teamMatchId IN (SELECT t.teamMatchId FROM {}BallTeamMatch AS t WHERE t.sessionSeason = '{}' AND t.sessionYear = {})".format(game, game, sessionSeason, str(sessionYear)))
-        self.cur.execute("DELETE FROM {}BallTeamMatch WHERE sessionSeason = '{}' AND sessionYear = {}".format(game, sessionSeason, str(sessionYear)))
+        self.cur.execute("DELETE FROM {}BallPlayerMatch AS p WHERE p.teamMatchId IN (SELECT t.teamMatchId FROM {}BallTeamMatch AS t WHERE t.sessionSeason = '{}' AND t.sessionYear = {})".format(gamePrefix, gamePrefix, sessionSeason, str(sessionYear)))
+        self.cur.execute("DELETE FROM {}BallTeamMatch WHERE sessionSeason = '{}' AND sessionYear = {}".format(gamePrefix, sessionSeason, str(sessionYear)))
         self.con.commit()
     
-    def refreshAllNineBallTables(self, isEightBall):
+    def refreshTables(self, isEightBall):
         self.dropTables(isEightBall)
         self.createTables(isEightBall)
     
     def dropTables(self, isEightBall):
-        game = self.getGame(isEightBall)
+        gamePrefix = self.getGamePrefix(isEightBall)
 
         try:
-            self.cur.execute("DROP TABLE {}BallPlayerMatch".format(game))
+            self.cur.execute("DROP TABLE {}BallPlayerMatch".format(gamePrefix))
         except Exception:
             pass
 
         try:
-            self.cur.execute("DROP TABLE {}BallScore".format(game))
+            self.cur.execute("DROP TABLE {}BallScore".format(gamePrefix))
         except Exception:
             pass
 
         try:
-            self.cur.execute("DROP TABLE {}BallDivision".format(game))
+            self.cur.execute("DROP TABLE {}BallDivision".format(gamePrefix))
         except Exception:
             pass
 
         try:
-            self.cur.execute("DROP TABLE {}BallTeamMatch".format(game))
+            self.cur.execute("DROP TABLE {}BallTeamMatch".format(gamePrefix))
         except Exception:
             pass
 
         self.con.commit()
 
     def createTables(self, isEightBall):
-        game = self.getGame(isEightBall)
+        gamePrefix = self.getGamePrefix(isEightBall)
         self.cur.execute(
-            "CREATE TABLE {}BallTeamMatch (".format(game) +
+            "CREATE TABLE {}BallTeamMatch (".format(gamePrefix) +
             "teamMatchId INTEGER PRIMARY KEY, datePlayed DATETIME, " +
             "sessionSeason TEXT CHECK(sessionSeason IN ('SPRING', 'SUMMER', 'FALL')), " + 
             "sessionYear INTEGER)"
         )
 
         self.cur.execute(
-            "CREATE TABLE {}BallPlayerMatch(".format(game) +
+            "CREATE TABLE {}BallPlayerMatch(".format(gamePrefix) +
             "playerMatchId INTEGER, teamMatchId INTEGER, team_name1 varchar(255), " +
             "player_name1 varchar(255), skill_level1 int, scoreId1 INTEGER, " + 
             "team_name2 varchar(255), player_name2 varchar(255), " +
@@ -77,11 +76,11 @@ class Database:
         )
 
         self.cur.execute(
-            "CREATE TABLE {}BallDivision(divisionLink varchar(255) PRIMARY KEY)".format(game)
+            "CREATE TABLE {}BallDivision(divisionLink varchar(255) PRIMARY KEY)".format(gamePrefix)
         )
 
         self.cur.execute(
-            "CREATE TABLE {}BallScore(".format(game) +
+            "CREATE TABLE {}BallScore(".format(gamePrefix) +
             "scoreId INTEGER PRIMARY KEY AUTOINCREMENT, match_pts_earned INTEGER, ball_pts_earned INTEGER, " +
             "ball_pts_needed INTEGER)"
         )
@@ -89,42 +88,42 @@ class Database:
         self.con.commit()
 
     def addDivisionValue(self, link, isEightBall):
-        game = self.getGame(isEightBall)
+        gamePrefix = self.getGamePrefix(isEightBall)
         # Checks if value already exists in DB, and if not, adds it to DB
         if not self.isValueInDivisionTable(link, isEightBall):
-            self.cur.execute("""INSERT INTO {}BallDivision VALUES ("{}")""".format(game, link))
+            self.cur.execute("""INSERT INTO {}BallDivision VALUES ("{}")""".format(gamePrefix, link))
             self.con.commit()
 
     def isValueInDivisionTable(self, link, isEightBall):
-        game = self.getGame(isEightBall)
-        return self.cur.execute("SELECT COUNT(*) FROM {}BallDivision WHERE divisionLink='{}'".format(game, link)).fetchone()[0] > 0
+        gamePrefix = self.getGamePrefix(isEightBall)
+        return self.cur.execute("SELECT COUNT(*) FROM {}BallDivision WHERE divisionLink='{}'".format(gamePrefix, link)).fetchone()[0] > 0
 
     def isValueInTeamMatchTable(self, teamMatchId, isEightBall):
-        game = self.getGame(isEightBall)
-        return self.cur.execute("SELECT COUNT(*) FROM {}BallTeamMatch WHERE teamMatchId = {}".format(game, teamMatchId)).fetchone()[0] > 0
+        gamePrefix = self.getGamePrefix(isEightBall)
+        return self.cur.execute("SELECT COUNT(*) FROM {}BallTeamMatch WHERE teamMatchId = {}".format(gamePrefix, teamMatchId)).fetchone()[0] > 0
 
     def addTeamMatchValue(self, teamMatchId, apa_datetime, sessionSeason, sessionYear, isEightBall):
         try:
-            game = self.getGame(isEightBall)
-            self.cur.execute("INSERT INTO {}BallTeamMatch VALUES ({}, '{}', '{}', {})".format(game, teamMatchId, apa_datetime, sessionSeason, sessionYear))
+            gamePrefix = self.getGamePrefix(isEightBall)
+            self.cur.execute("INSERT INTO {}BallTeamMatch VALUES ({}, '{}', '{}', {})".format(gamePrefix, teamMatchId, apa_datetime, sessionSeason, sessionYear))
             self.con.commit()
         except Exception:
             pass
 
     def countPlayerMatches(self, isEightBall):
-        game = self.getGame(isEightBall)
-        return self.cur.execute("SELECT COUNT(*) FROM {}BallPlayerMatch".format(game)).fetchone()[0]
+        gamePrefix = self.getGamePrefix(isEightBall)
+        return self.cur.execute("SELECT COUNT(*) FROM {}BallPlayerMatch".format(gamePrefix)).fetchone()[0]
     
     def countTeamMatches(self, isEightBall):
-        game = self.getGame(isEightBall)
-        return self.cur.execute("SELECT COUNT(*) FROM {}BallTeamMatch".format(game)).fetchone()[0]
+        gamePrefix = self.getGamePrefix(isEightBall)
+        return self.cur.execute("SELECT COUNT(*) FROM {}BallTeamMatch".format(gamePrefix)).fetchone()[0]
     
     def addPlayerMatchValue(self, playerMatch, isEightBall):
-        game = self.getGame(isEightBall)
+        gamePrefix = self.getGamePrefix(isEightBall)
         for playerResult in playerMatch.getPlayerMatchResult():
             self.cur.execute(self.formatScoreInsertQuery(playerResult.get_score(), isEightBall))
 
-        scoreId = int(self.cur.execute("SELECT last_insert_rowid() FROM NineBallScore").fetchone()[0])
+        scoreId = int(self.cur.execute("SELECT last_insert_rowid() FROM {}BallScore".format(gamePrefix)).fetchone()[0])
         
         player_match_id = playerMatch.getPlayerMatchId()
         team_match_id = playerMatch.getTeamMatchId()
@@ -139,7 +138,7 @@ class Database:
 
 
         self.cur.execute(
-            f"""INSERT INTO {game}BallPlayerMatch VALUES ({player_match_id}, {team_match_id}, "{team_name_1}", "{player_name1}", {skill_level1}, {score_id1}, "{team_name_2}", "{player_name2}", {skill_level2}, {score_id2})"""
+            f"""INSERT INTO {gamePrefix}BallPlayerMatch VALUES ({player_match_id}, {team_match_id}, "{team_name_1}", "{player_name1}", {skill_level1}, {score_id1}, "{team_name_2}", "{player_name2}", {skill_level2}, {score_id2})"""
         )
         self.con.commit()
 
@@ -283,18 +282,18 @@ class Database:
         )
     
     def getTeamResults(self, sessionSeason, sessionYear, teamName, isEightBall):
-        game = self.getGame(isEightBall)
+        gamePrefix = self.getGamePrefix(isEightBall)
         return self.cur.execute(
             "SELECT n.playerMatchId, n.teamMatchId, n.player_name1, " +
             "n.team_name1, n.skill_level1, score1.match_pts_earned, score1.ball_pts_earned, score1.ball_pts_needed, " + 
             "n.player_name2, " +
             "n.team_name2, n.skill_level2, score2.match_pts_earned, score2.ball_pts_earned, score2.ball_pts_needed, t.datePlayed " + 
-            "FROM {}BallPlayerMatch n ".format(game) +
-            "LEFT JOIN {}BallTeamMatch t ".format(game) + 
+            "FROM {}BallPlayerMatch n ".format(gamePrefix) +
+            "LEFT JOIN {}BallTeamMatch t ".format(gamePrefix) + 
             "ON n.teamMatchId = t.teamMatchId " +
-            "LEFT JOIN {}BallScore score1 ".format(game) +
+            "LEFT JOIN {}BallScore score1 ".format(gamePrefix) +
             "ON score1.scoreId = n.scoreId1 " +
-            "LEFT JOIN {}BallScore score2 ".format(game) +
+            "LEFT JOIN {}BallScore score2 ".format(gamePrefix) +
             "ON score2.scoreId = n.scoreId2 " +
             """WHERE (n.team_name1 = "{}" OR n.team_name2 = "{}") """.format(teamName, teamName) +
             "AND t.sessionSeason = '{}' AND t.sessionYear = {} ".format(sessionSeason, sessionYear) +

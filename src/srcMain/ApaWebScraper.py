@@ -200,18 +200,20 @@ class ApaWebScraper:
         self.createWebDriver()
         self.navigateToTeamPage(division_link, my_team_name)
 
-        matches_header = self.driver.find_element(By.XPATH, "//h2 [contains( text(), '{}')]".format('Team Schedule & Results'))
-        matches = matches_header.find_element(By.XPATH, "..").find_elements(By.TAG_NAME, "a")
-        for match in matches:
-            if '@' in match.text:
-                'WEEK 5\nFeb\n29\nThursday\nPool Gods(24505)\nSir-Scratch-A Lot(24504)\nCity Pool Hall @ 7:00 pm'
-                text_elements = match.text.split('\n')
-                team1 = text_elements[4].split('(')[0]
-                team2 = text_elements[5].split('(')[0]
-                if team1 == my_team_name:
-                    return team2
-                else:
-                    return team1
+        header_texts = ['Team Schedule & Results', 'Playoffs']
+        for header_text in header_texts:
+            header = self.driver.find_element(By.XPATH, "//h2 [contains( text(), '{}')]".format(header_text))
+            matches = header.find_element(By.XPATH, "..").find_elements(By.TAG_NAME, "a")
+            for match in matches:
+                if '@' in match.text:
+                    'WEEK 5\nFeb\n29\nThursday\nPool Gods(24505)\nSir-Scratch-A Lot(24504)\nCity Pool Hall @ 7:00 pm'
+                    text_elements = match.text.split('\n')
+                    team1 = text_elements[4].split('(')[0]
+                    team2 = text_elements[5].split('(')[0]
+                    if team1 == my_team_name:
+                        return team2
+                    else:
+                        return team1
             
         #TODO: Do for playoffs as well
 
