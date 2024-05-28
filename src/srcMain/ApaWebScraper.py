@@ -5,12 +5,13 @@ from selenium.common.exceptions import NoSuchElementException
 import time
 import sys
 import os
-from Config import Config
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from dataClasses.nineBall.NineBallPlayerMatch import NineBallPlayerMatch
 from dataClasses.eightBall.EightBallPlayerMatch import EightBallPlayerMatch
 from converter.Converter import Converter
-from Database import Database
+from src.srcMain.Database import Database
+from src.srcMain.Config import Config
 import calendar
 
 

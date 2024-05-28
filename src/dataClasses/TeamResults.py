@@ -16,6 +16,7 @@ class TeamResults:
 
             for playerMatch in playerMatches:
                 if playerMatch.isPlayedBy(player):
+                    playerMatch.proper_playerResult_order_with_player(player)
                     playerMatchesPerPlayer[player].append(playerMatch)
         return playerMatchesPerPlayer
     
