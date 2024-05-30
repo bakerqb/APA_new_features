@@ -37,6 +37,13 @@ def home():
         jinja_environment.get_template('index.html'),
         url_for=url_for
     )
+
+@app.route("/test")
+def test():
+    useCase = UseCase()
+    db = Database()
+    db.refreshAllTables(True)
+    return useCase.scrapeUpcomingTeamResults()
     
 
 if __name__ == "__main__":

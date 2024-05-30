@@ -1,6 +1,8 @@
 from dataClasses.eightBall.EightBallPlayerMatch import EightBallPlayerMatch
 from dataClasses.nineBall.NineBallPlayerMatch import NineBallPlayerMatch
 from dataClasses.IPlayerMatch import IPlayerMatch
+from dataClasses.Division import Division
+from dataClasses.Session import Session
 class Converter:
     def __init__(self):
         pass
@@ -30,3 +32,25 @@ class Converter:
         playerMatch = EightBallPlayerMatch() if isEightBall else NineBallPlayerMatch()
         return playerMatch.initWithDirectInfo(player_match_id, team_match_id, player_name1, team_name1, skill_level1, match_pts_earned1, games_won1, games_needed1,
                    player_name2, team_name2, skill_level2, match_pts_earned2, games_won2, games_needed2, date_played, isEightBall)
+    
+    def toDivisionWithSql(self, sqlRow: list):
+        # Returns values in format: sessionId, sessionSeason, sessionYear, divisionId, divisionName, dayOfWeek, game
+        if not sqlRow:
+            return None
+        
+        sessionId, sessionSeason, sessionYear, divisionId, divisionName, dayOfWeek, game = sqlRow[0]
+
+        return self.toDivisionWithDirectValues(sessionId, sessionSeason, sessionYear, divisionId, divisionName, dayOfWeek, game)
+    
+    def toDivisionWithDirectValues(self, sessionId, sessionSeason, sessionYear, divisionId, divisionName, dayOfWeek, game):
+        session = Session(sessionId, sessionSeason, sessionYear)
+        division = Division(session, divisionId, divisionName, dayOfWeek, game)
+        return division
+    
+    def toSessionWithSql(self, sqlRow):
+        # Returns values in format: sessionId, sessionSeason, sessionYear
+        if not sqlRow:
+            return None
+
+        sessionId, sessionSeason, sessionYear = sqlRow[0]
+        return Session(sessionId, sessionSeason, sessionYear)

@@ -9,10 +9,15 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from dataClasses.nineBall.NineBallPlayerMatch import NineBallPlayerMatch
 from dataClasses.eightBall.EightBallPlayerMatch import EightBallPlayerMatch
+from dataClasses.Division import Division
+from dataClasses.Session import Session
+from dataClasses.Player import Player
+from dataClasses.Team import Team
 from converter.Converter import Converter
 from src.srcMain.Database import Database
 from src.srcMain.Config import Config
 import calendar
+import re
 
 
 class ApaWebScraper:
@@ -76,6 +81,7 @@ class ApaWebScraper:
         print("Fetching results for session with link = {}".format(division_link))
         self.driver.get(division_link)
         time.sleep(2)
+        division = self.addDivisionToDatabase()
         table = self.driver.find_element(By.TAG_NAME, "tbody")
         session = self.driver.find_element(By.CLASS_NAME, "m-b-10").text
         sessionSeason, sessionYear = session.split(" ")
@@ -84,13 +90,53 @@ class ApaWebScraper:
             team_links.append(self.config.get('apa_website').get('base_link') + row.get_attribute("to"))
         for team in team_links:
             self.driver.get(team)
-            
+
+            team = self.scrapeTeamInfo(division)
+
+            self.db.addTeamInfo(team)
+        
             match_links = self.scrapeTeamMatchesForTeam('Team Schedule & Results', sessionSeason, sessionYear, is_eight_ball)
             match_links = match_links + self.scrapeTeamMatchesForTeam('Playoffs', sessionSeason, sessionYear, is_eight_ball)
             print("Total team matches in database = {}".format(self.db.countTeamMatches(is_eight_ball)))
             self.getTeamMatchResults(match_links, is_eight_ball)
+
+    def scrapeTeamInfo(self, division):
+        teamId = self.driver.current_url.split('/')[-1]
+        time.sleep(1)
+        data = self.driver.find_element(By.CLASS_NAME, 'page-title').text.split('\n')
+        teamName = data[0]
+        teamNum = int(re.sub(r'\W+', '', data[1]))
+
+        roster = self.getRoster()
+
+        return Team(division, teamId, teamNum, teamName, roster)
+
+
         
+    def addDivisionToDatabase(self):
+        # Check if division/session already exists in the database
+        divisionName = ' '.join(self.driver.find_element(By.CLASS_NAME, 'page-title').text.split(' ')[:-1])
+        divisionId = re.sub(r'\W+', '', self.driver.find_elements(By.XPATH, f"//option[contains(text(), '{divisionName}')]")[0].text.split('-')[-1])
+        division = self.converter.toDivisionWithSql(self.db.getDivision(divisionId))
+        if division is not None:
+            return division
         
+        # Division/session doesn't exist in the database, so scrape all necessary values
+        sessionElement = self.driver.find_element(By.CLASS_NAME, "m-b-10")
+        sessionSeason, sessionYear = sessionElement.text.split(' ')
+        sessionId = sessionElement.find_elements(By.TAG_NAME, "a")[0].get_attribute('href').split('/')[-1]
+        formatElement = self.driver.find_elements(By.XPATH, "//*[contains(text(), 'Format:')]")[0]
+        game = formatElement.find_elements(By.XPATH, "..")[0].text.split(' ')[1].lower()
+        dayTimeElement = self.driver.find_elements(By.XPATH, "//*[contains(text(), 'Day/Time:')]")[0]
+        day = dayTimeElement.find_elements(By.XPATH, "..")[0].text.split(' ')[1].lower()
+        dayOfWeek = time.strptime(day, "%A").tm_wday
+        divisionId = re.sub(r'\W+', '', self.driver.find_elements(By.XPATH, f"//option[contains(text(), '{divisionName}')]")[0].text.split('-')[-1])
+
+        # Add division/sesion to database
+        division = self.converter.toDivisionWithDirectValues(sessionId, sessionSeason, sessionYear, divisionId, divisionName, dayOfWeek, game)
+        self.db.addDivision(division)
+        return division
+
 
     def scrapeTeamMatchesForTeam(self, headerTitle, sessionSeason, sessionYear, isEightBall):
         self.createWebDriver()
@@ -186,11 +232,14 @@ class ApaWebScraper:
 
     def getRoster(self):
         self.createWebDriver()
-        roster_header = self.driver.find_element(By.XPATH, "//h2 [contains( text(), 'Team Roster')]")
-        roster_div = roster_header.find_element(By.XPATH, "..").find_elements(By.TAG_NAME, "a")
+        rows = self.driver.find_element(By.XPATH, "//h2 [contains( text(), 'Team Roster')]").find_element(By.XPATH, "..").find_elements(By.TAG_NAME, 'table')[0].find_elements(By.TAG_NAME, "tr")
         roster = []
-        for row in roster_div:
-            roster.append(row.text)
+        for row in rows[1:]:
+            data = row.text.split('\n')
+            playerName = data[0]
+            memberId = int(re.sub(r'\W+', '', data[1]))
+            currentSkillLevel = data[2][0]
+            roster.append(Player(memberId, playerName, currentSkillLevel))
         return roster
     
     def getOpponentTeamName(self, my_team_name, division_link):

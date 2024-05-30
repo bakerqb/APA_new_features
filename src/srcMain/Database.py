@@ -1,6 +1,8 @@
 import sqlite3
 from tabulate import tabulate
 from src.srcMain.Config import Config
+from src.converter.Converter import Converter
+from src.dataClasses.Team import Team
 import statistics
 
 class Database:
@@ -9,6 +11,8 @@ class Database:
         self.con = sqlite3.connect("results.db")
         self.cur = self.con.cursor()
         self.config = Config().getConfig()
+        self.converter = Converter()
+
     
     def getGamePrefix(self, isEightBall):
         return 'Eight' if isEightBall else 'Nine'
@@ -20,16 +24,106 @@ class Database:
         return statistics.median(nums)
     
     ############### Game agnostic functions ###############
+    
+    def addTeamInfo(self, team: Team):
+        #TODO: Add team values to database
+        teamData = team.toJson()
+        sessionId = teamData.get('division').get('session').get('sessionId')
+        divisionId = teamData.get('division').get('divisionId')
+        teamId = teamData.get('teamId')
+        teamNum = teamData.get('teamNum')
+        teamName = teamData.get('teamName')
+        self.addTeam(sessionId, divisionId, teamId, teamNum, teamName)
+        
+        for player in teamData.get('players'):
+            memberId = player.get('memberId')
+            playerName = player.get('playerName')
+            currentSkillLevel = player.get('currentSkillLevel')
+
+            self.addCurrentTeamPlayer(teamId, memberId)
+            self.addPlayer(memberId, playerName, currentSkillLevel)
+
+    def addTeam(self, sessionId: int, divisionId: int, teamId: int, teamNum: int, teamName: str):
+        self.createTables(True)
+        try:
+            self.cur.execute(
+                f"""INSERT INTO Team VALUES ({sessionId}, {divisionId}, {teamId}, {teamNum}, "{teamName}")"""
+            )
+        except Exception:
+            pass
+
+        self.con.commit()
+        
+
+    def addCurrentTeamPlayer(self, teamId: int, memberId: int):
+        self.createTables(True)
+        try:
+            self.cur.execute(
+                f"INSERT INTO CurrentTeamPlayer VALUES ({teamId}, {memberId})"
+            )
+        except Exception:
+            pass
+        self.con.commit()
+
+    def addPlayer(self, memberId: int, playerName: str, currentSkillLevel: int):
+        self.createTables(True)
+        try:
+            self.cur.execute(
+                f"""INSERT INTO Player VALUES ({memberId}, "{playerName}", {currentSkillLevel})"""
+            )
+        except Exception:
+            pass
+        self.con.commit()
+    
+    def getDivision(self, divisionId):
+        self.createTables(True)
+        return self.cur.execute(
+            "SELECT s.sessionId, s.sessionSeason, s.sessionYear, d.divisionId, d.divisionName, d.dayOfWeek, d.game " + 
+            "FROM Division d LEFT JOIN Session s " +
+            "ON d.divisionId = s.sessionId " +
+            "WHERE d.divisionId = {}".format(divisionId)
+        ).fetchall()
+    
+    def getSession(self, sessionId):
+        self.createTables(True)
+        return self.cur.execute("SELECT * FROM Session WHERE sessionId = {}".format(sessionId)).fetchall()
+        
+
+    def addSession(self, session):
+        self.createTables(True)
+        
+        if self.converter.toSessionWithSql(self.getSession(session.get('sessionId'))) is None:
+            self.cur.execute(f"INSERT INTO Session VALUES ({session.get('sessionId')}, '{session.get('sessionSeason')}', {session.get('sessionYear')})")
+            self.con.commit()
+    
+    def addDivision(self, division):
+        self.createTables(True)
+        divisionData = division.toJson()
+        session = divisionData.get('session')
+        self.addSession(session)
+
+        if self.converter.toDivisionWithSql(self.getDivision(divisionData.get('divisionId'))) is None:
+            self.cur.execute(
+                "INSERT INTO Division VALUES (" +
+                f"{session.get('sessionId')}, " +
+                f"{divisionData.get('divisionId')}, " +
+                f"'{divisionData.get('divisionName')}', " + 
+                f"{divisionData.get('dayOfWeek')}, " +
+                f"'{divisionData.get('game')}')"
+            )
+            self.con.commit()
+    
     def deleteSessionData(self):
         sessionSeason = self.config.get('session_season_in_question')
         sessionYear = self.config.get('session_year_in_question')
-        gamePrefix = self.getGamePrefix(self.config.get('game') == '8-ball')
+        game = self.config.get('game')
+        gamePrefix = self.getGamePrefix(game == '8-ball')
 
         self.cur.execute("DELETE FROM {}BallPlayerMatch AS p WHERE p.teamMatchId IN (SELECT t.teamMatchId FROM {}BallTeamMatch AS t WHERE t.sessionSeason = '{}' AND t.sessionYear = {})".format(gamePrefix, gamePrefix, sessionSeason, str(sessionYear)))
         self.cur.execute("DELETE FROM {}BallTeamMatch WHERE sessionSeason = '{}' AND sessionYear = {}".format(gamePrefix, sessionSeason, str(sessionYear)))
         self.con.commit()
     
-    def refreshTables(self, isEightBall):
+    def refreshAllTables(self, isEightBall):
         self.dropTables(isEightBall)
         self.createTables(isEightBall)
     
@@ -59,31 +153,99 @@ class Database:
         self.con.commit()
 
     def createTables(self, isEightBall):
+        try:
+            self.cur.execute(
+                "CREATE TABLE Session (" +
+                "sessionId INTEGER PRIMARY KEY, " +
+                "sessionSeason TEXT CHECK(sessionSeason IN ('SPRING', 'SUMMER', 'FALL')), " + 
+                "sessionYear INTEGER)"
+            )
+        except Exception:
+            pass
+
+        try:
+            self.cur.execute(
+                "CREATE TABLE Division (" +
+                "sessionId INTEGER, " +
+                "divisionId INTEGER, " +
+                "divisionName TEXT, " + 
+                "dayOfWeek INTEGER, " +
+                "game TEXT, " +
+                "PRIMARY KEY (sessionId, divisionId))"
+            )
+        except Exception:
+            pass
+
+        try:
+            self.cur.execute(
+                "CREATE TABLE Team (" +
+                "sessionId INTEGER, " +
+                "divisionId INTEGER, " +
+                "teamId INTEGER PRIMARY KEY, "
+                "teamNumber INTEGER, " +
+                "teamName TEXT)"
+            )
+        except Exception:
+            pass
+
+        try:
+            self.cur.execute(
+                "CREATE TABLE CurrentTeamPlayer (" +
+                "teamId INTEGER, " +
+                "memberId INTEGER, " +
+                "PRIMARY KEY (teamId, memberId))"
+            )
+        except Exception:
+            pass
+        
+        try:
+            self.cur.execute(
+                "CREATE TABLE Player (" +
+                "memberId INTEGER PRIMARY KEY, " +
+                "playerName TEXT, " +
+                "currentSkillLevel INTEGER)"
+            )
+        except Exception:
+            pass
+        
         gamePrefix = self.getGamePrefix(isEightBall)
-        self.cur.execute(
-            "CREATE TABLE {}BallTeamMatch (".format(gamePrefix) +
-            "teamMatchId INTEGER PRIMARY KEY, datePlayed DATETIME, " +
-            "sessionSeason TEXT CHECK(sessionSeason IN ('SPRING', 'SUMMER', 'FALL')), " + 
-            "sessionYear INTEGER)"
-        )
 
-        self.cur.execute(
-            "CREATE TABLE {}BallPlayerMatch(".format(gamePrefix) +
-            "playerMatchId INTEGER, teamMatchId INTEGER, team_name1 varchar(255), " +
-            "player_name1 varchar(255), skill_level1 int, scoreId1 INTEGER, " + 
-            "team_name2 varchar(255), player_name2 varchar(255), " +
-            "skill_level2 INTEGER, scoreId2 INTEGER, PRIMARY KEY (playerMatchId, teamMatchId))"
-        )
+        try:
+            self.cur.execute(
+                "CREATE TABLE {}BallTeamMatch (".format(gamePrefix) +
+                "teamMatchId INTEGER PRIMARY KEY, datePlayed DATETIME, " +
+                "sessionSeason TEXT CHECK(sessionSeason IN ('SPRING', 'SUMMER', 'FALL')), " + 
+                "sessionYear INTEGER)"
+            )
+        except Exception:
+            pass
 
-        self.cur.execute(
-            "CREATE TABLE {}BallDivision(divisionLink varchar(255) PRIMARY KEY)".format(gamePrefix)
-        )
+        try:
+            self.cur.execute(
+                "CREATE TABLE {}BallPlayerMatch(".format(gamePrefix) +
+                "playerMatchId INTEGER, teamMatchId INTEGER, team_name1 varchar(255), " +
+                "player_name1 varchar(255), skill_level1 int, scoreId1 INTEGER, " + 
+                "team_name2 varchar(255), player_name2 varchar(255), " +
+                "skill_level2 INTEGER, scoreId2 INTEGER, PRIMARY KEY (playerMatchId, teamMatchId))"
+            )
+        except Exception:
+            pass
 
-        self.cur.execute(
-            "CREATE TABLE {}BallScore(".format(gamePrefix) +
-            "scoreId INTEGER PRIMARY KEY AUTOINCREMENT, match_pts_earned INTEGER, ball_pts_earned INTEGER, " +
-            "ball_pts_needed INTEGER)"
-        )
+        try:
+            self.cur.execute(
+                "CREATE TABLE {}BallDivision(divisionLink varchar(255) PRIMARY KEY)".format(gamePrefix)
+            )
+        except Exception:
+            pass
+        
+        try:
+            self.cur.execute(
+                "CREATE TABLE {}BallScore(".format(gamePrefix) +
+                "scoreId INTEGER PRIMARY KEY AUTOINCREMENT, match_pts_earned INTEGER, ball_pts_earned INTEGER, " +
+                "ball_pts_needed INTEGER)"
+            )
+        except Exception:
+            pass
         
         self.con.commit()
 
@@ -159,7 +321,7 @@ class Database:
             )
         
     def getTeamRoster(self, sessionSeason, sessionYear, teamName, isEightBall):
-        gamePrefix = "Eight" if isEightBall else "Nine"
+        gamePrefix = self.getGamePrefix(isEightBall)
         teamName = teamName.replace('"', '\'')
         players = self.cur.execute(
             "SELECT DISTINCT playerName FROM " +
@@ -173,7 +335,7 @@ class Database:
         return roster
     
     def getDatePlayed(self, teamMatchId: int, isEightBall: bool):
-        gamePrefix = "Eight" if isEightBall else "Nine"
+        gamePrefix = self.getGamePrefix(isEightBall)
         return self.cur.execute(
             "SELECT datePlayed FROM {}BallTeamMatch WHERE teamMatchId = {}".format(gamePrefix, str(teamMatchId))
         ).fetchone()[0]
