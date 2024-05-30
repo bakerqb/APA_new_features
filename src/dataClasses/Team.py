@@ -17,3 +17,6 @@ class Team:
             "teamName": self.teamName,
             "players": list(map(lambda player: player.toJson(), self.players))
         }
+    
+    def addPlayer(self, player: Player):
+        self.players.append(player)

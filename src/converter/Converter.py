@@ -1,17 +1,20 @@
 from dataClasses.eightBall.EightBallPlayerMatch import EightBallPlayerMatch
 from dataClasses.nineBall.NineBallPlayerMatch import NineBallPlayerMatch
-from dataClasses.IPlayerMatch import IPlayerMatch
 from dataClasses.Division import Division
 from dataClasses.Session import Session
+from dataClasses.Team import Team
+from dataClasses.Player import Player
+from dataClasses.IPlayerMatch import IPlayerMatch
+
 class Converter:
     def __init__(self):
         pass
 
-    def toPlayerMatchWithDiv(self, matchDiv: object, team_name1: str, team_name2: str, playerMatchId: int, teamMatchId: int, datePlayed: str, isEightBall: bool) -> IPlayerMatch:
+    def toPlayerMatchWithDiv(self, matchDiv: object, team1: Team, team2: Team, playerMatchId: int, teamMatchId: int, datePlayed: str, isEightBall: bool) -> IPlayerMatch:
         playerMatch = EightBallPlayerMatch() if isEightBall else NineBallPlayerMatch()
-        return playerMatch.initWithDiv(matchDiv, team_name1, team_name2, playerMatchId, teamMatchId, datePlayed)
+        return playerMatch.initWithDiv(matchDiv, team1, team2, playerMatchId, teamMatchId, datePlayed)
 
-    def toPlayerMatchWithSql(self, sqlRow: list, isEightBall: bool) -> IPlayerMatch:
+    def toPlayerMatchWithSql(self, sqlRow: list, isEightBall: bool):
         player_match_id = sqlRow[0]
         team_match_id = sqlRow[1]
         player_name1 = sqlRow[2]
@@ -54,3 +57,18 @@ class Converter:
 
         sessionId, sessionSeason, sessionYear = sqlRow[0]
         return Session(sessionId, sessionSeason, sessionYear)
+    
+    def toTeamWithSql(self, sqlRows):
+        # Data comes in the format of list(divisionId, teamId, teamNum, teamName, memberId, playerName, currentSkillLevel)
+        team = None
+        for row in sqlRows:
+            divisionId, teamId, teamNum, teamName, memberId, playerName, currentSkillLevel = row
+            if team is None:
+                team = Team(self.toDivisionWithSql(self.db.getDivision(divisionId)), teamId, teamNum, teamName, [])
+            team.addPlayer(Player(memberId, playerName, currentSkillLevel))
+        return team
+    
+    def toPlayerWithSql(self, sqlRow):
+        # Data comes in the format of: memberId, playerName, currentSkillLevel
+        memberId, playerName, currentSkillLevel = sqlRow
+        return Player(memberId, playerName, currentSkillLevel)

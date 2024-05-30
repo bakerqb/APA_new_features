@@ -4,12 +4,13 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 from utils.utils import *
 from dataClasses.IPlayerMatch import IPlayerMatch
+from dataClasses.Team import Team
 
 class EightBallPlayerMatch(IPlayerMatch):
     def __init__(self):
         pass
     
-    def initWithDiv(self, matchDiv, team_name1: str, team_name2: str, playerMatchId: int, teamMatchId: int, datePlayed):
+    def initWithDiv(self, matchDiv, team1: Team, team2: Team, playerMatchId: int, teamMatchId: int, datePlayed):
         text_elements = matchDiv.text.split('\n')
         text_elements = remove_elements(text_elements, 'LAG')
         text_elements = remove_elements(text_elements, 'SL')
@@ -36,8 +37,8 @@ class EightBallPlayerMatch(IPlayerMatch):
         player_name2 = text_elements[6]
         match_pts_earned2 = text_elements[7]
 
-        return self.initWithDirectInfo(playerMatchId, teamMatchId, player_name1, team_name1, skill_level1, match_pts_earned1, games_won1, games_needed1,
-                   player_name2, team_name2, skill_level2, match_pts_earned2, games_won2, games_needed2, datePlayed, True)
+        return self.initWithDirectInfo(playerMatchId, teamMatchId, player_name1, team1, skill_level1, match_pts_earned1, games_won1, games_needed1,
+                   player_name2, team2, skill_level2, match_pts_earned2, games_won2, games_needed2, datePlayed, True)
     
     def pretty_print(self, player_in_question):
         self.proper_playerResult_order_with_player(player_in_question)

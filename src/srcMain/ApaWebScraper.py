@@ -83,22 +83,29 @@ class ApaWebScraper:
         time.sleep(2)
         division = self.addDivisionToDatabase()
         table = self.driver.find_element(By.TAG_NAME, "tbody")
-        session = self.driver.find_element(By.CLASS_NAME, "m-b-10").text
-        sessionSeason, sessionYear = session.split(" ")
+        divisionId = division.toJson().get('divisionId')
+        sessionId = division.toJson().get('session').get('sessionId')
         team_links = []
         for row in table.find_elements(By.TAG_NAME, "tr"):
             team_links.append(self.config.get('apa_website').get('base_link') + row.get_attribute("to"))
-        for team in team_links:
-            self.driver.get(team)
-
-            team = self.scrapeTeamInfo(division)
-
-            self.db.addTeamInfo(team)
         
-            match_links = self.scrapeTeamMatchesForTeam('Team Schedule & Results', sessionSeason, sessionYear, is_eight_ball)
-            match_links = match_links + self.scrapeTeamMatchesForTeam('Playoffs', sessionSeason, sessionYear, is_eight_ball)
-            print("Total team matches in database = {}".format(self.db.countTeamMatches(is_eight_ball)))
-            self.getTeamMatchResults(match_links, is_eight_ball)
+        # TODO: go through all teams and add team info, and save the match links in the meantime
+        # TODO: then loop through all the player matches with the team info in mind
+        teams_info = {}
+        for team_link in team_links:
+            self.driver.get(team_link)
+
+            teamInfo = self.scrapeTeamInfo(division)
+
+            self.db.addTeamInfo(teamInfo)
+
+            match_links = self.scrapeTeamMatchesForTeam('Team Schedule & Results', divisionId, is_eight_ball)
+            match_links = match_links + self.scrapeTeamMatchesForTeam('Playoffs', divisionId, is_eight_ball)
+            teams_info[team_link] = match_links
+
+        for team_link, match_links in teams_info.items():
+            # print("Total team matches in database = {}".format(self.db.countTeamMatches(is_eight_ball)))
+            self.getTeamMatchResults(match_links, divisionId, sessionId, is_eight_ball)
 
     def scrapeTeamInfo(self, division):
         teamId = self.driver.current_url.split('/')[-1]
@@ -138,7 +145,7 @@ class ApaWebScraper:
         return division
 
 
-    def scrapeTeamMatchesForTeam(self, headerTitle, sessionSeason, sessionYear, isEightBall):
+    def scrapeTeamMatchesForTeam(self, headerTitle, divisionId, isEightBall):
         self.createWebDriver()
         
         matches_header = self.driver.find_element(By.XPATH, "//h2 [contains( text(), '{}')]".format(headerTitle))
@@ -152,7 +159,7 @@ class ApaWebScraper:
                 apa_datetime = self.apaDateToDatetime(match.text.split(' | ')[-1])
                 if not self.db.isValueInTeamMatchTable(teamMatchId, isEightBall):
                     match_links.append(link)
-                    self.db.addTeamMatchValue(teamMatchId, apa_datetime, sessionSeason, sessionYear, isEightBall)
+                    self.db.addTeamMatchValue(teamMatchId, apa_datetime, divisionId, isEightBall)
                 
         return match_links
     
@@ -185,17 +192,25 @@ class ApaWebScraper:
             if potential_team_name == team_name:
                 row.click()
                 return
-
+    
     # Returns list of PlayerMatches from TeamMatch
-    def getPlayerMatchesFromTeamMatch(self, link, is_eight_ball):
+    def getPlayerMatchesFromTeamMatch(self, link, divisionId, sessionId, is_eight_ball):
         self.createWebDriver()
         self.driver.get(link)
         if is_eight_ball:
             time.sleep(10)
-        teams_header = self.driver.find_element(By.XPATH, "//h3 [contains( text(), 'FINAL SCORE')]")
-        teams_text = teams_header.find_element(By.XPATH, "..").text
-        team_name1 = teams_text.split('\n')[1]
-        team_name2 = teams_text.split('\n')[4]
+
+        teams_info_header = self.driver.find_elements(By.CLASS_NAME, "teamName")
+        team_name1 = teams_info_header[0].text.split(' (')[0]
+        team_num1 = int(re.sub(r'\W+', '', teams_info_header[0].text.split(' (')[1])[-2:])
+        
+        #TODO: find out if you can use a converter here to transform the sql values into a team object. There might be a circular dependency
+        #Example: team1 = self.converter.toTeamWithSql(self.db.getTeam(team_name1, team_num1, divisionId, sessionId))
+        team1 = self.db.getTeam(team_name1, team_num1, divisionId, sessionId)
+        team_name2 = teams_info_header[1].text.split(' (')[0]
+        team_num2 = int(re.sub(r'\W+', '', teams_info_header[1].text.split(' (')[1])[-2:])
+        team2 = self.db.getTeam(team_name2, team_num2, divisionId, sessionId)
+
 
         matches_header = self.driver.find_element(By.XPATH, "//h3 [contains( text(), 'MATCH BREAKOUT')]")
         matches_div = matches_header.find_element(By.XPATH, "..")
@@ -209,7 +224,7 @@ class ApaWebScraper:
             if 'LAG' not in individual_match.text:
                 continue
             player_match_id += 1
-            player_match = self.converter.toPlayerMatchWithDiv(individual_match, team_name1, team_name2, player_match_id, team_match_id, date_played, is_eight_ball)
+            player_match = self.converter.toPlayerMatchWithDiv(individual_match, team1, team2, player_match_id, team_match_id, date_played, is_eight_ball)
 
             if player_match.getPlayerMatchResult()[0].get_skill_level() is not None and player_match.getPlayerMatchResult()[1].get_skill_level() is not None:
                 player_matches.append(player_match)
@@ -220,12 +235,11 @@ class ApaWebScraper:
     # Loops through all TeamMatches from team
     # Gets all PlayerMatches for entire session
     # Adds PlayerMatches to database
-    def getTeamMatchResults(self, match_links, is_eight_ball):
+    def getTeamMatchResults(self, match_links, divisionId, sessionId, is_eight_ball):
         matches = []
         for match_link in match_links:
-            matches = matches + self.getPlayerMatchesFromTeamMatch(match_link, is_eight_ball)
-        for match in matches:
-            self.db.addPlayerMatchValue(match, is_eight_ball)
+            for match in self.getPlayerMatchesFromTeamMatch(match_link, divisionId, sessionId, is_eight_ball):
+                self.db.addPlayerMatchValue(match, is_eight_ball)
         
         print("Total player matches in database = {}".format(str(self.db.countPlayerMatches(is_eight_ball))))
         
@@ -263,7 +277,4 @@ class ApaWebScraper:
                         return team2
                     else:
                         return team1
-            
-        #TODO: Do for playoffs as well
-
-
+                    

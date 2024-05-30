@@ -1,7 +1,6 @@
 import sqlite3
 from tabulate import tabulate
 from src.srcMain.Config import Config
-from src.converter.Converter import Converter
 from src.dataClasses.Team import Team
 import statistics
 
@@ -11,7 +10,6 @@ class Database:
         self.con = sqlite3.connect("results.db")
         self.cur = self.con.cursor()
         self.config = Config().getConfig()
-        self.converter = Converter()
 
     
     def getGamePrefix(self, isEightBall):
@@ -25,8 +23,26 @@ class Database:
     
     ############### Game agnostic functions ###############
     
+    def getTeam(self, teamName, teamNum, divisionId, sessionId):
+        # Data comes in the format of list(divisionId, teamId, teamNum, teamName, memberId, playerName, currentSkillLevel)
+        return self.cur.execute(
+            "SELECT d.divisionId, t.teamId, t.teamNum, t.teamName, p.memberId, p.playerName, p.currentSkillLevel " +
+            "FROM Team t " +
+            "LEFT JOIN Division d ON t.divisionId = d.divisionId AND t.sessionId = d.sessionId " +
+            "LEFT JOIN CurrentTeamPlayer c ON c.teamId = t.teamId " +
+            "LEFT JOIN Player p ON c.memberId = p.memberId " +
+            f"""WHERE t.teamName="{teamName}" AND t.teamNum={teamNum} AND t.divisionId={divisionId} AND t.sessionId={sessionId}"""
+        ).fetchall()
+    
+    def getPlayerBasedOnTeamIdAndPlayerName(self, teamId, playerName):
+        # Makes an assumption that no team will have two players with the exact same name
+        return self.cur.execute(
+            "SELECT p.memberId, p.playerName, p.currentSkillLevel " +
+            "FROM currentTeamPlayer c LEFT JOIN Player p ON c.memberId = p.memberId " +
+            f"""WHERE c.teamId = {teamId} AND p.playerName = "{playerName}" """
+        ).fetchone()[0]
+    
     def addTeamInfo(self, team: Team):
-        #TODO: Add team values to database
         teamData = team.toJson()
         sessionId = teamData.get('division').get('session').get('sessionId')
         divisionId = teamData.get('division').get('divisionId')
@@ -34,6 +50,8 @@ class Database:
         teamNum = teamData.get('teamNum')
         teamName = teamData.get('teamName')
         self.addTeam(sessionId, divisionId, teamId, teamNum, teamName)
+        #TODO: Delete all currentTeamPlayer entries belonging to the team and re-add all the players
+        # That way the table stays current
         
         for player in teamData.get('players'):
             memberId = player.get('memberId')
@@ -92,7 +110,7 @@ class Database:
     def addSession(self, session):
         self.createTables(True)
         
-        if self.converter.toSessionWithSql(self.getSession(session.get('sessionId'))) is None:
+        if not self.getSession(session.get('sessionId')):
             self.cur.execute(f"INSERT INTO Session VALUES ({session.get('sessionId')}, '{session.get('sessionSeason')}', {session.get('sessionYear')})")
             self.con.commit()
     
@@ -102,7 +120,7 @@ class Database:
         session = divisionData.get('session')
         self.addSession(session)
 
-        if self.converter.toDivisionWithSql(self.getDivision(divisionData.get('divisionId'))) is None:
+        if not self.getDivision(divisionData.get('divisionId')):
             self.cur.execute(
                 "INSERT INTO Division VALUES (" +
                 f"{session.get('sessionId')}, " +
@@ -112,6 +130,37 @@ class Database:
                 f"'{divisionData.get('game')}')"
             )
             self.con.commit()
+
+    def deleteSession(self, sessionId):
+        divisionIds = list(map(lambda divisionId: divisionId[0], self.cur.execute(f"SELECT divisionId from Division WHERE sessionId = {sessionId}").fetchall()))
+        for divisionId in divisionIds:
+            self.deleteDivision(divisionId)
+        
+        self.cur.execute(f"DELETE FROM Session WHERE sessionId = {sessionId}")
+        self.con.commit()
+
+    def deleteDivision(self, divisionId):
+        teamIds = list(map(lambda divisionId: divisionId[0], self.cur.execute(f"SELECT teamId from Team WHERE divisionId = {divisionId}").fetchall()))
+        for teamId in teamIds:
+            self.deleteTeam(teamId)
+        self.cur.execute(f"DELETE FROM Division WHERE divisionId  = {divisionId}")
+        self.con.commit()
+
+    def deleteTeam(self, teamId):
+        
+        #TODO: find a way to connect EightBall and NineBall related tables to divisionId, and then delete those tables
+        
+        game = self.cur.execute(f"SELECT game FROM Division d LEFT JOIN Team t ON d.divisionId = t.divisionId WHERE t.teamId = {teamId}").fetchone()[0]
+        gamePrefix = self.getGamePrefix(game)
+        # self.cur.execute(f"DELETE FROM {gamePrefix}BallPlayerMatch AS p WHERE p.teamMatchId IN (SELECT t.teamMatchId FROM {gamePrefix}BallTeamMatch AS t WHERE t.sessionSeason = '{sessionSeason}' AND t.sessionYear = {})".format(gamePrefix, gamePrefix, sessionSeason, str(sessionYear)))
+
+
+
+
+        self.cur.execute(f"DELETE FROM Team WHERE teamId  = {teamId}")
+        self.cur.execute(f"DELETE FROM CurrentTeamPlayer WHERE teamId = {teamId}")
+        self.con.commit()
+        
     
     def deleteSessionData(self):
         sessionSeason = self.config.get('session_season_in_question')
@@ -129,6 +178,31 @@ class Database:
     
     def dropTables(self, isEightBall):
         gamePrefix = self.getGamePrefix(isEightBall)
+
+        try:
+            self.cur.execute("DROP TABLE Session")
+        except Exception:
+            pass
+
+        try:
+            self.cur.execute("DROP TABLE Division")
+        except Exception:
+            pass
+
+        try:
+            self.cur.execute("DROP TABLE Team")
+        except Exception:
+            pass
+
+        try:
+            self.cur.execute("DROP TABLE CurrentTeamPlayer")
+        except Exception:
+            pass
+        
+        try:
+            self.cur.execute("DROP TABLE Player")
+        except Exception:
+            pass
 
         try:
             self.cur.execute("DROP TABLE {}BallPlayerMatch".format(gamePrefix))
@@ -182,7 +256,7 @@ class Database:
                 "sessionId INTEGER, " +
                 "divisionId INTEGER, " +
                 "teamId INTEGER PRIMARY KEY, "
-                "teamNumber INTEGER, " +
+                "teamNum INTEGER, " +
                 "teamName TEXT)"
             )
         except Exception:
@@ -214,8 +288,7 @@ class Database:
             self.cur.execute(
                 "CREATE TABLE {}BallTeamMatch (".format(gamePrefix) +
                 "teamMatchId INTEGER PRIMARY KEY, datePlayed DATETIME, " +
-                "sessionSeason TEXT CHECK(sessionSeason IN ('SPRING', 'SUMMER', 'FALL')), " + 
-                "sessionYear INTEGER)"
+                "divisionId INTEGER)"
             )
         except Exception:
             pass
@@ -264,10 +337,10 @@ class Database:
         gamePrefix = self.getGamePrefix(isEightBall)
         return self.cur.execute("SELECT COUNT(*) FROM {}BallTeamMatch WHERE teamMatchId = {}".format(gamePrefix, teamMatchId)).fetchone()[0] > 0
 
-    def addTeamMatchValue(self, teamMatchId, apa_datetime, sessionSeason, sessionYear, isEightBall):
+    def addTeamMatchValue(self, teamMatchId, apa_datetime, divisionId, isEightBall):
         try:
             gamePrefix = self.getGamePrefix(isEightBall)
-            self.cur.execute("INSERT INTO {}BallTeamMatch VALUES ({}, '{}', '{}', {})".format(gamePrefix, teamMatchId, apa_datetime, sessionSeason, sessionYear))
+            self.cur.execute("INSERT INTO {}BallTeamMatch VALUES ({}, '{}', {})".format(gamePrefix, teamMatchId, apa_datetime, divisionId))
             self.con.commit()
         except Exception:
             pass

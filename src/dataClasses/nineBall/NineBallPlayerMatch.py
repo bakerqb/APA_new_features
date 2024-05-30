@@ -6,12 +6,13 @@ from dataClasses.PlayerResult import PlayerResult
 from dataClasses.nineBall.NineBallScore import NineBallScore
 from utils.utils import *
 from dataClasses.IPlayerMatch import IPlayerMatch
+from dataClasses.Team import Team
 
 class NineBallPlayerMatch(IPlayerMatch):
     def __init__(self):
         pass
 
-    def initWithDiv(self, matchDiv, team_name1: str, team_name2: str, playerMatchId: int, teamMatchId: int, datePlayed):
+    def initWithDiv(self, matchDiv, team1: Team, team2: Team, playerMatchId: int, teamMatchId: int, datePlayed):
         mapper = NineBallSkillLevelMapper()
         
         text_elements = matchDiv.text.split('\n')
@@ -40,8 +41,8 @@ class NineBallPlayerMatch(IPlayerMatch):
         player_name2 = text_elements[6]
         match_pts_earned2 = text_elements[7]
 
-        return self.initWithDirectInfo(playerMatchId, teamMatchId, player_name1, team_name1, skill_level1, match_pts_earned1, ball_pts_earned1, ball_pts_needed1,
-                   player_name2, team_name2, skill_level2, match_pts_earned2, ball_pts_earned2, ball_pts_needed2, datePlayed, False)
+        return self.initWithDirectInfo(playerMatchId, teamMatchId, player_name1, team1, skill_level1, match_pts_earned1, ball_pts_earned1, ball_pts_needed1,
+                   player_name2, team2, skill_level2, match_pts_earned2, ball_pts_earned2, ball_pts_needed2, datePlayed, False)
     
     def pretty_print(self, player_in_question):
         self.proper_playerResult_order_with_player(player_in_question)
