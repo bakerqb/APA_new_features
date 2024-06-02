@@ -20,13 +20,15 @@ class UseCase:
     def printTeamResults(self, sessionSeason, sessionYear, teamName, isEightBall) -> None:
         self.getTeamResults(sessionSeason, sessionYear, teamName, isEightBall).printPlayerMatchesPerPlayer()
 
-    def printUpcomingTeamResults(self) -> None:
-        sessionSeason = self.config.getConfig().get('session_season_in_question')
-        sessionYear = self.config.getConfig().get('session_year_in_question')
+    '''
+    def printUpcomingTeamResults(self, sessionId, divisionId, ownTeamId) -> None:
+        
         isEightBall = self.isEightBallUpcoming()
         sessionConfig = self.config.getSessionConfig(isEightBall)
         teamName = self.apaWebScraper.getOpponentTeamName(sessionConfig.get('my_team_name'), sessionConfig.get('division_link'))
         self.printTeamResults(sessionSeason, sessionYear, teamName, isEightBall)
+    '''
+    
 
     def printUpcomingTeamResultsJson(self) -> None:
         self.printTeamResultsJson(self.getUpcomingTeamResultsJson())
@@ -38,7 +40,8 @@ class UseCase:
 
     # ------------------------- Scraping -------------------------
     def scrapeUpcomingTeamResults(self) -> None:
-        isEightBall = self.isEightBallUpcoming()
+        # isEightBall = self.isEightBallUpcoming()
+        isEightBall = True
         sessionConfig = self.config.getSessionConfig(isEightBall)
         self.apaWebScraper.scrapeDivision(sessionConfig.get('division_link'), isEightBall)
 
@@ -50,16 +53,18 @@ class UseCase:
         sessionConfig = self.config.getSessionConfig(isEightBall)
         teamName = self.apaWebScraper.getOpponentTeamName(sessionConfig.get('my_team_name'), sessionConfig.get('division_link'))
         return self.getTeamResultsJson(sessionSeason, sessionYear, teamName, isEightBall)
-
-    def getTeamResultsJson(self, sessionSeason, sessionYear, teamName, isEightBall) -> dict:
-        return self.getTeamResults(sessionSeason, sessionYear, teamName, isEightBall).toJson()
     
-    def getTeamResults(self, sessionSeason, sessionYear, teamName, isEightBall) -> dict:
-        teamResultsDb = self.db.getTeamResults(sessionSeason, sessionYear, teamName, isEightBall)
-        teamResultsPlayerMatches = list(map(lambda playerMatch: self.converter.toPlayerMatchWithSql(playerMatch, isEightBall), teamResultsDb))
-        return TeamResults(teamName, sessionSeason, sessionYear, isEightBall,
-                                                self.db.getTeamRoster(sessionSeason, sessionYear, teamName, isEightBall),
-                                                teamResultsPlayerMatches)
+
+
+    def getTeamResultsJson(self, sessionId, divisionId, teamId) -> dict:
+        return self.getTeamResults(sessionId, divisionId, teamId).toJson()
+    
+    def getTeamResults(self, sessionId, divisionId, teamId) -> dict:
+        #TODO: rewrite sql query that corresponds to this. Join everything in the sql query. Write a converter (most likely rewriting the toPlayerMatchWithSql function)
+        
+        teamResultsDb = self.db.getTeamResults(sessionId, divisionId, teamId)
+        teamResultsPlayerMatches = list(map(lambda playerMatch: self.converter.toPlayerMatchWithSql(playerMatch), teamResultsDb))
+        return TeamResults(teamId, teamResultsPlayerMatches, list(map(lambda player: self.converter.toPlayerWithSql(player), self.db.getTeamRoster(teamId))))
 
     # ------------------------- Helper functions -------------------------
     def isEightBallUpcoming(self) -> bool:
@@ -101,28 +106,3 @@ class UseCase:
 
     def getNineBallMatrixMedian(self) -> None:
         self.db.createNineBallMatrixMedian()
-    
-
-    ############### 8 Ball functions ###############
-
-    def printEightBallTeamResultsAfterNameChange(self, sessionSeason: str, sessionYear: int, teamNames: list[str]) -> None:
-        playerMatches = []
-        for teamName in teamNames:
-            playerMatches += self.db.getTeamResults(sessionSeason, sessionYear, teamName, True)
-        
-        playerMatchObjList = []
-        for playerMatch in playerMatches:
-            playerMatchObjList.append(self.converter.toPlayerMatchWithSql(playerMatch, True))
-        roster = self.db.getTeamRoster(sessionSeason, sessionYear, teamName, True)
-        
-        playerMatchMap = {}
-        for player in roster:
-            playerMatchMap[player[0]] = []
-
-        for playerMatchObj in playerMatchObjList:
-            for player in roster:
-                if playerMatchObj.isPlayedBy(player[0]):
-                    playerMatchMap[player[0]].append(playerMatchObj)
-
-        for playerName in playerMatchMap.keys():
-            self.printPlayerMatchesForPlayer(playerName, playerMatchMap[playerName])

@@ -25,6 +25,7 @@ def results():
     teamName = request.args.get('teamName')
     # return useCase.getTeamResultsJson("SPRING", 2024, teamName, True)
 
+    # TODO: fix the parameters for getTeamResultsJson
     return render_template(
         jinja_environment.get_template('results.html'),
         url_for=url_for,
@@ -37,6 +38,17 @@ def home():
         jinja_environment.get_template('index.html'),
         url_for=url_for
     )
+
+@app.route("/test")
+def test():
+    useCase = UseCase()
+    db = Database()
+    #db.refreshAllTables(True)
+    #useCase.scrapeUpcomingTeamResults()
+    
+    # TODO: put in these values and test it out!!!
+    return useCase.getTeamResultsJson(132, 245, 12437619)
+
     
 
 if __name__ == "__main__":

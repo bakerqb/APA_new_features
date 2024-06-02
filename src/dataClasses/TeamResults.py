@@ -1,32 +1,30 @@
 from utils.utils import color_plain_text
 
 class TeamResults:
-    def __init__(self, teamName, sessionSeason: str, sessionYear: int, isEightBall: bool, roster: list, playerMatches: list):
-        self.teamName = teamName
-        self.sessionSeason = sessionSeason
-        self.sessionYear = sessionYear
-        self.game = "8-ball" if isEightBall else "9-ball"
+    def __init__(self, teamId: int, playerMatches: list, roster: list):
+        for playerResult in playerMatches[0].toJson().get('playerResults'):
+            if playerResult.get('team').get('teamId') == teamId:
+                self.team = playerResult.get('team')
         self.roster = roster
         self.playerMatchesPerPlayer = self.toPlayerMatchesPerPlayer(playerMatches)
+        
     
     def toPlayerMatchesPerPlayer(self, playerMatches):
         playerMatchesPerPlayer = {}
         for player in self.roster:
-            playerMatchesPerPlayer[player] = []
+            playerName = player.toJson().get('playerName')
+            playerMatchesPerPlayer[player.toJson().get('playerName')] = []
 
             for playerMatch in playerMatches:
                 if playerMatch.isPlayedBy(player):
                     playerMatch.proper_playerResult_order_with_player(player)
-                    playerMatchesPerPlayer[player].append(playerMatch)
+                    playerMatchesPerPlayer[playerName].append(playerMatch)
         return playerMatchesPerPlayer
     
     def toJson(self):
         return {
-            "teamName": self.teamName,
-            "sessionSeason": self.sessionSeason,
-            "sessionYear": self.sessionYear,
-            "game": self.game,
-            "playerMatches": {player: list(map(lambda playerMatch: playerMatch.toJson(), playerMatches)) for player, playerMatches in self.playerMatchesPerPlayer.items()}
+            "team" : self.team,
+            "playerMatchesPerPlayer": {player: list(map(lambda playerMatch: playerMatch.toJson(), playerMatches)) for player, playerMatches in self.playerMatchesPerPlayer.items()}
         }
     
     def printPlayerMatchesPerPlayer(self) -> None:
