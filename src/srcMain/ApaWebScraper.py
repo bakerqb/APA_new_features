@@ -94,18 +94,16 @@ class ApaWebScraper:
         teams_info = {}
         for team_link in team_links:
             self.driver.get(team_link)
-
             teamInfo = self.scrapeTeamInfo(division)
-
             self.db.addTeamInfo(teamInfo)
 
-            match_links = self.scrapeTeamMatchesForTeam('Team Schedule & Results', divisionId, is_eight_ball)
-            match_links = match_links + self.scrapeTeamMatchesForTeam('Playoffs', divisionId, is_eight_ball)
+            match_links = self.scrapeTeamMatchesForTeam('Team Schedule & Results', divisionId, sessionId, is_eight_ball)
+            match_links = match_links + self.scrapeTeamMatchesForTeam('Playoffs', divisionId, sessionId, is_eight_ball)
             teams_info[team_link] = match_links
 
         for team_link, match_links in teams_info.items():
             # print("Total team matches in database = {}".format(self.db.countTeamMatches(is_eight_ball)))
-            self.getTeamMatchResults(match_links, divisionId, sessionId, is_eight_ball)
+            self.scrapeMatchLinks(match_links, divisionId, sessionId, is_eight_ball)
 
     def scrapeTeamInfo(self, division):
         teamId = self.driver.current_url.split('/')[-1]
@@ -145,7 +143,7 @@ class ApaWebScraper:
         return division
 
 
-    def scrapeTeamMatchesForTeam(self, headerTitle, divisionId, isEightBall):
+    def scrapeTeamMatchesForTeam(self, headerTitle, divisionId, sessionId, isEightBall):
         self.createWebDriver()
         
         matches_header = self.driver.find_element(By.XPATH, "//h2 [contains( text(), '{}')]".format(headerTitle))
@@ -159,7 +157,7 @@ class ApaWebScraper:
                 apa_datetime = self.apaDateToDatetime(match.text.split(' | ')[-1])
                 if not self.db.isValueInTeamMatchTable(teamMatchId, isEightBall):
                     match_links.append(link)
-                    self.db.addTeamMatchValue(teamMatchId, apa_datetime, divisionId, isEightBall)
+                    self.db.addTeamMatchValue(teamMatchId, apa_datetime, divisionId, sessionId, isEightBall)
                 
         return match_links
     
@@ -205,11 +203,11 @@ class ApaWebScraper:
         team_num1 = int(re.sub(r'\W+', '', teams_info_header[0].text.split(' (')[1])[-2:])
         
         #TODO: find out if you can use a converter here to transform the sql values into a team object. There might be a circular dependency
-        #Example: team1 = self.converter.toTeamWithSql(self.db.getTeam(team_name1, team_num1, divisionId, sessionId))
-        team1 = self.db.getTeam(team_name1, team_num1, divisionId, sessionId)
+        
+        team1 = self.converter.toTeamWithSql(self.db.getTeam(team_name1, team_num1, divisionId, sessionId))
         team_name2 = teams_info_header[1].text.split(' (')[0]
         team_num2 = int(re.sub(r'\W+', '', teams_info_header[1].text.split(' (')[1])[-2:])
-        team2 = self.db.getTeam(team_name2, team_num2, divisionId, sessionId)
+        team2 = self.converter.toTeamWithSql(self.db.getTeam(team_name2, team_num2, divisionId, sessionId))
 
 
         matches_header = self.driver.find_element(By.XPATH, "//h3 [contains( text(), 'MATCH BREAKOUT')]")
@@ -226,7 +224,7 @@ class ApaWebScraper:
             player_match_id += 1
             player_match = self.converter.toPlayerMatchWithDiv(individual_match, team1, team2, player_match_id, team_match_id, date_played, is_eight_ball)
 
-            if player_match.getPlayerMatchResult()[0].get_skill_level() is not None and player_match.getPlayerMatchResult()[1].get_skill_level() is not None:
+            if player_match is not None and player_match.toJson().get('playerResults')[0].get('skill_level') != 0 and player_match.toJson().get('playerResults')[1].get('skill_level') != 0:
                 player_matches.append(player_match)
             
         
@@ -235,13 +233,11 @@ class ApaWebScraper:
     # Loops through all TeamMatches from team
     # Gets all PlayerMatches for entire session
     # Adds PlayerMatches to database
-    def getTeamMatchResults(self, match_links, divisionId, sessionId, is_eight_ball):
-        matches = []
+    def scrapeMatchLinks(self, match_links, divisionId, sessionId, is_eight_ball):
         for match_link in match_links:
             for match in self.getPlayerMatchesFromTeamMatch(match_link, divisionId, sessionId, is_eight_ball):
-                self.db.addPlayerMatchValue(match, is_eight_ball)
-        
-        print("Total player matches in database = {}".format(str(self.db.countPlayerMatches(is_eight_ball))))
+                self.db.addPlayerMatch(match, is_eight_ball)
+            print("Total player matches in database = {}".format(str(self.db.countPlayerMatches(is_eight_ball))))
         
 
     def getRoster(self):
