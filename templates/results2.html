@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Results for {{ teamName }}</title>
+</head>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+
+<body>
+    <h1>Results for {{ teamName }}</h1>
+    {% for playerName, item in playerMatchesPerPlayer.items() %}
+    <div>
+        <h2>{{ playerName }} [Current Skill Level: {{item.get('player').get('currentSkillLevel')}}]</h2>
+        <p>{{item}}</p>
+    </div>
+    {% endfor %}
+</body>

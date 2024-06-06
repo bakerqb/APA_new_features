@@ -23,6 +23,9 @@ class Database:
     
     ############### Game agnostic functions ###############
 
+    def getTeamsFromDivision(self, sessionId, divisionId):
+        return self.cur.execute(f"SELECT * FROM Team WHERE sessionId = {sessionId} AND divisionId = {divisionId}").fetchall()
+
     def getLastScoreId(self, is_eight_ball):
         gamePrefix = self.getGamePrefix(is_eight_ball)
         
@@ -102,12 +105,15 @@ class Database:
     
     def getDivision(self, divisionId):
         self.createTables(True)
-        return self.cur.execute(
+        division = self.cur.execute(
             "SELECT s.sessionId, s.sessionSeason, s.sessionYear, d.divisionId, d.divisionName, d.dayOfWeek, d.game " + 
             "FROM Division d LEFT JOIN Session s " +
             "ON d.divisionId = s.sessionId " +
             "WHERE d.divisionId = {}".format(divisionId)
         ).fetchall()
+        if len(division) > 0:
+            division = division[0]
+        return division
     
     def getSession(self, sessionId):
         self.createTables(True)
@@ -513,9 +519,9 @@ class Database:
             "AND DATEADD(year,-1,GETDATE())"
         )
     
-    def getTeamResults(self, sessionId, divisionId, teamId):
+    def getTeamResults(self, teamId):
         # TODO: find game based off of just teamId :) so you only have to pass in teamId for these parameters
-        game = self.cur.execute(f"SELECT game FROM Division WHERE divisionId = {divisionId} AND sessionId = {sessionId}").fetchone()[0]
+        game = self.cur.execute(f"SELECT d.game FROM Division d, Team t WHERE t.divisionId = d.divisionId AND t.teamId = {teamId}").fetchone()[0]
         gamePrefix = self.getGamePrefix(game == '8-ball')
         return self.cur.execute(
             "SELECT s.sessionId, s.sessionSeason, s.sessionYear, d.divisionId, d.divisionName, d.dayOfWeek, d.game, " +
@@ -588,6 +594,16 @@ class Database:
             "LEFT JOIN Team t ON t.teamId = c.teamId " +
             f"WHERE t.teamId = {teamId}"
         ).fetchall()
+    
+    def getDivisions(self, sessionId):
+        return self.cur.execute(
+            f"SELECT s.sessionId, s.sessionSeason, s.sessionYear, d.divisionId, d.divisionName, d.dayOfWeek, d.game " +
+            "FROM Session s LEFT JOIN Division d ON s.sessionId = d.sessionId " +
+            f"WHERE s.sessionId = {sessionId}"
+        ).fetchall()
+    
+    def getSessions(self):
+        return self.cur.execute("SELECT * FROM Session s").fetchall()
 
 
 

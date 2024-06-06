@@ -13,18 +13,21 @@ class TeamResults:
         playerMatchesPerPlayer = {}
         for player in self.roster:
             playerName = player.toJson().get('playerName')
-            playerMatchesPerPlayer[player.toJson().get('playerName')] = []
+            playerMatchesPerPlayer[player.toJson().get('playerName')] = {
+                "player": player,
+                "playerMatches": []
+            }
 
             for playerMatch in playerMatches:
                 if playerMatch.isPlayedBy(player):
                     playerMatch.proper_playerResult_order_with_player(player)
-                    playerMatchesPerPlayer[playerName].append(playerMatch)
+                    playerMatchesPerPlayer[playerName]["playerMatches"].append(playerMatch)
         return playerMatchesPerPlayer
     
     def toJson(self):
         return {
             "team" : self.team,
-            "playerMatchesPerPlayer": {player: list(map(lambda playerMatch: playerMatch.toJson(), playerMatches)) for player, playerMatches in self.playerMatchesPerPlayer.items()}
+            "playerMatchesPerPlayer": { playerName: { "player": playerMatchesPerPlayerItem.get('player').toJson(), "playerMatches": list(map(lambda playerMatch: playerMatch.toJson(), playerMatchesPerPlayerItem.get('playerMatches'))) } for playerName, playerMatchesPerPlayerItem in self.playerMatchesPerPlayer.items()}
         }
     
     def printPlayerMatchesPerPlayer(self) -> None:

@@ -4,19 +4,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Results for {{ teamName }}</title>
+    <title>Results for {{ team.get('teamName') }}</title>
 </head>
 <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 
 <body>
-    <h1>Results for {{ teamName }}</h1>
-    {% for player, matches in playerMatches.items() %}
+    <h1>Results for {{ team.get('teamName') }}</h1>
+    {% for playerName, item in playerMatchesPerPlayer.items() %}
     <div>
-        <h2>{{ player }}</h2>
-
+        <h2>{{ playerName }} [Current Skill Level: {{item.get('player').get('currentSkillLevel')}}]</h2>
         <div>
 
-            {% for playerMatch in matches %}
+            {% for playerMatch in item.get('playerMatches') %}
             <div class="css-lzrk0y e107vr0i6" style="display: block;">
                 <div class="css-fsd55f e107vr0i5" style="float: left;">
                     <div style="background-color: {{ 'gray' if playerMatch.get('playerResults')[0].get('score').get('match_pts_earned') < 2 else 'rgb(0, 170, 101)'}};">
@@ -24,11 +23,11 @@
                             <div class="css-j3lslf e1d8q57h8">
                                 <div class="css-1s5o62m e1d8q57h3">
                                     <h3 class="css-xftfll e1d8q57h1">
-                                        {{playerMatch.get('playerResults')[0].get('player_name')}}</h3>
+                                        {{playerMatch.get('playerResults')[0].get('player').get('playerName')}}</h3>
                                 </div>
                                 <div>
                                     <h6 class="css-xftfll e1d8q57h1">
-                                        {{playerMatch.get('playerResults')[0].get('team_name')}}</h6>
+                                        {{playerMatch.get('playerResults')[0].get('team').get('teamName')}}</h6>
                                 </div>
                                 <div class="css-60e3y0 e1d8q57h2"
                                     style="margin: 0px; float: none; width: 50px; height: 50px;">
@@ -194,11 +193,11 @@
                             <div class="css-j3lslf e1d8q57h8">
                                 <div class="css-1s5o62m e1d8q57h3">
                                     <h3 class="css-xftfll e1d8q57h1">
-                                        {{playerMatch.get('playerResults')[1].get('player_name')}}</h3>
+                                        {{playerMatch.get('playerResults')[1].get('player').get('playerName')}}</h3>
                                 </div>
                                 <div>
                                     <h6 class="css-xftfll e1d8q57h1">
-                                        {{playerMatch.get('playerResults')[1].get('team_name')}}</h6>
+                                        {{playerMatch.get('playerResults')[1].get('team').get('teamName')}}</h6>
                                 </div>
                                 <div class="css-60e3y0 e1d8q57h2"
                                     style="margin: 0px; float: none; width: 50px; height: 50px;"><svg

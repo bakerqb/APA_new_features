@@ -55,7 +55,7 @@ class Converter:
         if not sqlRow:
             return None
         
-        sessionId, sessionSeason, sessionYear, divisionId, divisionName, dayOfWeek, game = sqlRow[0]
+        sessionId, sessionSeason, sessionYear, divisionId, divisionName, dayOfWeek, game = sqlRow
 
         return self.toDivisionWithDirectValues(sessionId, sessionSeason, sessionYear, divisionId, divisionName, dayOfWeek, game)
     
@@ -69,7 +69,7 @@ class Converter:
         if not sqlRow:
             return None
 
-        sessionId, sessionSeason, sessionYear = sqlRow[0]
+        sessionId, sessionSeason, sessionYear = sqlRow
         return Session(sessionId, sessionSeason, sessionYear)
     
     def toTeamWithSql(self, sqlRows):
