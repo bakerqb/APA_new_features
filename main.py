@@ -22,17 +22,17 @@ def results():
     useCase = UseCase()
     apaWebScraper = ApaWebScraper()
     db = Database()
-    teamName = request.args.get('teamName')
+    teamId = request.args.get('teamId')
     # return useCase.getTeamResultsJson("SPRING", 2024, teamName, True)
 
     # TODO: fix the parameters for getTeamResultsJson
     return render_template(
         jinja_environment.get_template('results.html'),
         url_for=url_for,
-        **useCase.getTeamResultsJson("SPRING", 2024, teamName, True)
+        **useCase.getTeamResultsJson(teamId)
     )
 
-@app.route("/home", methods=['GET'])
+@app.route("/index", methods=['GET'])
 def home():
     return render_template(
         jinja_environment.get_template('index.html'),
@@ -48,6 +48,43 @@ def test():
     
     # TODO: put in these values and test it out!!!
     return useCase.getTeamResultsJson(132, 245, 12437619)
+
+@app.route("/session")
+def session():
+    useCase = UseCase()
+    sessionId = request.args.get('sessionId')
+    context = {
+        "sessionId": sessionId,
+        "divisions": useCase.getDivisionsJson(sessionId)
+    }
+    return render_template(
+        jinja_environment.get_template('session.html'),
+        url_for=url_for,
+        **context
+    )
+
+@app.route("/home1")
+def home1():
+    useCase = UseCase()
+    return render_template(
+        jinja_environment.get_template('home1.html'),
+        url_for=url_for,
+        **useCase.getSessionsJson()
+    )
+
+@app.route("/division")
+def division():
+    useCase = UseCase()
+    sessionId = request.args.get('sessionId')
+    divisionId = request.args.get('divisionId')
+    return render_template(
+        jinja_environment.get_template('division.html'),
+        url_for=url_for,
+        **useCase.getTeamsJson(sessionId, divisionId)
+    )
+
+
+
 
     
 
