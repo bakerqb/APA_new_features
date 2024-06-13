@@ -2,8 +2,6 @@ import sys
 import os
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-from dataClasses.PlayerResult import PlayerResult
-from dataClasses.nineBall.NineBallScore import NineBallScore
 from utils.utils import *
 from dataClasses.IPlayerMatch import IPlayerMatch
 from dataClasses.Team import Team
@@ -15,67 +13,33 @@ class NineBallPlayerMatch(IPlayerMatch):
     def initWithDiv(self, matchDiv, team1: Team, team2: Team, playerMatchId: int, teamMatchId: int, datePlayed):
         mapper = NineBallSkillLevelMapper()
         
-        text_elements = matchDiv.text.split('\n')
-        text_elements = remove_elements(text_elements, 'LAG')
-        text_elements = remove_elements(text_elements, 'SL')
-        text_elements = remove_elements(text_elements, 'Pts Earned')
-        text_elements = remove_elements(text_elements, 'PE/PN')
+        textElements = matchDiv.text.split('\n')
+        textElements = removeElements(textElements, 'LAG')
+        textElements = removeElements(textElements, 'SL')
+        textElements = removeElements(textElements, 'Pts Earned')
+        textElements = removeElements(textElements, 'PE/PN')
         
-        player_name1 = text_elements[0]
-        match_pts_earned1 = text_elements[2]
+        playerName1 = textElements[0]
+        matchPtsEarned1 = textElements[2]
 
-        score = text_elements[4]
-        score_elements = score.split(' - ')
-        score1 = score_elements[0].split('/')
+        score = textElements[4]
+        scoreElements = score.split(' - ')
+        score1 = scoreElements[0].split('/')
         if len(score1) == 1:
             score1.insert(0, 0)
-        score2 = score_elements[1].split('/')
+        score2 = scoreElements[1].split('/')
         if len(score2) == 1:
             score2.insert(0, 0)
 
-        ball_pts_earned1, ball_pts_needed1 = score1
-        skill_level1 = mapper.get_map().get(ball_pts_needed1)
-        ball_pts_earned2, ball_pts_needed2 = score2
+        ballPtsEarned1, ballPtsNeeded1 = score1
+        skillLevel1 = mapper.getMap().get(ballPtsNeeded1)
+        ballPtsEarned2, ballPtsNeeded2 = score2
 
-        skill_level2 = mapper.get_map().get(ball_pts_needed2)
-        player_name2 = text_elements[6]
-        match_pts_earned2 = text_elements[7]
+        skillLevel2 = mapper.getMap().get(ballPtsNeeded2)
+        playerName2 = textElements[6]
+        matchPtsEarned2 = textElements[7]
 
-        return self.initWithDirectInfo(playerMatchId, teamMatchId, player_name1, team1, skill_level1, match_pts_earned1, ball_pts_earned1, ball_pts_needed1,
-                   player_name2, team2, skill_level2, match_pts_earned2, ball_pts_earned2, ball_pts_needed2, datePlayed, False)
+        return self.initWithDirectInfo(playerMatchId, teamMatchId, playerName1, team1, skillLevel1, matchPtsEarned1, ballPtsEarned1, ballPtsNeeded1,
+                   playerName2, team2, skillLevel2, matchPtsEarned2, ballPtsEarned2, ballPtsNeeded2, datePlayed, False)
     
-    def pretty_print(self, player_in_question):
-        self.proper_playerResult_order_with_player(player_in_question)
-        p1, p2 = self.playerResults
-        
-        format1 = "{} [SL {}]".format(p1.get_player_name(), p1.get_skill_level())
-        format2 = "Match {} of the night".format(self.playerMatchId)
-        line1 = "{}{}{}{}{}".format(
-            color_player(p1, format1),
-            ' '*(40-len(format1)),
-            color_player(p2, "{} [SL {}]".format(p2.get_player_name(), p2.get_skill_level())),
-            ' '*(40-len(format2)),
-            format2
-        )
-        print(line1)
-        format = p1.get_team_name()
-        line2 = "{}{}{}".format(
-            color_player(p1, "{}".format(p1.get_team_name())),
-            ' '*(40-len(format)),
-            color_player(p2, p2.get_team_name())
-        )
-        print(line2)
-        format = "{}/{} Balls".format(p1.get_score().get_ball_pts_earned(), p1.get_score().get_ball_pts_needed())
-        line3 = "{}{}{}".format(
-            color_player(p1, format),
-            ' '*(40-len(format)),
-            color_player(p2, "{}/{} Balls".format(p2.get_score().get_ball_pts_earned(), p2.get_score().get_ball_pts_needed()))
-        )
-        print(line3)
-        format = "{} Match Points".format(p1.get_score().get_match_pts_earned())
-        line4 = "{}{}{}".format(
-            color_player(p1, format),
-            ' '*(40-len(format)),
-            color_player(p2, "{} Match Points".format(p2.get_score().get_match_pts_earned()))
-        )
-        print(line4)
+    

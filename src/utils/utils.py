@@ -25,9 +25,9 @@ class NineBallSkillLevelMapper:
         self.map["65"] = "8"
         self.map["75"] = "9"
     
-    def get_map(self):
+    def getMap(self):
         return self.map
     
-def remove_elements(test_list, item): 
+def removeElements(test_list, item): 
         res = list(filter((item).__ne__, test_list)) 
         return res
