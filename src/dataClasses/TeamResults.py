@@ -1,5 +1,3 @@
-from utils.utils import color_plain_text
-
 class TeamResults:
     def __init__(self, teamId: int, playerMatches: list, roster: list):
         for playerResult in playerMatches[0].toJson().get('playerResults'):
@@ -20,7 +18,7 @@ class TeamResults:
 
             for playerMatch in playerMatches:
                 if playerMatch.isPlayedBy(player):
-                    playerMatch.proper_playerResult_order_with_player(player)
+                    playerMatch.properPlayerResultOrderWithPlayer(player)
                     playerMatchesPerPlayer[playerName]["playerMatches"].append(playerMatch)
         return playerMatchesPerPlayer
     
@@ -29,10 +27,3 @@ class TeamResults:
             "team" : self.team,
             "playerMatchesPerPlayer": { playerName: { "player": playerMatchesPerPlayerItem.get('player').toJson(), "playerMatches": list(map(lambda playerMatch: playerMatch.toJson(), playerMatchesPerPlayerItem.get('playerMatches'))) } for playerName, playerMatchesPerPlayerItem in self.playerMatchesPerPlayer.items()}
         }
-    
-    def printPlayerMatchesPerPlayer(self) -> None:
-        for player in self.playerMatchesPerPlayer.keys():
-            print(color_plain_text("\n-------------------- Results for {} --------------------".format(player)))
-            for index, player_match in enumerate(self.playerMatchesPerPlayer[player], 1):
-                print(color_plain_text("------ Match {} ------".format(str(index))))
-                player_match.pretty_print(player)

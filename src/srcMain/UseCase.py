@@ -15,43 +15,21 @@ class UseCase:
 
 
     ############### Game agnostic functions ###############
-    
-    # ------------------------- Printing -------------------------
-    def printTeamResults(self, sessionSeason, sessionYear, teamName, isEightBall) -> None:
-        self.getTeamResults(sessionSeason, sessionYear, teamName, isEightBall).printPlayerMatchesPerPlayer()
-
-    '''
-    def printUpcomingTeamResults(self, sessionId, divisionId, ownTeamId) -> None:
-        
-        isEightBall = self.isEightBallUpcoming()
-        sessionConfig = self.config.getSessionConfig(isEightBall)
-        teamName = self.apaWebScraper.getOpponentTeamName(sessionConfig.get('my_team_name'), sessionConfig.get('division_link'))
-        self.printTeamResults(sessionSeason, sessionYear, teamName, isEightBall)
-    '''
-    
-
-    def printUpcomingTeamResultsJson(self) -> None:
-        self.printTeamResultsJson(self.getUpcomingTeamResultsJson())
-
-    def printTeamResultsJson(self, sessionSeason, sessionYear, teamName, isEightBall) -> None:
-        teamResults = self.getTeamResults(sessionSeason, sessionYear, teamName, isEightBall).toJson()
-        file = open('src/resources/teamResults.json', 'w')
-        file.write(json.dumps(teamResults, indent=2))
 
     # ------------------------- Scraping -------------------------
     def scrapeUpcomingTeamResults(self) -> None:
         # isEightBall = self.isEightBallUpcoming()
         isEightBall = True
         sessionConfig = self.config.getSessionConfig(isEightBall)
-        self.apaWebScraper.scrapeDivision(sessionConfig.get('division_link'), isEightBall)
+        self.apaWebScraper.scrapeDivision(sessionConfig.get('divisionLink'), isEightBall)
 
     # ------------------------- Getting -------------------------
     def getUpcomingTeamResultsJson(self) -> dict:
         isEightBall = self.isEightBallUpcoming()
-        sessionSeason = self.config.getConfig().get('session_season_in_question')
-        sessionYear = self.config.getConfig().get('session_year_in_question')
+        sessionSeason = self.config.getConfig().get('sessionSeasonInQuestion')
+        sessionYear = self.config.getConfig().get('sessionYearInQuestion')
         sessionConfig = self.config.getSessionConfig(isEightBall)
-        teamName = self.apaWebScraper.getOpponentTeamName(sessionConfig.get('my_team_name'), sessionConfig.get('division_link'))
+        teamName = self.apaWebScraper.getOpponentTeamName(sessionConfig.get('myTeamName'), sessionConfig.get('divisionLink'))
         return self.getTeamResultsJson(sessionSeason, sessionYear, teamName, isEightBall)
 
     def getTeamResultsJson(self, teamId) -> dict:
@@ -85,26 +63,26 @@ class UseCase:
 
     # ------------------------- Helper functions -------------------------
     def isEightBallUpcoming(self) -> bool:
-        today_weekday = datetime.now().weekday()
-        monday_weekday = 0
-        thursday_weekday = 3
-        num_days_in_week = 7
-        return (thursday_weekday - today_weekday) % num_days_in_week < (monday_weekday - today_weekday) % num_days_in_week
+        todayWeekday = datetime.now().weekday()
+        mondayWeekday = 0
+        thursdayWeekday = 3
+        numDaysInWeek = 7
+        return (thursdayWeekday - todayWeekday) % numDaysInWeek < (mondayWeekday - todayWeekday) % numDaysInWeek
     
     
 
     ############### 9 Ball functions ###############
 
     def scrapeAllNineBallSessionLinks(self) -> None:
-        sessions_with_no_data = [89, 91, 92, 93, 100, 101, 105, 106, 110, 114, 115, 116, 120, 121, 122, 126, 127, 128, 131, 132]
-        starting_session = self.config.getConfig().get('apa_website').get('starting_session')
-        current_session = self.config.getConfig().get('apa_website').get('current_session')
-        if self.db.isNineBallDivisionTableFull(current_session - starting_session - len(sessions_with_no_data) + 1):
+        sessionsWithNoData = [89, 91, 92, 93, 100, 101, 105, 106, 110, 114, 115, 116, 120, 121, 122, 126, 127, 128, 131, 132]
+        startingSession = self.config.getConfig().get('apaWebsite').get('startingSession')
+        currentSession = self.config.getConfig().get('apaWebsite').get('currentSession')
+        if self.db.isNineBallDivisionTableFull(currentSession - startingSession - len(sessionsWithNoData) + 1):
             print("NineBallDivision table up to date. No scraping needed")
             return
         
-        for sessionId in range(starting_session, current_session + 1):
-            if sessionId in sessions_with_no_data:
+        for sessionId in range(startingSession, currentSession + 1):
+            if sessionId in sessionsWithNoData:
                 continue
             
             self.apaWebScraper.scrapeSessionLink(sessionId)
@@ -115,8 +93,8 @@ class UseCase:
             self.apaWebScraper.scrapeDivision(divisionLink, False)
     
     def scrapeCurrentNineBallSessionData(self) -> None:
-        division_link = self.config.getConfig().get('nine_ball_data').get('division_link')
-        self.apaWebScraper.scrapeDivision(division_link, False)
+        divisionLink = self.config.getConfig().get('nineBallData').get('divisionLink')
+        self.apaWebScraper.scrapeDivision(divisionLink, False)
 
     def getNineBallMatrix(self) -> None:
         self.db.createNineBallMatrix()

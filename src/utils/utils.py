@@ -1,17 +1,3 @@
-from termcolor import colored
-from .Colors import Colors
-
-
-def color_player(player_result, player_info):
-    if player_result.get_score().get_did_win():
-        return colored(str(player_info), Colors.GREEN)
-    else:
-        return colored(str(player_info), Colors.RED)
-
-def color_plain_text(text):
-    return colored(text)
-
-
 class NineBallSkillLevelMapper:
     def __init__(self):
         self.map = {}
@@ -25,9 +11,9 @@ class NineBallSkillLevelMapper:
         self.map["65"] = "8"
         self.map["75"] = "9"
     
-    def get_map(self):
+    def getMap(self):
         return self.map
     
-def remove_elements(test_list, item): 
-        res = list(filter((item).__ne__, test_list)) 
+def removeElements(testList, item): 
+        res = list(filter((item).__ne__, testList)) 
         return res

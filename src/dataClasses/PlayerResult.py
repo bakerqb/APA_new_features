@@ -3,16 +3,16 @@ import dataClasses.Team as Team
 import dataClasses.Player as Player
 
 class PlayerResult:
-    def __init__(self, team: Team, player: Player, skill_level: int, score: IScore):
+    def __init__(self, team: Team, player: Player, skillLevel: int, score: IScore):
         self.team = team
         self.player = player
-        self.skill_level = skill_level
+        self.skillLevel = skillLevel
         self.score = score
 
     def toJson(self):
         return {
             "team": self.team.toJson(),
             "player": self.player.toJson(),
-            "skill_level": self.skill_level,
+            "skillLevel": self.skillLevel,
             "score": self.score.toJson()
         }

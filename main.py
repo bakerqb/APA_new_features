@@ -43,11 +43,15 @@ def home():
 def test():
     useCase = UseCase()
     db = Database()
-    #db.refreshAllTables(True)
-    #useCase.scrapeUpcomingTeamResults()
+    db.refreshAllTables(True)
+    useCase.scrapeUpcomingTeamResults()
     
     # TODO: put in these values and test it out!!!
-    return useCase.getTeamResultsJson(132, 245, 12437619)
+    return render_template(
+        jinja_environment.get_template('results.html'),
+        url_for=url_for,
+        **useCase.getTeamResultsJson(12531023)
+    )
 
 @app.route("/session")
 def session():
