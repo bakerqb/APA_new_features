@@ -1,5 +1,3 @@
-from utils.utils import color_plain_text
-
 class TeamResults:
     def __init__(self, teamId: int, playerMatches: list, roster: list):
         for playerResult in playerMatches[0].toJson().get('playerResults'):

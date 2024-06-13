@@ -1,6 +1,6 @@
-apa_website:
-  login_link: https://accounts.poolplayers.com/login
-  dashboard_link: https://league.poolplayers.com/dashboard
+apaWebsite:
+  loginLink: https://accounts.poolplayers.com/login
+  dashboardLink: https://league.poolplayers.com/dashboard
   # Should follow format https://league.poolplayers.com/<region>/disions/<leagueId>/standings
   # https://league.poolplayers.com/centralchicago/divisions/366534/standings/
   # Fall 2023 Tuesday: https://league.poolplayers.com/centralchicago/divisions/373316
@@ -8,28 +8,28 @@ apa_website:
   # Fall 2023 Thursday: https://league.poolplayers.com/centralchicago/divisions/373318
   # Spring 2024 Monday: https://league.poolplayers.com/centralchicago/divisions/379653
   # Spring 2024 Thursday: https://league.poolplayers.com/centralchicago/divisions/379652
-  division_link: https://league.poolplayers.com/centralchicago/divisions/379653
-  base_link: https://league.poolplayers.com
-  session_link: https://league.poolplayers.com/centralchicago/divisions/session/
-  starting_session: 78
-  current_session: 132
-wait_times:
-  implicit_wait_time: 10
-  sleep_time: 3
-player_in_question: Quinn Baker
-team_in_question: Miniclip
+  divisionLink: https://league.poolplayers.com/centralchicago/divisions/379653
+  baseLink: https://league.poolplayers.com
+  sessionLink: https://league.poolplayers.com/centralchicago/divisions/session/
+  startingSession: 78
+  currentSession: 132
+waitTimes:
+  implicitWaitTime: 10
+  sleepTime: 3
+playerInQuestion: Quinn Baker
+teamInQuestion: Miniclip
 # VVVVVV  MUST BE IN ALL CAPS  VVVVVV
-session_season_in_question: SPRING
-session_year_in_question: 2024
+sessionSeasonInQuestion: SPRING
+sessionYearInQuestion: 2024
 # VVVVVV  Either "8-ball" or "9-ball"  VVVVVV
 game: 8-ball
-debug_mode: false
-refresh_teams: false
-nine_ball_data:
-  division_link: https://league.poolplayers.com/centralchicago/divisions/379653
-  my_team_name: Miniclip
-  my_player_name: Quinn Baker
-eight_ball_data:
-  division_link: https://league.poolplayers.com/centralchicago/divisions/379652
-  my_team_name: The Final Boss
-  my_player_name: Quinn Baker
+debugMode: false
+refreshTeams: false
+nineBallData:
+  divisionLink: https://league.poolplayers.com/centralchicago/divisions/379653
+  myTeamName: Miniclip
+  myPlayerName: Quinn Baker
+eightBallData:
+  divisionLink: https://league.poolplayers.com/centralchicago/divisions/387820
+  myTeamName: The Final Boss
+  myPlayerName: Quinn Baker

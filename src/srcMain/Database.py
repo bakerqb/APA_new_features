@@ -26,8 +26,8 @@ class Database:
     def getTeamsFromDivision(self, sessionId, divisionId):
         return self.cur.execute(f"SELECT * FROM Team WHERE sessionId = {sessionId} AND divisionId = {divisionId}").fetchall()
 
-    def getLastScoreId(self, is_eight_ball):
-        gamePrefix = self.getGamePrefix(is_eight_ball)
+    def getLastScoreId(self, isEightBall):
+        gamePrefix = self.getGamePrefix(isEightBall)
         
     
     def getTeam(self, teamName, teamNum, divisionId, sessionId):
@@ -103,13 +103,13 @@ class Database:
             pass
         self.con.commit()
     
-    def getDivision(self, divisionId):
+    def getDivision(self, divisionId, sessionId):
         self.createTables(True)
         division = self.cur.execute(
             "SELECT s.sessionId, s.sessionSeason, s.sessionYear, d.divisionId, d.divisionName, d.dayOfWeek, d.game " + 
             "FROM Division d LEFT JOIN Session s " +
             "ON d.divisionId = s.sessionId " +
-            "WHERE d.divisionId = {}".format(divisionId)
+            f"WHERE d.divisionId = {divisionId} AND s.sessionId = {sessionId}"
         ).fetchall()
         if len(division) > 0:
             division = division[0]
@@ -133,7 +133,7 @@ class Database:
         session = divisionData.get('session')
         self.addSession(session)
 
-        if not self.getDivision(divisionData.get('divisionId')):
+        if not self.getDivision(divisionData.get('divisionId'), session.get('sessionId')):
             self.cur.execute(
                 "INSERT INTO Division VALUES (" +
                 f"{session.get('sessionId')}, " +
@@ -176,8 +176,8 @@ class Database:
         
     
     def deleteSessionData(self):
-        sessionSeason = self.config.get('session_season_in_question')
-        sessionYear = self.config.get('session_year_in_question')
+        sessionSeason = self.config.get('sessionSeasonInQuestion')
+        sessionYear = self.config.get('sessionYearInQuestion')
         game = self.config.get('game')
         gamePrefix = self.getGamePrefix(game == '8-ball')
 
@@ -351,10 +351,10 @@ class Database:
         gamePrefix = self.getGamePrefix(isEightBall)
         return self.cur.execute("SELECT COUNT(*) FROM {}BallTeamMatch WHERE teamMatchId = {}".format(gamePrefix, teamMatchId)).fetchone()[0] > 0
 
-    def addTeamMatchValue(self, teamMatchId, apa_datetime, divisionId, sessionId, isEightBall):
+    def addTeamMatchValue(self, teamMatchId, apaDatetime, divisionId, sessionId, isEightBall):
         try:
             gamePrefix = self.getGamePrefix(isEightBall)
-            self.cur.execute("INSERT INTO {}BallTeamMatch VALUES ({}, '{}', {}, {})".format(gamePrefix, teamMatchId, apa_datetime, divisionId, sessionId))
+            self.cur.execute("INSERT INTO {}BallTeamMatch VALUES ({}, '{}', {}, {})".format(gamePrefix, teamMatchId, apaDatetime, divisionId, sessionId))
             self.con.commit()
         except Exception:
             pass
@@ -375,20 +375,20 @@ class Database:
 
         scoreId = int(self.cur.execute("SELECT last_insert_rowid() FROM {}BallScore".format(gamePrefix)).fetchone()[0])
         
-        player_match_id = playerMatch.get('playerMatchId')
-        team_match_id = playerMatch.get('teamMatchId')
+        playerMatchId = playerMatch.get('playerMatchId')
+        teamMatchId = playerMatch.get('teamMatchId')
         teamId1 = playerMatch.get('playerResults')[0].get('team').get('teamId')
         memberId1 = playerMatch.get('playerResults')[0].get('player').get('memberId')
-        skillLevel1 = playerMatch.get('playerResults')[0].get('skill_level')
+        skillLevel1 = playerMatch.get('playerResults')[0].get('skillLevel')
         scoreId1 = str(scoreId-1)
         teamId2 = playerMatch.get('playerResults')[1].get('team').get('teamId')
         memberId2 = playerMatch.get('playerResults')[1].get('player').get('memberId')
-        skillLevel2 = playerMatch.get('playerResults')[1].get('skill_level')
+        skillLevel2 = playerMatch.get('playerResults')[1].get('skillLevel')
         scoreId2 = str(scoreId)
 
 
         self.cur.execute(
-            f"""INSERT INTO {gamePrefix}BallPlayerMatch VALUES ({player_match_id}, {team_match_id}, {teamId1}, {memberId1}, {skillLevel1}, {scoreId1}, {teamId2}, {memberId2}, {skillLevel2}, {scoreId2})"""
+            f"""INSERT INTO {gamePrefix}BallPlayerMatch VALUES ({playerMatchId}, {teamMatchId}, {teamId1}, {memberId1}, {skillLevel1}, {scoreId1}, {teamId2}, {memberId2}, {skillLevel2}, {scoreId2})"""
         )
         self.con.commit()
 
@@ -396,16 +396,16 @@ class Database:
         if isEightBall:
             return "INSERT INTO EightBallScore VALUES ({}, {}, {}, {})".format(
                 "NULL", 
-                str(score.get('match_pts_earned')), 
-                str(score.get('games_won')), 
-                str(score.get('games_needed'))
+                str(score.get('matchPtsEarned')), 
+                str(score.get('gamesWon')), 
+                str(score.get('gamesNeeded'))
             )
         else:
             return "INSERT INTO NineBallScore VALUES ({}, {}, {}, {})".format(
                 "NULL", 
-                str(score.get('match_pts_earned')), 
-                str(score.get('ball_pts_earned')), 
-                str(score.get('ball_pts_needed'))
+                str(score.get('matchPtsEarned')), 
+                str(score.get('ballPtsEarned')), 
+                str(score.get('ballPtsNeeded'))
             )
     
     def getDatePlayed(self, teamMatchId: int, isEightBall: bool):
@@ -431,34 +431,34 @@ class Database:
             matrix.append([i, 0, 0, 0, 0, 0, 0, 0, 0, 0])
         for i in range(1, 10):
             for j in range(i+1, 10):
-                matches_low_against_high = self.cur.execute(
-                    "SELECT SUM(score1.match_pts_earned) AS total_pts1, " +
-                    "SUM(score2.match_pts_earned) AS total_pts2, COUNT(*) " + 
+                matchesLowAgainstHigh = self.cur.execute(
+                    "SELECT SUM(score1.matchPtsEarned) AS totalPts1, " +
+                    "SUM(score2.matchPtsEarned) AS totalPts2, COUNT(*) " + 
                     "FROM NineBallPlayerMatch n " +
                     "LEFT JOIN NineBallScore score1 " +
                     "ON score1.scoreId = n.scoreId1 " +
                     "LEFT JOIN NineBallScore score2 " +
                     "ON score2.scoreId = n.scoreId2 " +
-                    "WHERE n.skill_level1 = {} AND n.skill_level2 = {}".format(i, j)
+                    "WHERE n.skillLevel1 = {} AND n.skillLevel2 = {}".format(i, j)
                 ).fetchone()
 
-                matches_high_against_low = self.cur.execute(
-                    "SELECT SUM(score1.match_pts_earned) AS total_pts1, " +
-                    "SUM(score2.match_pts_earned) AS total_pts2, COUNT(*) " + 
+                matchesHighAgainstLow = self.cur.execute(
+                    "SELECT SUM(score1.matchPtsEarned) AS totalPts1, " +
+                    "SUM(score2.matchPtsEarned) AS totalPts2, COUNT(*) " + 
                     "FROM NineBallPlayerMatch n " +
                     "LEFT JOIN NineBallScore score1 " +
                     "ON score1.scoreId = n.scoreId1 " +
                     "LEFT JOIN NineBallScore score2 " +
                     "ON score2.scoreId = n.scoreId2 " +
-                    "WHERE n.skill_level1 = {} AND n.skill_level2 = {}".format(j, i)
+                    "WHERE n.skillLevel1 = {} AND n.skillLevel2 = {}".format(j, i)
                 ).fetchone()
 
-                games = matches_low_against_high[2] + matches_high_against_low[2]
+                games = matchesLowAgainstHigh[2] + matchesHighAgainstLow[2]
                 if games > 0:
-                    pts_from_lower_rated_player = (matches_low_against_high[0] if matches_low_against_high[0] else 0)  + (matches_high_against_low[1] if matches_high_against_low[1] else 0)
-                    pts_from_higher_rated_player = (matches_low_against_high[1] if matches_low_against_high[1] else 0) + (matches_high_against_low[0] if matches_high_against_low[0] else 0)
-                    matrix[i][j] = str(round(pts_from_lower_rated_player/games, 1)) + " pts expected\n" + str(games) + " games"
-                    matrix[j][i] = str(round(pts_from_higher_rated_player/games, 1)) + " pts expected\n" + str(games) + " games"
+                    ptsFromLowerRatedPlayer = (matchesLowAgainstHigh[0] if matchesLowAgainstHigh[0] else 0)  + (matchesHighAgainstLow[1] if matchesHighAgainstLow[1] else 0)
+                    ptsFromHigherRatedPlayer = (matchesLowAgainstHigh[1] if matchesLowAgainstHigh[1] else 0) + (matchesHighAgainstLow[0] if matchesHighAgainstLow[0] else 0)
+                    matrix[i][j] = str(round(ptsFromLowerRatedPlayer/games, 1)) + " pts expected\n" + str(games) + " games"
+                    matrix[j][i] = str(round(ptsFromHigherRatedPlayer/games, 1)) + " pts expected\n" + str(games) + " games"
         
         print(tabulate(matrix, headers="firstrow", tablefmt="fancy_grid"))
 
@@ -472,24 +472,24 @@ class Database:
             matrix.append([i, 0, 0, 0, 0, 0, 0, 0, 0, 0])
         for i in range(1, 10):
             for j in range(i+1, 10):
-                scores = self.cur.execute("SELECT lower_level_pts FROM "
-                    "(SELECT score1.match_pts_earned AS lower_level_pts, " +
-                    "score2.match_pts_earned AS higher_level_pts " + 
+                scores = self.cur.execute("SELECT lowerLevelPts FROM "
+                    "(SELECT score1.matchPtsEarned AS lowerLevelPts, " +
+                    "score2.matchPtsEarned AS higherLevelPts " + 
                     "FROM NineBallPlayerMatch n " +
                     "LEFT JOIN NineBallScore score1 " +
                     "ON score1.scoreId = n.scoreId1 " +
                     "LEFT JOIN NineBallScore score2 " +
                     "ON score2.scoreId = n.scoreId2 " +
-                    "WHERE n.skill_level1 = {} AND n.skill_level2 = {} ".format(i, j) +
-                    "UNION ALL SELECT score1.match_pts_earned AS higher_level_pts, " +
-                    "score2.match_pts_earned AS lower_level_pts " + 
+                    "WHERE n.skillLevel1 = {} AND n.skillLevel2 = {} ".format(i, j) +
+                    "UNION ALL SELECT score1.matchPtsEarned AS higherLevelPts, " +
+                    "score2.matchPtsEarned AS lowerLevelPts " + 
                     "FROM NineBallPlayerMatch n " +
                     "LEFT JOIN NineBallScore score1 " +
                     "ON score1.scoreId = n.scoreId1 " +
                     "LEFT JOIN NineBallScore score2 " +
                     "ON score2.scoreId = n.scoreId2 " +
-                    "WHERE n.skill_level1 = {} AND n.skill_level2 = {}) ".format(j, i) +
-                    "ORDER BY lower_level_pts"
+                    "WHERE n.skillLevel1 = {} AND n.skillLevel2 = {}) ".format(j, i) +
+                    "ORDER BY lowerLevelPts"
                 ).fetchall()
 
                 numGames = len(scores)
@@ -506,8 +506,8 @@ class Database:
         playerName = playerName.replace('"', '\'')
         
         return self.cur.execute(
-            "SELECT n.player_name1, n.skill_level1, score1.match_pts_earned, " + 
-            "n.player_name2, n.skill_level2, score2.match_pts_earned, t.datePlayed " + 
+            "SELECT n.playerName1, n.skillLevel1, score1.matchPtsEarned, " + 
+            "n.playerName2, n.skillLevel2, score2.matchPtsEarned, t.datePlayed " + 
             "FROM NineBallPlayerMatch n " +
             "LEFT JOIN NineBallTeamMatch t " + 
             "ON n.teamMatchId = t.teamMatchId " +
@@ -515,7 +515,7 @@ class Database:
             "ON score1.scoreId = n.scoreId1 " +
             "LEFT JOIN NineBallScore score2 " +
             "ON score2.scoreId = n.scoreId2 " +
-            """WHERE (n.player_name1 = "{}" OR n.player_name2 = "{}") """.format(playerName, playerName) +
+            """WHERE (n.playerName1 = "{}" OR n.playerName2 = "{}") """.format(playerName, playerName) +
             "AND DATEADD(year,-1,GETDATE())"
         )
     
@@ -544,20 +544,20 @@ class Database:
             "ORDER BY tm.datePlayed"
         ).fetchall()
     
-    def getNineBallPlayersAboveSkillLevel(self, skill_level):
+    def getNineBallPlayersAboveSkillLevel(self, skillLevel):
         return self.cur.execute(
             "SELECT DISTINCT playerName, skillLevel, MAX(datePlayed) FROM " +
-                """(SELECT n.player_name1 as playerName, n.skill_level1 as skillLevel, t.datePlayed FROM NineBallPlayerMatch n LEFT JOIN NineBallTeamMatch t ON n.teamMatchId = t.teamMatchId WHERE n.skill_level1 > {} """.format(skill_level) +
+                """(SELECT n.playerName1 as playerName, n.skillLevel1 as skillLevel, t.datePlayed FROM NineBallPlayerMatch n LEFT JOIN NineBallTeamMatch t ON n.teamMatchId = t.teamMatchId WHERE n.skillLevel1 > {} """.format(skillLevel) +
                 "UNION " +
-                """SELECT n.player_name2 as playerName, n.skill_level2 as skillLevel, t.datePlayed FROM NineBallPlayerMatch n LEFT JOIN NineBallTeamMatch t ON n.teamMatchId = t.teamMatchId WHERE n.skill_level2 > {}) GROUP BY playerName ORDER BY datePlayed""".format(skill_level)
+                """SELECT n.playerName2 as playerName, n.skillLevel2 as skillLevel, t.datePlayed FROM NineBallPlayerMatch n LEFT JOIN NineBallTeamMatch t ON n.teamMatchId = t.teamMatchId WHERE n.skillLevel2 > {}) GROUP BY playerName ORDER BY datePlayed""".format(skillLevel)
         ).fetchall()
 
-    def getNineBallPlayerMatchesBetweenSkillLevels(self, skill_level1, skill_level2):
+    def getNineBallPlayerMatchesBetweenSkillLevels(self, skillLevel1, skillLevel2):
         return self.cur.execute(
-             "SELECT n.playerMatchId, n.teamMatchId, n.player_name1, " +
-            "n.team_name1, n.skill_level1, score1.match_pts_earned, score1.ball_pts_earned, score1.ball_pts_needed, " + 
-            "n.player_name2, " +
-            "n.team_name2, n.skill_level2, score2.match_pts_earned, score2.ball_pts_earned, score2.ball_pts_needed, t.datePlayed " + 
+             "SELECT n.playerMatchId, n.teamMatchId, n.playerName1, " +
+            "n.teamName1, n.skillLevel1, score1.matchPtsEarned, score1.ballPtsEarned, score1.ballPtsNeeded, " + 
+            "n.playerName2, " +
+            "n.teamName2, n.skillLevel2, score2.matchPtsEarned, score2.ballPtsEarned, score2.ballPtsNeeded, t.datePlayed " + 
             "FROM NineBallPlayerMatch n " +
             "LEFT JOIN NineBallTeamMatch t " + 
             "ON n.teamMatchId = t.teamMatchId " +
@@ -565,17 +565,17 @@ class Database:
             "ON score1.scoreId = n.scoreId1 " +
             "LEFT JOIN NineBallScore score2 " +
             "ON score2.scoreId = n.scoreId2 " +
-            "WHERE (n.skill_level1 = {} AND n.skill_level2 = {}) ".format(skill_level1, skill_level2) +
-            "OR (n.skill_level1 = {} AND n.skill_level2 = {}) ".format(skill_level2, skill_level1) +
+            "WHERE (n.skillLevel1 = {} AND n.skillLevel2 = {}) ".format(skillLevel1, skillLevel2) +
+            "OR (n.skillLevel1 = {} AND n.skillLevel2 = {}) ".format(skillLevel2, skillLevel1) +
             "ORDER BY t.datePlayed"
         ).fetchall()
     
     def getRubbishMatches(self):
         return self.cur.execute(
-             "SELECT n.player_name1, " +
-            "n.team_name1, n.skill_level1, score1.match_pts_earned, score1.ball_pts_earned, score1.ball_pts_needed, " + 
-            "n.player_name2, " +
-            "n.team_name2, n.skill_level2, score2.match_pts_earned, score2.ball_pts_earned, score2.ball_pts_needed, t.datePlayed " + 
+             "SELECT n.playerName1, " +
+            "n.teamName1, n.skillLevel1, score1.matchPtsEarned, score1.ballPtsEarned, score1.ballPtsNeeded, " + 
+            "n.playerName2, " +
+            "n.teamName2, n.skillLevel2, score2.matchPtsEarned, score2.ballPtsEarned, score2.ballPtsNeeded, t.datePlayed " + 
             "FROM NineBallPlayerMatch n " +
             "LEFT JOIN NineBallTeamMatch t " + 
             "ON n.teamMatchId = t.teamMatchId " +
@@ -583,7 +583,7 @@ class Database:
             "ON score1.scoreId = n.scoreId1 " +
             "LEFT JOIN NineBallScore score2 " +
             "ON score2.scoreId = n.scoreId2 " +
-            "WHERE score1.ball_pts_earned = 0 OR score2.ball_pts_earned = 0 " +
+            "WHERE score1.ballPtsEarned = 0 OR score2.ballPtsEarned = 0 " +
             "ORDER BY t.datePlayed"
         ).fetchall()
     
