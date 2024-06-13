@@ -72,7 +72,11 @@ class IPlayerMatch:
             self.playerResults.reverse()
 
     def toReadableDateTimeString(self, date):
-        return datetime.strptime(date, "%Y-%m-%d").strftime("%B %-d, %Y")
+        try:
+            readableDate = datetime.strptime(date, "%Y-%m-%d").strftime("%B %-d, %Y")
+            return readableDate
+        except Exception:
+            return date 
 
 
     def toJson(self):
