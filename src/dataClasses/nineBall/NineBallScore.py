@@ -17,3 +17,12 @@ class NineBallScore(IScore):
             "ballPtsEarned": self.ballPtsEarned,
             "ballPtsNeeded": self.ballPtsNeeded
         }
+    
+    def getMatchPtsEarned(self):
+        return self.matchPtsEarned
+    
+    def getBallPtsEarned(self):
+        return self.ballPtsEarned
+    
+    def getBallPtsNeeded(self):
+        return self.ballPtsNeeded

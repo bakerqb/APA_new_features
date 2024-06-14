@@ -16,3 +16,15 @@ class PlayerResult:
             "skillLevel": self.skillLevel,
             "score": self.score.toJson()
         }
+    
+    def getTeam(self):
+        return self.team
+    
+    def getPlayer(self):
+        return self.player
+    
+    def getSkillLevel(self):
+        return self.skillLevel
+    
+    def getScore(self):
+        return self.score

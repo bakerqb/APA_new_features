@@ -52,7 +52,7 @@ class IPlayerMatch:
         self.teamMatchId = teamMatchId
         self.datePlayed = self.toReadableDateTimeString(datePlayed)
 
-    def getPlayerMatchResult(self):
+    def getPlayerResults(self):
         return self.playerResults
     
     def getPlayerMatchId(self):
@@ -70,6 +70,7 @@ class IPlayerMatch:
     def properPlayerResultOrderWithPlayer(self, player: Player):
         if (self.playerResults[0].toJson().get('player') != player.toJson()):
             self.playerResults.reverse()
+        return self
 
     def toReadableDateTimeString(self, date):
         try:
@@ -86,3 +87,5 @@ class IPlayerMatch:
             "teamMatchId": self.teamMatchId,
             "datePlayed": self.datePlayed
         }
+    
+    

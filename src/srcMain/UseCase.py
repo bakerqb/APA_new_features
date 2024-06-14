@@ -4,7 +4,7 @@ from src.srcMain.Database import Database
 from converter.Converter import Converter
 from dataClasses.TeamResults import TeamResults
 from datetime import datetime
-
+import math
 
 class UseCase:
     def __init__(self):
@@ -60,6 +60,49 @@ class UseCase:
         teamResultsDb = self.db.getTeamResults(teamId)
         teamResultsPlayerMatches = list(map(lambda playerMatch: self.converter.toPlayerMatchWithSql(playerMatch), teamResultsDb))
         return TeamResults(int(teamId), teamResultsPlayerMatches, list(map(lambda player: self.converter.toPlayerWithSql(player), self.db.getTeamRoster(teamId))))
+    
+    def getAdjustedSkillLevel(self, playerName):
+        # TODO: remove hardcoded values
+        limit = 10
+        game = "8-ball"
+        currentSkillLevel = 7
+        playerResultsDb = self.db.getLatestPlayerMatchesForPlayer(playerName, game, limit)
+        playerMatches = list(map(lambda playerMatch: self.converter.toPlayerMatchWithSql(playerMatch), playerResultsDb))
+
+        #TODO: put playerMatches through algorithm
+        adjustedScoreSum = 0
+        for playerMatch in playerMatches:
+            playerResults = playerMatch.getPlayerResults()
+            player = playerResults[0].getPlayer() if playerResults[0].getPlayer().getPlayerName() == playerName else playerResults[1].getPlayer()
+
+            playerMatch = playerMatch.properPlayerResultOrderWithPlayer(player)
+            
+            # Make sure you know how the opponent and who the "YOU" player is
+            # Then just plug that shit into the algorithm
+            playerResult0 = playerMatch.getPlayerResults()[0]
+            playerResult1 = playerMatch.getPlayerResults()[1]
+            gmw0 = playerResult0.getScore().getGamesNeeded()
+            gw0 = playerResult0.getScore().getGamesWon()
+            gmw1 = playerResult1.getScore().getGamesNeeded()
+            gw1 = playerResult1.getScore().getGamesWon()
+
+            adjustedScore = currentSkillLevel + .5 + (
+                    (
+                        ((gmw1 - gw1)-(gmw0 - gw0))/(gmw1 + gmw0)
+                    )
+                    *
+                    abs(
+                        math.ceil(gw0/gmw0)
+                        + (playerResult1.getSkillLevel()/7) 
+                        - 1
+                    )
+            )
+            adjustedScoreSum += adjustedScore
+        return str(adjustedScoreSum/len(playerMatches))
+
+
+
+
 
 
     ############### 9 Ball functions ###############

@@ -505,6 +505,30 @@ class Database:
             f"WHERE pr1.teamId = {teamId} OR pr2.teamId = {teamId} " +
             "ORDER BY tm.datePlayed"
         ).fetchall()
+
+    def getLatestPlayerMatchesForPlayer(self, playerName, game, limit):
+        gamePrefix = self.getGamePrefix(game == '8-ball')
+        return self.cur.execute(
+            "SELECT s.sessionId, s.sessionSeason, s.sessionYear, d.divisionId, d.divisionName, d.dayOfWeek, d.game, " +
+            "tm.teamMatchId, tm.datePlayed, pm.playerMatchId, pr1.teamId, pr1.teamNum, pr1.teamName, " +
+            "pr1.memberId, pr1.playerName, pr1.currentSkillLevel, pm.skillLevel1, pr1.matchPtsEarned, pr1.ballPtsEarned, pr1.ballPtsNeeded, " +
+            "pr2.teamId, pr2.teamNum, pr2.teamName, pr2.memberId, pr2.playerName, pr2.currentSkillLevel, pm.skillLevel2, " +
+            "pr2.matchPtsEarned, pr2.ballPtsEarned, pr2.ballPtsNeeded " +
+            "FROM Session s LEFT JOIN Division d ON s.sessionId = d.sessionId " +
+            f"LEFT JOIN {gamePrefix}BallTeamMatch tm ON d.divisionId = tm.divisionId AND s.sessionId = tm.sessionId " +
+            f"LEFT JOIN {gamePrefix}BallPlayerMatch pm ON pm.teamMatchId = tm.teamMatchId "
+            "LEFT JOIN (SELECT t.teamId, t.teamNum, t.teamName, p.memberId, p.playerName, p.currentSkillLevel, " +
+                    "s.scoreId, s.matchPtsEarned, s.ballPtsEarned, s.ballPtsNeeded " +
+                    f"FROM Team t, Player p, {gamePrefix}BallScore s) pr1 " +
+            "ON pr1.teamId = pm.teamId1 AND pr1.memberId = pm.memberId1 AND pr1.scoreId = pm.scoreId1 " +
+            "LEFT JOIN (SELECT t.teamId, t.teamNum, t.teamName, p.memberId, p.playerName, p.currentSkillLevel, " +
+                    "s.scoreId, s.matchPtsEarned, s.ballPtsEarned, s.ballPtsNeeded " +
+                    f"FROM Team t, Player p, {gamePrefix}BallScore s) pr2 " +
+            "ON pr2.teamId = pm.teamId2 AND pr2.memberId = pm.memberId2 AND pr2.scoreId = pm.scoreId2 " +
+            f"""WHERE d.game = "{game}" AND (pr1.playerName = "{playerName}" OR pr2.playerName = "{playerName}") """ +
+            f"ORDER BY tm.datePlayed LIMIT {limit}"
+        ).fetchall()
+
     
     def getTeamRoster(self, teamId):
         return self.cur.execute(

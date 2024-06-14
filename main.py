@@ -43,8 +43,7 @@ def home():
 def test():
     useCase = UseCase()
     db = Database()
-    
-    db.refreshAllTables(True)
+    # db.refreshAllTables(True)
     useCase.scrapeUpcomingTeamResults()
     
     # TODO: put in these values and test it out!!!
@@ -87,6 +86,12 @@ def division():
         url_for=url_for,
         **useCase.getTeamsJson(sessionId, divisionId)
     )
+
+@app.route("/adjusted-skill-level")
+def adjustedSkillLevel():
+    useCase = UseCase()
+    playerName = request.args.get('playerName')
+    return useCase.getAdjustedSkillLevel(playerName)
 
 
 
