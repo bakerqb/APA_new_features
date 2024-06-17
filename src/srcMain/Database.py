@@ -3,6 +3,7 @@ from tabulate import tabulate
 from src.srcMain.Config import Config
 from src.dataClasses.Team import Team
 import statistics
+import time
 
 class Database:
     ############### Helper functions ###############
@@ -338,7 +339,7 @@ class Database:
         gamePrefix = self.getGamePrefix(isEightBall)
         return self.cur.execute("SELECT COUNT(*) FROM {}BallTeamMatch WHERE teamMatchId = {}".format(gamePrefix, teamMatchId)).fetchone()[0] > 0
 
-    def addTeamMatchValue(self, teamMatchId, apaDatetime, divisionId, sessionId, isEightBall):
+    def addTeamMatch(self, teamMatchId, apaDatetime, divisionId, sessionId, isEightBall):
         try:
             gamePrefix = self.getGamePrefix(isEightBall)
             self.cur.execute("INSERT INTO {}BallTeamMatch VALUES ({}, '{}', {}, {})".format(gamePrefix, teamMatchId, apaDatetime, divisionId, sessionId))
@@ -506,9 +507,11 @@ class Database:
             "ORDER BY tm.datePlayed"
         ).fetchall()
 
-    def getLatestPlayerMatchesForPlayer(self, playerName, game, limit):
+    def getLatestPlayerMatchesForPlayer(self, memberId, game, limit):
+        start = time.time()
+        
         gamePrefix = self.getGamePrefix(game == '8-ball')
-        return self.cur.execute(
+        results = self.cur.execute(
             "SELECT s.sessionId, s.sessionSeason, s.sessionYear, d.divisionId, d.divisionName, d.dayOfWeek, d.game, " +
             "tm.teamMatchId, tm.datePlayed, pm.playerMatchId, pr1.teamId, pr1.teamNum, pr1.teamName, " +
             "pr1.memberId, pr1.playerName, pr1.currentSkillLevel, pm.skillLevel1, pr1.matchPtsEarned, pr1.ballPtsEarned, pr1.ballPtsNeeded, " +
@@ -525,9 +528,14 @@ class Database:
                     "s.scoreId, s.matchPtsEarned, s.ballPtsEarned, s.ballPtsNeeded " +
                     f"FROM Team t, Player p, {gamePrefix}BallScore s) pr2 " +
             "ON pr2.teamId = pm.teamId2 AND pr2.memberId = pm.memberId2 AND pr2.scoreId = pm.scoreId2 " +
-            f"""WHERE d.game = "{game}" AND (pr1.playerName = "{playerName}" OR pr2.playerName = "{playerName}") """ +
+            f"""WHERE d.game = "{game}" AND (pr1.memberId = "{memberId}" OR pr2.memberId = "{memberId}") """ +
             f"ORDER BY tm.datePlayed LIMIT {limit}"
         ).fetchall()
+
+        end = time.time()
+        length = end - start
+        print(f"sql call duration: {length} seconds")
+        return results
 
     
     def getTeamRoster(self, teamId):

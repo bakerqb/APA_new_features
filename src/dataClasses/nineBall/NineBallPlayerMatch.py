@@ -11,7 +11,7 @@ class NineBallPlayerMatch(IPlayerMatch):
         pass
 
     def initWithDiv(self, matchDiv, team1: Team, team2: Team, playerMatchId: int, teamMatchId: int, datePlayed):
-        mapper = NineBallSkillLevelMapper()
+        mapper = nineBallSkillLevelMapper()
         
         textElements = matchDiv.text.split('\n')
         textElements = removeElements(textElements, 'LAG')
@@ -32,10 +32,10 @@ class NineBallPlayerMatch(IPlayerMatch):
             score2.insert(0, 0)
 
         ballPtsEarned1, ballPtsNeeded1 = score1
-        skillLevel1 = mapper.getMap().get(ballPtsNeeded1)
+        skillLevel1 = mapper.get(ballPtsNeeded1)
         ballPtsEarned2, ballPtsNeeded2 = score2
 
-        skillLevel2 = mapper.getMap().get(ballPtsNeeded2)
+        skillLevel2 = mapper.get(ballPtsNeeded2)
         playerName2 = textElements[6]
         matchPtsEarned2 = textElements[7]
 

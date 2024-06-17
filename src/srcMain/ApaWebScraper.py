@@ -69,6 +69,7 @@ class ApaWebScraper:
         for row in table.find_elements(By.TAG_NAME, "tr"):
             teamLinks.append(self.config.get('apaWebsite').get('baseLink') + row.get_attribute("to"))
         
+<<<<<<< HEAD
         argsList = ((division, teamLink, divisionId, sessionId, isEightBall) for teamLink in teamLinks)
         start = time.time()
         with concurrent.futures.ThreadPoolExecutor() as executor:
@@ -76,6 +77,36 @@ class ApaWebScraper:
         print("finished first mapping")
         with concurrent.futures.ThreadPoolExecutor() as executor:
             executor.map(self.transformScrapeMatchLinksAllTeams, self.db.getTeamMatches(sessionId, divisionId, isEightBall))
+=======
+        # TODO: go through all teams and add team info, and save the match links in the meantime
+        # TODO: then loop through all the player matches with the team info in mind
+        teamsInfo = {}
+        for teamLink in teamLinks:
+            self.driver.get(teamLink)
+            teamInfo = self.scrapeTeamInfo(division)
+            self.db.addTeamInfo(teamInfo)
+
+            matchLinks = self.scrapeTeamMatchesForTeam('Team Schedule & Results', divisionId, sessionId, isEightBall)
+            matchLinks = matchLinks + self.scrapeTeamMatchesForTeam('Playoffs', divisionId, sessionId, isEightBall)
+            teamsInfo[teamLink] = matchLinks
+            print(f"Scraped team info for team {len(teamsInfo.keys())}")
+
+        for teamLink, matchLinks in teamsInfo.items():
+            # print("Total team matches in database = {}".format(self.db.countTeamMatches(IsEightBall)))
+            self.scrapeMatchLinks(matchLinks, divisionId, sessionId, isEightBall)
+
+    def scrapeTeamInfo(self, division):
+        teamId = self.driver.current_url.split('/')[-1]
+        time.sleep(1)
+        data = self.driver.find_element(By.CLASS_NAME, 'page-title').text.split('\n')
+        teamName = data[0]
+        teamNum = int(re.sub(r'\W+', '', data[1]))
+
+        roster = self.getRoster()
+
+        return Team(division, teamId, teamNum, teamName, roster)
+
+>>>>>>> cbf0c96 (feat: add adjusted skill level)
 
         end = time.time()
         
@@ -115,6 +146,28 @@ class ApaWebScraper:
         division = self.converter.toDivisionWithDirectValues(sessionId, sessionSeason, sessionYear, divisionId, divisionName, dayOfWeek, game)
         self.db.addDivision(division)
         return division
+<<<<<<< HEAD
+=======
+
+
+    def scrapeTeamMatchesForTeam(self, headerTitle, divisionId, sessionId, isEightBall):
+        self.createWebDriver()
+        
+        matchesHeader = self.driver.find_element(By.XPATH, "//h2 [contains( text(), '{}')]".format(headerTitle))
+        matches = matchesHeader.find_element(By.XPATH, "..").find_elements(By.TAG_NAME, "a")
+        
+        matchLinks = []
+        for match in matches:
+            if '|' in match.text:
+                link = match.get_attribute("href")
+                teamMatchId = link.split("/")[-1]
+                apaDatetime = self.apaDateToDatetime(match.text.split(' | ')[-1])
+                if not self.db.isValueInTeamMatchTable(teamMatchId, isEightBall):
+                    matchLinks.append(link)
+                    self.db.addTeamMatch(teamMatchId, apaDatetime, divisionId, sessionId, isEightBall)
+                
+        return matchLinks
+>>>>>>> cbf0c96 (feat: add adjusted skill level)
     
     ############### Finding Next Opponents ###############
     def navigateToTeamPage(self, division_link, team_name):
