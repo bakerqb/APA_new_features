@@ -6,6 +6,7 @@ from dataClasses.TeamResults import TeamResults
 from datetime import datetime
 import math
 from utils.utils import *
+import time
 
 class UseCase:
     def __init__(self):
@@ -57,10 +58,11 @@ class UseCase:
     
     def getTeamResults(self, teamId, decorateWithASL) -> dict:
         #TODO: rewrite sql query that corresponds to this. Join everything in the sql query. Write a converter (most likely rewriting the toPlayerMatchWithSql function)
-        
+        start = time.time()
         teamResultsDb = self.db.getTeamResults(teamId)
         teamResultsPlayerMatches = list(map(lambda playerMatch: self.converter.toPlayerMatchWithSql(playerMatch), teamResultsDb))
-        return TeamResults(int(teamId), teamResultsPlayerMatches, list(map(lambda player: self.converter.toPlayerWithSql(player), self.db.getTeamRoster(teamId))), decorateWithASL)
+        results = TeamResults(int(teamId), teamResultsPlayerMatches, list(map(lambda player: self.converter.toPlayerWithSql(player), self.db.getTeamRoster(teamId))), decorateWithASL)
+        return results
     
     
 

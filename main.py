@@ -47,15 +47,11 @@ def test():
     useCase.scrapeUpcomingTeamResults()
     print("Done scraping")
     # TODO: put in these values and test it out!!!
-<<<<<<< HEAD
     return render_template(
         jinja_environment.get_template('results.html'),
         url_for=url_for,
         **useCase.getTeamResultsJson(12437618)
     )
-=======
-    return "Done scraping"
->>>>>>> cbf0c96 (feat: add adjusted skill level)
 
 @app.route("/session")
 def session():
@@ -97,11 +93,6 @@ def adjustedSkillLevel():
     playerName = request.args.get('playerName')
     currentSkillLevel = int(request.args.get('sl'))
     return useCase.getAdjustedSkillLevel(playerName, currentSkillLevel)
-
-
-
-
-    
 
 if __name__ == "__main__":
     serve(app, host="127.0.0.1", port=8000)
