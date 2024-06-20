@@ -1,16 +1,11 @@
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
-from selenium.common.exceptions import NoSuchElementException
 import time
 import sys
 import os
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from dataClasses.nineBall.NineBallPlayerMatch import NineBallPlayerMatch
-from dataClasses.eightBall.EightBallPlayerMatch import EightBallPlayerMatch
-from dataClasses.Division import Division
-from dataClasses.Session import Session
 from dataClasses.Player import Player
 from dataClasses.Team import Team
 from converter.Converter import Converter
@@ -18,11 +13,10 @@ from src.srcMain.Database import Database
 from src.srcMain.Config import Config
 import calendar
 import re
-import concurrent.futures
 
 
-class TeamApaWebScraper:
-    #### Startup ####
+class ApaWebScraperWorker:
+    ############### Startup ###############
     def __init__(self):
         self.config = Config().getConfig()
         self.converter = Converter()
@@ -62,6 +56,7 @@ class TeamApaWebScraper:
         noThanksButton.click()
 
 
+    ############### Team Scraping Functions ###############
     def scrapeTeamInfo(self, division):
         teamId = self.driver.current_url.split('/')[-1]
         time.sleep(1)
@@ -85,7 +80,7 @@ class TeamApaWebScraper:
             roster.append(Player(memberId, playerName, currentSkillLevel))
         return roster
     
-    def transformScrapeDivision(self, args):
+    def scrapeTeamInfoAndTeamMatches(self, args):
         division, teamLink, divisionId, sessionId, isEightBall = args
         self.driver = None
         self.createWebDriver()
@@ -94,9 +89,7 @@ class TeamApaWebScraper:
         self.db.addTeamInfo(teamInfo)
 
         matchLinks = self.scrapeTeamMatchesForTeam('Team Schedule & Results', divisionId, sessionId, isEightBall)
-        print("finished 1 matchlinks")
         matchLinks = matchLinks + self.scrapeTeamMatchesForTeam('Playoffs', divisionId, sessionId, isEightBall)
-        print("finished 2 matchlinks")
         print("Got team data")
 
     def scrapeTeamMatchesForTeam(self, headerTitle, divisionId, sessionId, isEightBall):
@@ -122,7 +115,9 @@ class TeamApaWebScraper:
         month, day, year = apaDate.split(' ')
         return "{}-{}-{}".format(year, str(list(calendar.month_abbr).index(month)).zfill(2), day)
     
-    def transformScrapeMatchLinks(self, args):
+
+    ############### PlayerMatch Scraping Functions ###############
+    def scrapePlayerMatches(self, args):
         teamMatchId, divisionId, sessionId, game = args
         teamMatchLink = self.config.get('apaWebsite').get('teamMatchBaseLink') + str(teamMatchId)
         isEightBall = game == "8-ball"
@@ -141,13 +136,10 @@ class TeamApaWebScraper:
         teamName1 = teamsInfoHeader[0].text.split(' (')[0]
         teamNum1 = int(re.sub(r'\W+', '', teamsInfoHeader[0].text.split(' (')[1])[-2:])
         
-        #TODO: find out if you can use a converter here to transform the sql values into a team object. There might be a circular dependency
-        
         team1 = self.converter.toTeamWithSql(self.db.getTeam(teamName1, teamNum1, divisionId, sessionId))
         teamName2 = teamsInfoHeader[1].text.split(' (')[0]
         teamNum2 = int(re.sub(r'\W+', '', teamsInfoHeader[1].text.split(' (')[1])[-2:])
         team2 = self.converter.toTeamWithSql(self.db.getTeam(teamName2, teamNum2, divisionId, sessionId))
-
 
         matchesHeader = self.driver.find_element(By.XPATH, "//h3 [contains( text(), 'MATCH BREAKOUT')]")
         matchesDiv = matchesHeader.find_element(By.XPATH, "..")
@@ -164,7 +156,6 @@ class TeamApaWebScraper:
             playerMatch = self.converter.toPlayerMatchWithDiv(individualMatch, team1, team2, playerMatchId, teamMatchId, datePlayed, isEightBall)
 
             if playerMatch is not None and playerMatch.toJson().get('playerResults')[0].get('skillLevel') != 0 and playerMatch.toJson().get('playerResults')[1].get('skillLevel') != 0:
-                playerMatches.append(playerMatch)
-            
+                playerMatches.append(playerMatch)   
         
         return playerMatches
