@@ -23,6 +23,16 @@ class Database:
     
     ############### Game agnostic functions ###############
 
+    def getTeamMatches(self, sessionId, divisionId, isEightBall):
+        gamePrefix = self.getGamePrefix(isEightBall)
+        return self.cur.execute(
+            "SELECT tm.teamMatchId, d.divisionId, s.sessionId, d.game " +
+            "FROM Session s " +
+            "LEFT JOIN Division d ON s.sessionId = d.sessionId " +
+            f"LEFT JOIN {gamePrefix}BallTeamMatch tm ON tm.divisionId = d.divisionId AND tm.sessionId = s.sessionId " +
+            f"WHERE s.sessionId = {sessionId} AND d.divisionId = {divisionId}"
+        ).fetchall()
+    
     def getTeamsFromDivision(self, sessionId, divisionId):
         return self.cur.execute(f"SELECT * FROM Team WHERE sessionId = {sessionId} AND divisionId = {divisionId}").fetchall()
 
@@ -108,7 +118,7 @@ class Database:
         division = self.cur.execute(
             "SELECT s.sessionId, s.sessionSeason, s.sessionYear, d.divisionId, d.divisionName, d.dayOfWeek, d.game " + 
             "FROM Division d LEFT JOIN Session s " +
-            "ON d.divisionId = s.sessionId " +
+            "ON d.sessionId = s.sessionId " +
             f"WHERE d.divisionId = {divisionId} AND s.sessionId = {sessionId}"
         ).fetchall()
         if len(division) > 0:

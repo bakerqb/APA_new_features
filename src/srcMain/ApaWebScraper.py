@@ -16,8 +16,10 @@ from dataClasses.Team import Team
 from converter.Converter import Converter
 from src.srcMain.Database import Database
 from src.srcMain.Config import Config
+from src.srcMain.TeamApaWebScraper import TeamApaWebScraper
 import calendar
 import re
+import concurrent.futures
 
 
 class ApaWebScraper:
@@ -91,19 +93,42 @@ class ApaWebScraper:
         
         # TODO: go through all teams and add team info, and save the match links in the meantime
         # TODO: then loop through all the player matches with the team info in mind
-        teamsInfo = {}
-        for teamLink in teamLinks:
-            self.driver.get(teamLink)
-            teamInfo = self.scrapeTeamInfo(division)
-            self.db.addTeamInfo(teamInfo)
+        self.teamsInfo = {}
+        
+        argsList = ((division, teamLink, divisionId, sessionId, isEightBall) for teamLink in teamLinks)
+        start = time.time()
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            executor.map(self.transformScrapeDivision, argsList) 
+            
 
-            matchLinks = self.scrapeTeamMatchesForTeam('Team Schedule & Results', divisionId, sessionId, isEightBall)
-            matchLinks = matchLinks + self.scrapeTeamMatchesForTeam('Playoffs', divisionId, sessionId, isEightBall)
-            teamsInfo[teamLink] = matchLinks
+        end = time.time()
 
-        for teamLink, matchLinks in teamsInfo.items():
-            # print("Total team matches in database = {}".format(self.db.countTeamMatches(IsEightBall)))
+        
+        
+        
+
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            executor.map(self.transformScrapeMatchLinksAllTeams, self.db.getTeamMatches(sessionId, divisionId, isEightBall))
+
+        
+        for matchLinks in self.teamsInfo.values():
+            # print("Total team matches in database = {}".format(self.db.countTeamMatches(isEightBall)))
             self.scrapeMatchLinks(matchLinks, divisionId, sessionId, isEightBall)
+        
+        length = end - start
+        print(f"scraping time: {length} seconds")
+
+    
+    def transformScrapeDivision(self, args):
+        teamApaWebScraper = TeamApaWebScraper()
+        teamApaWebScraper.transformScrapeDivision(args)
+    
+    def transformScrapeMatchLinksAllTeams(self, args):
+        teamApaWebScraper = TeamApaWebScraper()
+        teamApaWebScraper.transformScrapeMatchLinks(args)
+        
+        
+        
 
     def scrapeTeamInfo(self, division):
         teamId = self.driver.current_url.split('/')[-1]
@@ -234,12 +259,23 @@ class ApaWebScraper:
     # Loops through all TeamMatches from team
     # Gets all PlayerMatches for entire session
     # Adds PlayerMatches to database
-    def scrapeMatchLinks(self, matchinks, divisionId, sessionId, IsEightBall):
-        for match_link in matchinks:
-            for match in self.getPlayerMatchesFromTeamMatch(match_link, divisionId, sessionId, IsEightBall):
-                self.db.addPlayerMatch(match, IsEightBall)
-            print("Total player matches in database = {}".format(str(self.db.countPlayerMatches(IsEightBall))))
+    def transform(self, matchLink, divisionId, sessionId, isEightBall):
+        self.driver = None
+        self.createWebDriver()
+        for match in self.getPlayerMatchesFromTeamMatch(matchLink, divisionId, sessionId, isEightBall):
+            self.db.addPlayerMatch(match, isEightBall)
+        print("Total player matches in database = {}".format(str(self.db.countPlayerMatches(isEightBall))))
+
+
+    def scrapeMatchLinks(self, matchLinks, divisionId, sessionId, isEightBall):
         
+        argsList = ((matchLink, divisionId, sessionId, isEightBall) for matchLink in matchLinks)
+        
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            executor.map(lambda args: self.transform(args), argsList) 
+        
+    
+
 
     def getRoster(self):
         self.createWebDriver()

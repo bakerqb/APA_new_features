@@ -43,7 +43,8 @@ def home():
 def test():
     useCase = UseCase()
     db = Database()
-    db.refreshAllTables(True)
+    
+    # db.refreshAllTables(True)
     useCase.scrapeUpcomingTeamResults()
     
     # TODO: put in these values and test it out!!!
