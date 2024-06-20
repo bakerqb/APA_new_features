@@ -8,9 +8,11 @@ apaWebsite:
   # Fall 2023 Thursday: https://league.poolplayers.com/centralchicago/divisions/373318
   # Spring 2024 Monday: https://league.poolplayers.com/centralchicago/divisions/379653
   # Spring 2024 Thursday: https://league.poolplayers.com/centralchicago/divisions/379652
+  # Summer 2024 Thursday: https://league.poolplayers.com/centralchicago/divisions/387820
   divisionLink: https://league.poolplayers.com/centralchicago/divisions/379653
   baseLink: https://league.poolplayers.com
   sessionLink: https://league.poolplayers.com/centralchicago/divisions/session/
+  teamMatchBaseLink: https://league.poolplayers.com/centralchicago/match/
   startingSession: 78
   currentSession: 132
 waitTimes:
@@ -30,6 +32,6 @@ nineBallData:
   myTeamName: Miniclip
   myPlayerName: Quinn Baker
 eightBallData:
-  divisionLink: https://league.poolplayers.com/centralchicago/divisions/387820
+  divisionLink: https://league.poolplayers.com/centralchicago/divisions/379652
   myTeamName: The Final Boss
   myPlayerName: Quinn Baker

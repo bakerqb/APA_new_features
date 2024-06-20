@@ -43,6 +43,7 @@ def home():
 def test():
     useCase = UseCase()
     db = Database()
+    
     db.refreshAllTables(True)
     useCase.scrapeUpcomingTeamResults()
     
@@ -50,7 +51,7 @@ def test():
     return render_template(
         jinja_environment.get_template('results.html'),
         url_for=url_for,
-        **useCase.getTeamResultsJson(12531023)
+        **useCase.getTeamResultsJson(12437618)
     )
 
 @app.route("/session")
