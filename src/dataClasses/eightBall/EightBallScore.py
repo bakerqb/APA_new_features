@@ -18,3 +18,12 @@ class EightBallScore(IScore):
             "gamesNeeded":self.gamesNeeded
         }
     
+    def getMatchPtsEarned(self):
+        return self.matchPtsEarned
+    
+    def getGamesWon(self):
+        return self.gamesWon
+    
+    def getGamesNeeded(self):
+        return self.gamesNeeded
+    

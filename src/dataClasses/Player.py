@@ -10,3 +10,12 @@ class Player:
             "playerName": self.playerName,
             "currentSkillLevel": self.currentSkillLevel
         }
+    
+    def getMemberId(self):
+        return self.memberId
+    
+    def getPlayerName(self):
+        return self.playerName
+    
+    def getCurrentSkillLevel(self):
+        return self.currentSkillLevel

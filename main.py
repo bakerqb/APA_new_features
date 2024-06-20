@@ -29,7 +29,7 @@ def results():
     return render_template(
         jinja_environment.get_template('results.html'),
         url_for=url_for,
-        **useCase.getTeamResultsJson(teamId)
+        **useCase.getTeamResultsJson(teamId, True)
     )
 
 @app.route("/index", methods=['GET'])
@@ -43,10 +43,9 @@ def home():
 def test():
     useCase = UseCase()
     db = Database()
-    
     db.refreshAllTables(True)
     useCase.scrapeUpcomingTeamResults()
-    
+    print("Done scraping")
     # TODO: put in these values and test it out!!!
     return render_template(
         jinja_environment.get_template('results.html'),
@@ -88,10 +87,12 @@ def division():
         **useCase.getTeamsJson(sessionId, divisionId)
     )
 
-
-
-
-    
+@app.route("/adjusted-skill-level")
+def adjustedSkillLevel():
+    useCase = UseCase()
+    playerName = request.args.get('playerName')
+    currentSkillLevel = int(request.args.get('sl'))
+    return useCase.getAdjustedSkillLevel(playerName, currentSkillLevel)
 
 if __name__ == "__main__":
     serve(app, host="127.0.0.1", port=8000)

@@ -4,7 +4,9 @@ from src.srcMain.Database import Database
 from converter.Converter import Converter
 from dataClasses.TeamResults import TeamResults
 from datetime import datetime
-
+import math
+from utils.utils import *
+import time
 
 class UseCase:
     def __init__(self):
@@ -32,8 +34,8 @@ class UseCase:
         teamName = self.apaWebScraper.getOpponentTeamName(sessionConfig.get('myTeamName'), sessionConfig.get('divisionLink'))
         return self.getTeamResultsJson(sessionSeason, sessionYear, teamName, isEightBall)
 
-    def getTeamResultsJson(self, teamId) -> dict:
-        return self.getTeamResults(teamId).toJson()
+    def getTeamResultsJson(self, teamId, decorateWithASL) -> dict:
+        return self.getTeamResults(teamId, decorateWithASL).toJson()
     
     def getDivisionsJson(self, sessionId):
         return list(map(lambda division: division.toJson(), self.getDivisions(sessionId)))
@@ -54,12 +56,18 @@ class UseCase:
     def getSessions(self):
         return list(map(lambda session: self.converter.toSessionWithSql(session), self.db.getSessions()))
     
-    def getTeamResults(self, teamId) -> dict:
+    def getTeamResults(self, teamId, decorateWithASL) -> dict:
         #TODO: rewrite sql query that corresponds to this. Join everything in the sql query. Write a converter (most likely rewriting the toPlayerMatchWithSql function)
-        
+        start = time.time()
         teamResultsDb = self.db.getTeamResults(teamId)
         teamResultsPlayerMatches = list(map(lambda playerMatch: self.converter.toPlayerMatchWithSql(playerMatch), teamResultsDb))
-        return TeamResults(int(teamId), teamResultsPlayerMatches, list(map(lambda player: self.converter.toPlayerWithSql(player), self.db.getTeamRoster(teamId))))
+        results = TeamResults(int(teamId), teamResultsPlayerMatches, list(map(lambda player: self.converter.toPlayerWithSql(player), self.db.getTeamRoster(teamId))), decorateWithASL)
+        return results
+    
+    
+
+
+
 
 
     ############### 9 Ball functions ###############

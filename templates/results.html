@@ -172,7 +172,7 @@
                             </svg>
                         </div>
                         <div class="col-md-7 align-self-center" style="font-family: 'Overpass'">
-                            <h1>{{ playerName }}</h1>
+                            <h1>{{ playerName }} {{item.get('ASL')}}</h1>
                         </div>
                     </div>
                 </div>
@@ -319,7 +319,9 @@
                         </div>
                         <div class="align-self-center col-md-6">
                             <div class="row-md-6">
-                                <h4>{{playerMatch.get('playerResults')[0].get('player').get('playerName')}}</h4>
+                                <h4>{{playerMatch.get('playerResults')[0].get('player').get('playerName')}} 
+                                    {{playerMatch.get('playerResults')[0].get('player').get('adjustedSkillLevel')}}
+                                </h4>
                             </div>
                             <div class="row-md-6">
                                 <p>{{playerMatch.get('playerResults')[0].get('team').get('teamName')}}</p>
@@ -519,7 +521,8 @@
                         </div>
                         <div class="align-self-center col-md-6">
                             <div class="row-md-6">
-                                <h4>{{playerMatch.get('playerResults')[1].get('player').get('playerName')}}</h4>
+                                <h4>{{playerMatch.get('playerResults')[1].get('player').get('playerName')}}
+                                </h4>
                             </div>
                             <div class="row-md-6">
                                 <p>{{playerMatch.get('playerResults')[1].get('team').get('teamName')}}</p>

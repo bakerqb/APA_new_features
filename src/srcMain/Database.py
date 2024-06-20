@@ -3,6 +3,7 @@ from tabulate import tabulate
 from src.srcMain.Config import Config
 from src.dataClasses.Team import Team
 import statistics
+import time
 
 class Database:
     ############### Helper functions ###############
@@ -338,7 +339,7 @@ class Database:
         gamePrefix = self.getGamePrefix(isEightBall)
         return self.cur.execute("SELECT COUNT(*) FROM {}BallTeamMatch WHERE teamMatchId = {}".format(gamePrefix, teamMatchId)).fetchone()[0] > 0
 
-    def addTeamMatchValue(self, teamMatchId, apaDatetime, divisionId, sessionId, isEightBall):
+    def addTeamMatch(self, teamMatchId, apaDatetime, divisionId, sessionId, isEightBall):
         try:
             gamePrefix = self.getGamePrefix(isEightBall)
             self.cur.execute("INSERT INTO {}BallTeamMatch VALUES ({}, '{}', {}, {})".format(gamePrefix, teamMatchId, apaDatetime, divisionId, sessionId))
@@ -487,24 +488,53 @@ class Database:
         gamePrefix = self.getGamePrefix(game == '8-ball')
         return self.cur.execute(
             "SELECT s.sessionId, s.sessionSeason, s.sessionYear, d.divisionId, d.divisionName, d.dayOfWeek, d.game, " +
-            "tm.teamMatchId, tm.datePlayed, pm.playerMatchId, pr1.teamId, pr1.teamNum, pr1.teamName, " +
-            "pr1.memberId, pr1.playerName, pr1.currentSkillLevel, pm.skillLevel1, pr1.matchPtsEarned, pr1.ballPtsEarned, pr1.ballPtsNeeded, " +
-            "pr2.teamId, pr2.teamNum, pr2.teamName, pr2.memberId, pr2.playerName, pr2.currentSkillLevel, pm.skillLevel2, " +
-            "pr2.matchPtsEarned, pr2.ballPtsEarned, pr2.ballPtsNeeded " +
+            "tm.teamMatchId, tm.datePlayed, pm.playerMatchId, t1.teamId, t1.teamNum, t1.teamName, " +
+            "p1.memberId, p1.playerName, p1.currentSkillLevel, pm.skillLevel1, s1.matchPtsEarned, s1.ballPtsEarned, s1.ballPtsNeeded, " +
+            "t2.teamId, t2.teamNum, t2.teamName, p2.memberId, p2.playerName, p2.currentSkillLevel, pm.skillLevel2, " +
+            "s2.matchPtsEarned, s2.ballPtsEarned, s2.ballPtsNeeded " +
             "FROM Session s LEFT JOIN Division d ON s.sessionId = d.sessionId " +
             f"LEFT JOIN {gamePrefix}BallTeamMatch tm ON d.divisionId = tm.divisionId AND s.sessionId = tm.sessionId " +
-            f"LEFT JOIN {gamePrefix}BallPlayerMatch pm ON pm.teamMatchId = tm.teamMatchId "
-            "LEFT JOIN (SELECT t.teamId, t.teamNum, t.teamName, p.memberId, p.playerName, p.currentSkillLevel, " +
-                    "s.scoreId, s.matchPtsEarned, s.ballPtsEarned, s.ballPtsNeeded " +
-                    f"FROM Team t, Player p, {gamePrefix}BallScore s) pr1 " +
-            "ON pr1.teamId = pm.teamId1 AND pr1.memberId = pm.memberId1 AND pr1.scoreId = pm.scoreId1 " +
-            "LEFT JOIN (SELECT t.teamId, t.teamNum, t.teamName, p.memberId, p.playerName, p.currentSkillLevel, " +
-                    "s.scoreId, s.matchPtsEarned, s.ballPtsEarned, s.ballPtsNeeded " +
-                    f"FROM Team t, Player p, {gamePrefix}BallScore s) pr2 " +
-            "ON pr2.teamId = pm.teamId2 AND pr2.memberId = pm.memberId2 AND pr2.scoreId = pm.scoreId2 " +
-            f"WHERE pr1.teamId = {teamId} OR pr2.teamId = {teamId} " +
+            f"LEFT JOIN {gamePrefix}BallPlayerMatch pm ON pm.teamMatchId = tm.teamMatchId " +
+            "LEFT JOIN Player p1 ON p1.memberId = pm.memberId1 " +
+            "LEFT JOIN Player p2 ON p2.memberId = pm.memberId2 " +
+            "LEFT JOIN Team t1 ON t1.teamId = pm.teamId1 " +
+            "LEFT JOIN Team t2 ON t2.teamId = pm.teamId2 " +
+            f"LEFT JOIN {gamePrefix}BallScore s1 ON s1.scoreId = pm.scoreId1 " +
+            f"LEFT JOIN {gamePrefix}BallScore s2 ON s2.scoreId = pm.scoreId2 " +
+            f"WHERE t1.teamId = {teamId} OR t2.teamId = {teamId} " +
             "ORDER BY tm.datePlayed"
         ).fetchall()
+
+    def getLatestPlayerMatchesForPlayer(self, memberId, game, limit):
+        start = time.time()
+        
+        gamePrefix = self.getGamePrefix(game == '8-ball')
+
+        results = self.cur.execute(
+            "SELECT s.sessionId, s.sessionSeason, s.sessionYear, d.divisionId, d.divisionName, d.dayOfWeek, d.game, " +
+            "tm.teamMatchId, tm.datePlayed, pm.playerMatchId, t1.teamId, t1.teamNum, t1.teamName, " +
+            "p1.memberId, p1.playerName, p1.currentSkillLevel, pm.skillLevel1, s1.matchPtsEarned, s1.ballPtsEarned, s1.ballPtsNeeded, " +
+            "t2.teamId, t2.teamNum, t2.teamName, p2.memberId, p2.playerName, p2.currentSkillLevel, pm.skillLevel2, " +
+            "s2.matchPtsEarned, s2.ballPtsEarned, s2.ballPtsNeeded " +
+            "FROM Session s LEFT JOIN Division d ON s.sessionId = d.sessionId " +
+            f"LEFT JOIN {gamePrefix}BallTeamMatch tm ON d.divisionId = tm.divisionId AND s.sessionId = tm.sessionId " +
+            f"LEFT JOIN {gamePrefix}BallPlayerMatch pm ON pm.teamMatchId = tm.teamMatchId " +
+            "LEFT JOIN Player p1 ON p1.memberId = pm.memberId1 " +
+            "LEFT JOIN Player p2 ON p2.memberId = pm.memberId2 " +
+            "LEFT JOIN Team t1 ON t1.teamId = pm.teamId1 " +
+            "LEFT JOIN Team t2 ON t2.teamId = pm.teamId2 " +
+            f"LEFT JOIN {gamePrefix}BallScore s1 ON s1.scoreId = pm.scoreId1 " +
+            f"LEFT JOIN {gamePrefix}BallScore s2 ON s2.scoreId = pm.scoreId2 " +
+            f"""WHERE d.game = "{game}" AND (p1.memberId = {memberId} OR p2.memberId = {memberId}) """ +
+            f"ORDER BY tm.datePlayed LIMIT {limit}"
+            
+        ).fetchall()
+
+        end = time.time()
+        length = end - start
+        print(f"sql call duration: {length} seconds")
+        return results
+
     
     def getTeamRoster(self, teamId):
         return self.cur.execute(
