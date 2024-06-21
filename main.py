@@ -7,7 +7,7 @@ from src.srcMain.Database import Database
 from src.srcMain.ApaWebScraper import ApaWebScraper
 from src.srcMain.Config import Config
 from waitress import serve
-from flask import Flask, render_template, request, url_for
+from flask import Flask, render_template, request, url_for, redirect
 import jinja2
 
 jinja_environment = jinja2.Environment(autoescape=True,
@@ -43,15 +43,12 @@ def home():
 def test():
     useCase = UseCase()
     db = Database()
-    db.refreshAllTables(True)
+    db.deleteDivision(132, 245)
+    # db.refreshAllTables(True)
     useCase.scrapeUpcomingTeamResults()
     print("Done scraping")
     # TODO: put in these values and test it out!!!
-    return render_template(
-        jinja_environment.get_template('results.html'),
-        url_for=url_for,
-        **useCase.getTeamResultsJson(12437618)
-    )
+    return redirect("/home1")
 
 @app.route("/session")
 def session():

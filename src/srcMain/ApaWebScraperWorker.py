@@ -106,7 +106,7 @@ class ApaWebScraperWorker:
                 apaDatetime = self.apaDateToDatetime(match.text.split(' | ')[-1])
                 if not self.db.isValueInTeamMatchTable(teamMatchId, isEightBall):
                     matchLinks.append(link)
-                    self.db.addTeamMatchValue(teamMatchId, apaDatetime, divisionId, sessionId, isEightBall)
+                    self.db.addTeamMatch(teamMatchId, apaDatetime, divisionId, sessionId, isEightBall)
                 
         return matchLinks
     
