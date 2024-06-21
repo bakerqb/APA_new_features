@@ -156,45 +156,170 @@ class Database:
             self.con.commit()
 
     def deleteSession(self, sessionId):
-        divisionIds = list(map(lambda divisionId: divisionId[0], self.cur.execute(f"SELECT divisionId from Division WHERE sessionId = {sessionId}").fetchall()))
-        for divisionId in divisionIds:
-            self.deleteDivision(divisionId)
+        
         
         self.cur.execute(f"DELETE FROM Session WHERE sessionId = {sessionId}")
         self.con.commit()
 
-    def deleteDivision(self, divisionId):
-        teamIds = list(map(lambda divisionId: divisionId[0], self.cur.execute(f"SELECT teamId from Team WHERE divisionId = {divisionId}").fetchall()))
-        for teamId in teamIds:
-            self.deleteTeam(teamId)
-        self.cur.execute(f"DELETE FROM Division WHERE divisionId  = {divisionId}")
-        self.con.commit()
-
-    def deleteTeam(self, teamId):
-        
-        #TODO: find a way to connect EightBall and NineBall related tables to divisionId, and then delete those tables
-        
-        game = self.cur.execute(f"SELECT game FROM Division d LEFT JOIN Team t ON d.divisionId = t.divisionId WHERE t.teamId = {teamId}").fetchone()[0]
-        gamePrefix = self.getGamePrefix(game)
-        # self.cur.execute(f"DELETE FROM {gamePrefix}BallPlayerMatch AS p WHERE p.teamMatchId IN (SELECT t.teamMatchId FROM {gamePrefix}BallTeamMatch AS t WHERE t.sessionSeason = '{sessionSeason}' AND t.sessionYear = {})".format(gamePrefix, gamePrefix, sessionSeason, str(sessionYear)))
-
-
-
-
-        self.cur.execute(f"DELETE FROM Team WHERE teamId  = {teamId}")
-        self.cur.execute(f"DELETE FROM CurrentTeamPlayer WHERE teamId = {teamId}")
-        self.con.commit()
-        
     
-    def deleteSessionData(self):
+    
+        
+    # Tables affected:
+    # - xBallScore
+    # - xBallPlayerMatch
+    # - xBallTeamMatch
+    # - Team
+    # - CurrentTeamPlayer
+    # - Division
+    # - Session
+    def deleteSession(self):
         sessionSeason = self.config.get('sessionSeasonInQuestion')
         sessionYear = self.config.get('sessionYearInQuestion')
-        game = self.config.get('game')
-        gamePrefix = self.getGamePrefix(game == '8-ball')
+        sessionId = self.cur.execute(f"SELECT sessionId FROM Session WHERE sessionSeason = '{sessionSeason}' AND sessionYear = {sessionYear}").fetchone()[0]
 
-        # TODO: fix these queries
-        self.cur.execute("DELETE FROM {}BallPlayerMatch AS p WHERE p.teamMatchId IN (SELECT t.teamMatchId FROM {}BallTeamMatch AS t WHERE t.sessionSeason = '{}' AND t.sessionYear = {})".format(gamePrefix, gamePrefix, sessionSeason, str(sessionYear)))
-        self.cur.execute("DELETE FROM {}BallTeamMatch WHERE sessionSeason = '{}' AND sessionYear = {}".format(gamePrefix, sessionSeason, str(sessionYear)))
+        self.deleteDivision(sessionId, None)
+        
+        self.cur.execute(f"DELETE FROM Session WHERE sessionId = {sessionId}")
+        self.con.commit()
+
+    # Tables affected:
+    # - xBallScore
+    # - xBallPlayerMatch
+    # - xBallTeamMatch
+    # - Team
+    # - CurrentTeamPlayer
+    # - Division
+    def deleteDivision(self, sessionId, divisionId):
+        self.deleteTeam(sessionId, divisionId)
+        self.deleteTeamMatch(sessionId, divisionId)
+
+        if divisionId is None:
+            self.cur.execute(f"DELETE FROM Division WHERE sessionId = {sessionId}")
+        else:
+            self.cur.execute(f"DELETE FROM Division WHERE sessionId = {sessionId} AND divisionId = {divisionId}")
+    
+        self.con.commit()
+
+    # Tables affected:
+    # - xBallScore
+    # - xBallPlayerMatch
+    # - xBallTeamMatch
+    def deleteTeamMatch(self, sessionId, divisionId):
+        self.deletePlayerMatch(sessionId, divisionId)
+
+        gamePrefixes = []
+        if divisionId is None:
+            gamePrefixes.append("Eight")
+            # TODO: Add back in eventually
+            # gamePrefixes.append("Nine")
+        else:
+            game = self.cur.execute(f"SELECT game FROM Division WHERE divisionId = {divisionId}").fetchone()[0]
+            gamePrefixes.append(self.getGamePrefix(game == "8-ball"))
+
+        for gamePrefix in gamePrefixes:
+            if divisionId is None:
+                self.cur.execute(
+                    f"DELETE FROM {gamePrefix}BallTeamMatch WHERE sessionId = {sessionId}"
+                )
+            else:
+                self.cur.execute(
+                    f"DELETE FROM {gamePrefix}BallTeamMatch WHERE sessionId = {sessionId} AND divisionId = {divisionId}"
+                )
+        self.con.commit()
+    
+    # Tables affected:
+    # - xBallScore
+    # - xBallPlayerMatch
+    def deletePlayerMatch(self, sessionId, divisionId):
+        self.deleteScore(sessionId, divisionId)
+
+        gamePrefixes = []
+        if divisionId is None:
+            gamePrefixes.append("Eight")
+            # TODO: Add back in eventually
+            # gamePrefixes.append("Nine")
+        else:
+            game = self.cur.execute(f"SELECT game FROM Division WHERE divisionId = {divisionId}").fetchone()[0]
+            gamePrefixes.append(self.getGamePrefix(game == "8-ball"))
+
+        for gamePrefix in gamePrefixes:
+            if divisionId is None:
+                self.cur.execute(
+                    f"DELETE FROM {gamePrefix}BallPlayerMatch WHERE teamMatchId IN (" +
+                        f"SELECT teamMatchId FROM {gamePrefix}BallTeamMatch WHERE sessionId = {sessionId}" +
+                    ")"
+                )
+            else:
+                self.cur.execute(
+                    f"DELETE FROM {gamePrefix}BallPlayerMatch WHERE teamMatchId IN (" +
+                        f"SELECT teamMatchId FROM {gamePrefix}BallTeamMatch WHERE sessionId = {sessionId} AND divisionId = {divisionId}" +
+                    ")"
+                )
+        self.con.commit()
+    
+    # Tables affected:
+    # - xBallScore
+    def deleteScore(self, sessionId, divisionId):
+        
+        gamePrefixes = []
+        if divisionId is None:
+            gamePrefixes.append("Eight")
+            # TODO: Add back in eventually
+            # gamePrefixes.append("Nine")
+        else:
+            game = self.cur.execute(f"SELECT game FROM Division WHERE divisionId = {divisionId}").fetchone()[0]
+            gamePrefixes.append(self.getGamePrefix(game == "8-ball"))
+
+        for gamePrefix in gamePrefixes:
+            for i in range(2):
+                if divisionId is None:
+                    self.cur.execute(
+                        f"DELETE FROM {gamePrefix}BallScore WHERE scoreId IN (" +
+                            f"SELECT pm.scoreId{str(i+1)} FROM {gamePrefix}BallPlayerMatch pm " +
+                            f"LEFT JOIN {gamePrefix}BallTeamMatch tm ON pm.teamMatchId = tm.teamMatchId " +
+                            f"WHERE tm.sessionId = {sessionId}" +
+                        ")"
+                    )
+                else:
+                    self.cur.execute(
+                        f"DELETE FROM {gamePrefix}BallScore WHERE scoreId IN (" +
+                            f"SELECT pm.scoreId{str(i+1)} FROM {gamePrefix}BallPlayerMatch pm " +
+                            f"LEFT JOIN {gamePrefix}BallTeamMatch tm ON pm.teamMatchId = tm.teamMatchId " +
+                            f"WHERE tm.sessionId = {sessionId} AND tm.divisionId = {divisionId}" +
+                        ")"
+                    )
+        self.con.commit()
+    
+
+
+    # Tables affected:
+    # - Team
+    # - CurrentTeamPlayer
+    def deleteTeam(self, sessionId, divisionId):
+        self.deleteCurrentTeamPlayer(sessionId, divisionId)
+        
+        if divisionId is None:
+            self.cur.execute(f"DELETE FROM Team WHERE sessionId = {sessionId}")
+        else:
+            self.cur.execute(f"DELETE FROM Team WHERE divisionId = {divisionId} AND sessionId = {sessionId}")
+        self.con.commit()
+        
+
+    # Tables affected:
+    # - CurrentTeamPlayer
+    def deleteCurrentTeamPlayer(self, sessionId, divisionId):
+        if divisionId is None:
+            self.cur.execute(
+                "DELETE FROM CurrentTeamPlayer WHERE teamId IN (" +
+                    f"SELECT teamId FROM Team t WHERE sessionId = {sessionId}" +
+                ")"
+            )
+        else:
+            self.cur.execute(
+                "DELETE FROM CurrentTeamPlayer WHERE teamId IN (" +
+                    f"SELECT teamId FROM Team WHERE divisionId = {divisionId} AND sessionId = {sessionId}"
+                ")"
+            )
         self.con.commit()
     
     def refreshAllTables(self, isEightBall):
@@ -526,7 +651,7 @@ class Database:
             f"LEFT JOIN {gamePrefix}BallScore s1 ON s1.scoreId = pm.scoreId1 " +
             f"LEFT JOIN {gamePrefix}BallScore s2 ON s2.scoreId = pm.scoreId2 " +
             f"""WHERE d.game = "{game}" AND (p1.memberId = {memberId} OR p2.memberId = {memberId}) """ +
-            f"ORDER BY tm.datePlayed LIMIT {limit}"
+            f"ORDER BY tm.datePlayed DESC LIMIT {limit}"
             
         ).fetchall()
 

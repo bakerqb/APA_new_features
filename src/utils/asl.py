@@ -79,7 +79,9 @@ def getAdjustedSkillLevel(memberId, currentSkillLevel):
 
             adjustedScoreOffsetTotal += adjustedScoreOffset
 
-        adjustedScoreOffset = adjustedScoreOffsetTotal/len(playerMatches)
+        adjustedScoreOffset = 0
+        if len(playerMatches) > 0:
+            adjustedScoreOffset = adjustedScoreOffsetTotal/len(playerMatches)
         if adjustedScoreOffset >= .5:
             adjustedScoreOffset = .49
         elif adjustedScoreOffset <= -.5:
