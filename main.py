@@ -43,9 +43,9 @@ def home():
 def test():
     useCase = UseCase()
     db = Database()
-    db.deleteDivision(132, 245)
-    # db.refreshAllTables(True)
-    useCase.scrapeUpcomingTeamResults()
+    # db.refreshAllTables()
+    # useCase.scrapeDivision()
+
     print("Done scraping")
     # TODO: put in these values and test it out!!!
     return redirect("/home1")

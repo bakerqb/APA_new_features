@@ -2,52 +2,21 @@ import sqlite3
 from tabulate import tabulate
 from src.srcMain.Config import Config
 from src.dataClasses.Team import Team
-import statistics
-import time
+from utils.utils import *
+from dataClasses.Game import Game
 
 class Database:
-    ############### Helper functions ###############
+    # ------------------------- Setup -------------------------
     def __init__(self):
         self.con = sqlite3.connect("results.db")
         self.cur = self.con.cursor()
         self.config = Config().getConfig()
 
+    def refreshAllTables(self):
+        self.dropTables()
+        self.createTables()
     
-    def getGamePrefix(self, isEightBall):
-        return 'Eight' if isEightBall else 'Nine'
-    
-    def getMedian(self, scores):
-        nums = []
-        for item in scores:
-            nums.append(item[0])
-        return statistics.median(nums)
-    
-    def formatScoreInsertQuery(self, score, isEightBall):
-        if isEightBall:
-            return "INSERT INTO EightBallScore VALUES ({}, {}, {}, {})".format(
-                "NULL", 
-                str(score.get('matchPtsEarned')), 
-                str(score.get('gamesWon')), 
-                str(score.get('gamesNeeded'))
-            )
-        else:
-            return "INSERT INTO NineBallScore VALUES ({}, {}, {}, {})".format(
-                "NULL", 
-                str(score.get('matchPtsEarned')), 
-                str(score.get('ballPtsEarned')), 
-                str(score.get('ballPtsNeeded'))
-            )
-    
-    ############### Game agnostic functions ###############
-
-    # ------------------------- Setup -------------------------
-    def refreshAllTables(self, isEightBall):
-        self.dropTables(isEightBall)
-        self.createTables(isEightBall)
-    
-    def dropTables(self, isEightBall):
-        gamePrefix = self.getGamePrefix(isEightBall)
-
+    def dropTables(self):
         try:
             self.cur.execute("DROP TABLE Session")
         except Exception:
@@ -74,23 +43,23 @@ class Database:
             pass
 
         try:
-            self.cur.execute("DROP TABLE {}BallPlayerMatch".format(gamePrefix))
+            self.cur.execute("DROP TABLE PlayerMatch")
         except Exception:
             pass
 
         try:
-            self.cur.execute("DROP TABLE {}BallScore".format(gamePrefix))
+            self.cur.execute("DROP TABLE Score")
         except Exception:
             pass
 
         try:
-            self.cur.execute("DROP TABLE {}BallTeamMatch".format(gamePrefix))
+            self.cur.execute("DROP TABLE TeamMatch")
         except Exception:
             pass
 
         self.con.commit()
 
-    def createTables(self, isEightBall):
+    def createTables(self):
         try:
             self.cur.execute(
                 "CREATE TABLE Session (" +
@@ -145,12 +114,10 @@ class Database:
             )
         except Exception:
             pass
-        
-        gamePrefix = self.getGamePrefix(isEightBall)
 
         try:
             self.cur.execute(
-                "CREATE TABLE {}BallTeamMatch (".format(gamePrefix) +
+                "CREATE TABLE TeamMatch (" +
                 "teamMatchId INTEGER PRIMARY KEY, datePlayed DATETIME, " +
                 "divisionId INTEGER, sessionId INTEGER)"
             )
@@ -159,7 +126,7 @@ class Database:
 
         try:
             self.cur.execute(
-                "CREATE TABLE {}BallPlayerMatch(".format(gamePrefix) +
+                "CREATE TABLE PlayerMatch(" +
                 "playerMatchId INTEGER, teamMatchId INTEGER, teamId1 TEXT, " +
                 "memberId1 INTEGER, skillLevel1 INTEGER, scoreId1 INTEGER, " + 
                 "teamId2 TEXT, memberId2 INTEGER, skillLevel2 INTEGER, scoreId2 INTEGER, " +
@@ -170,9 +137,9 @@ class Database:
         
         try:
             self.cur.execute(
-                "CREATE TABLE {}BallScore(".format(gamePrefix) +
-                "scoreId INTEGER PRIMARY KEY AUTOINCREMENT, matchPtsEarned INTEGER, ballPtsEarned INTEGER, " +
-                "ballPtsNeeded INTEGER)"
+                "CREATE TABLE Score(" +
+                "scoreId INTEGER PRIMARY KEY AUTOINCREMENT, teamPtsEarned INTEGER, playerPtsEarned INTEGER, " +
+                "playerPtsNeeded INTEGER)"
             )
         except Exception:
             pass
@@ -181,58 +148,45 @@ class Database:
 
     # ------------------------- Getting -------------------------
     def getTeamResults(self, teamId):
-        # TODO: find game based off of just teamId :) so you only have to pass in teamId for these parameters
-        game = self.cur.execute(f"SELECT d.game FROM Division d, Team t WHERE t.divisionId = d.divisionId AND t.teamId = {teamId}").fetchone()[0]
-        gamePrefix = self.getGamePrefix(game == '8-ball')
         return self.cur.execute(
             "SELECT s.sessionId, s.sessionSeason, s.sessionYear, d.divisionId, d.divisionName, d.dayOfWeek, d.game, " +
             "tm.teamMatchId, tm.datePlayed, pm.playerMatchId, t1.teamId, t1.teamNum, t1.teamName, " +
-            "p1.memberId, p1.playerName, p1.currentSkillLevel, pm.skillLevel1, s1.matchPtsEarned, s1.ballPtsEarned, s1.ballPtsNeeded, " +
+            "p1.memberId, p1.playerName, p1.currentSkillLevel, pm.skillLevel1, s1.teamPtsEarned, s1.playerPtsEarned, s1.playerPtsNeeded, " +
             "t2.teamId, t2.teamNum, t2.teamName, p2.memberId, p2.playerName, p2.currentSkillLevel, pm.skillLevel2, " +
-            "s2.matchPtsEarned, s2.ballPtsEarned, s2.ballPtsNeeded " +
+            "s2.teamPtsEarned, s2.playerPtsEarned, s2.playerPtsNeeded " +
             "FROM Session s LEFT JOIN Division d ON s.sessionId = d.sessionId " +
-            f"LEFT JOIN {gamePrefix}BallTeamMatch tm ON d.divisionId = tm.divisionId AND s.sessionId = tm.sessionId " +
-            f"LEFT JOIN {gamePrefix}BallPlayerMatch pm ON pm.teamMatchId = tm.teamMatchId " +
+            f"LEFT JOIN TeamMatch tm ON d.divisionId = tm.divisionId AND s.sessionId = tm.sessionId " +
+            f"LEFT JOIN PlayerMatch pm ON pm.teamMatchId = tm.teamMatchId " +
             "LEFT JOIN Player p1 ON p1.memberId = pm.memberId1 " +
             "LEFT JOIN Player p2 ON p2.memberId = pm.memberId2 " +
             "LEFT JOIN Team t1 ON t1.teamId = pm.teamId1 " +
             "LEFT JOIN Team t2 ON t2.teamId = pm.teamId2 " +
-            f"LEFT JOIN {gamePrefix}BallScore s1 ON s1.scoreId = pm.scoreId1 " +
-            f"LEFT JOIN {gamePrefix}BallScore s2 ON s2.scoreId = pm.scoreId2 " +
+            f"LEFT JOIN Score s1 ON s1.scoreId = pm.scoreId1 " +
+            f"LEFT JOIN Score s2 ON s2.scoreId = pm.scoreId2 " +
             f"WHERE t1.teamId = {teamId} OR t2.teamId = {teamId} " +
             "ORDER BY tm.datePlayed"
         ).fetchall()
 
     def getLatestPlayerMatchesForPlayer(self, memberId, game, limit):
-        start = time.time()
-        
-        gamePrefix = self.getGamePrefix(game == '8-ball')
-
-        results = self.cur.execute(
+        return self.cur.execute(
             "SELECT s.sessionId, s.sessionSeason, s.sessionYear, d.divisionId, d.divisionName, d.dayOfWeek, d.game, " +
             "tm.teamMatchId, tm.datePlayed, pm.playerMatchId, t1.teamId, t1.teamNum, t1.teamName, " +
-            "p1.memberId, p1.playerName, p1.currentSkillLevel, pm.skillLevel1, s1.matchPtsEarned, s1.ballPtsEarned, s1.ballPtsNeeded, " +
+            "p1.memberId, p1.playerName, p1.currentSkillLevel, pm.skillLevel1, s1.teamPtsEarned, s1.playerPtsEarned, s1.playerPtsNeeded, " +
             "t2.teamId, t2.teamNum, t2.teamName, p2.memberId, p2.playerName, p2.currentSkillLevel, pm.skillLevel2, " +
-            "s2.matchPtsEarned, s2.ballPtsEarned, s2.ballPtsNeeded " +
+            "s2.teamPtsEarned, s2.playerPtsEarned, s2.playerPtsNeeded " +
             "FROM Session s LEFT JOIN Division d ON s.sessionId = d.sessionId " +
-            f"LEFT JOIN {gamePrefix}BallTeamMatch tm ON d.divisionId = tm.divisionId AND s.sessionId = tm.sessionId " +
-            f"LEFT JOIN {gamePrefix}BallPlayerMatch pm ON pm.teamMatchId = tm.teamMatchId " +
+            f"LEFT JOIN TeamMatch tm ON d.divisionId = tm.divisionId AND s.sessionId = tm.sessionId " +
+            f"LEFT JOIN PlayerMatch pm ON pm.teamMatchId = tm.teamMatchId " +
             "LEFT JOIN Player p1 ON p1.memberId = pm.memberId1 " +
             "LEFT JOIN Player p2 ON p2.memberId = pm.memberId2 " +
             "LEFT JOIN Team t1 ON t1.teamId = pm.teamId1 " +
             "LEFT JOIN Team t2 ON t2.teamId = pm.teamId2 " +
-            f"LEFT JOIN {gamePrefix}BallScore s1 ON s1.scoreId = pm.scoreId1 " +
-            f"LEFT JOIN {gamePrefix}BallScore s2 ON s2.scoreId = pm.scoreId2 " +
+            f"LEFT JOIN Score s1 ON s1.scoreId = pm.scoreId1 " +
+            f"LEFT JOIN Score s2 ON s2.scoreId = pm.scoreId2 " +
             f"""WHERE d.game = "{game}" AND (p1.memberId = {memberId} OR p2.memberId = {memberId}) """ +
             f"ORDER BY tm.datePlayed DESC LIMIT {limit}"
             
         ).fetchall()
-
-        end = time.time()
-        length = end - start
-        print(f"sql call duration: {length} seconds")
-        return results
-
     
     def getTeamRoster(self, teamId):
         return self.cur.execute(
@@ -252,26 +206,24 @@ class Database:
     def getSessions(self):
         return self.cur.execute("SELECT * FROM Session s").fetchall()
     
-    def getDatePlayed(self, teamMatchId: int, isEightBall: bool):
-        gamePrefix = self.getGamePrefix(isEightBall)
+    def getDatePlayed(self, teamMatchId: int):
         return self.cur.execute(
-            "SELECT datePlayed FROM {}BallTeamMatch WHERE teamMatchId = {}".format(gamePrefix, str(teamMatchId))
+            f"SELECT datePlayed FROM TeamMatch WHERE teamMatchId = {teamMatchId}"
         ).fetchone()[0]
 
-    def getTeamMatches(self, sessionId, divisionId, isEightBall):
-        gamePrefix = self.getGamePrefix(isEightBall)
+    def getTeamMatches(self, sessionId, divisionId):
         return self.cur.execute(
-            "SELECT tm.teamMatchId, d.divisionId, s.sessionId, d.game " +
+            "SELECT tm.teamMatchId, d.divisionId, s.sessionId " +
             "FROM Session s " +
             "LEFT JOIN Division d ON s.sessionId = d.sessionId " +
-            f"LEFT JOIN {gamePrefix}BallTeamMatch tm ON tm.divisionId = d.divisionId AND tm.sessionId = s.sessionId " +
+            f"LEFT JOIN TeamMatch tm ON tm.divisionId = d.divisionId AND tm.sessionId = s.sessionId " +
             f"WHERE s.sessionId = {sessionId} AND d.divisionId = {divisionId}"
         ).fetchall()
     
     def getTeamsFromDivision(self, sessionId, divisionId):
         return self.cur.execute(f"SELECT * FROM Team WHERE sessionId = {sessionId} AND divisionId = {divisionId}").fetchall()
     
-    def getTeam(self, teamName, teamNum, divisionId, sessionId):
+    def getTeam(self, teamNum, divisionId, sessionId):
         # Data comes in the format of list(divisionId, teamId, teamNum, teamName, memberId, playerName, currentSkillLevel)
         return self.cur.execute(
             "SELECT s.sessionId, s.sessionSeason, s.sessionYear, " +
@@ -282,7 +234,7 @@ class Database:
             "LEFT JOIN Session s ON d.sessionId = s.sessionId " +
             "LEFT JOIN CurrentTeamPlayer c ON c.teamId = t.teamId " +
             "LEFT JOIN Player p ON c.memberId = p.memberId " +
-            f"""WHERE t.teamName="{teamName}" AND t.teamNum={teamNum} AND t.divisionId={divisionId} AND t.sessionId={sessionId}"""
+            f"WHERE t.teamNum={teamNum} AND t.divisionId={divisionId} AND t.sessionId={sessionId}"
         ).fetchall()
     
     def getPlayerBasedOnTeamIdAndPlayerName(self, teamId, playerName):
@@ -294,7 +246,7 @@ class Database:
         ).fetchone()
     
     def getDivision(self, divisionId, sessionId):
-        self.createTables(True)
+        self.createTables()
         division = self.cur.execute(
             "SELECT s.sessionId, s.sessionSeason, s.sessionYear, d.divisionId, d.divisionName, d.dayOfWeek, d.game " + 
             "FROM Division d LEFT JOIN Session s " +
@@ -306,65 +258,68 @@ class Database:
         return division
     
     def getSession(self, sessionId):
-        self.createTables(True)
+        self.createTables()
         return self.cur.execute("SELECT * FROM Session WHERE sessionId = {}".format(sessionId)).fetchall()
+    
+    def getGame(self, divisionId):
+        self.createTables()
+        return self.cur.execute(f"SELECT game FROM Division WHERE divisionId = {divisionId}").fetchone()[0]
     
 
     # ------------------------- Inserting -------------------------
-    def addPlayerMatch(self, playerMatch, isEightBall):
-        gamePrefix = self.getGamePrefix(isEightBall)
-        playerMatch = playerMatch.toJson()
-        for playerResult in playerMatch.get('playerResults'):
-            self.cur.execute(self.formatScoreInsertQuery(playerResult.get('score'), isEightBall))
+    def addPlayerMatch(self, playerMatch):
+        for playerResult in playerMatch.getPlayerResults():
+            score = playerResult.getScore()
+            self.cur.execute(
+                f"INSERT INTO Score VALUES (NULL, {score.getTeamPtsEarned()}, {score.getPlayerPtsEarned()}, {score.getPlayerPtsNeeded()})"
+            )
 
-        scoreId = int(self.cur.execute("SELECT last_insert_rowid() FROM {}BallScore".format(gamePrefix)).fetchone()[0])
+        scoreId = int(self.cur.execute("SELECT last_insert_rowid() FROM Score").fetchone()[0])
         
-        playerMatchId = playerMatch.get('playerMatchId')
-        teamMatchId = playerMatch.get('teamMatchId')
-        teamId1 = playerMatch.get('playerResults')[0].get('team').get('teamId')
-        memberId1 = playerMatch.get('playerResults')[0].get('player').get('memberId')
-        skillLevel1 = playerMatch.get('playerResults')[0].get('skillLevel')
+        playerMatchId = playerMatch.getPlayerMatchId()
+        teamMatchId = playerMatch.getTeamMatchId()
+        teamId1 = playerMatch.getPlayerResults()[0].getTeam().getTeamId()
+        memberId1 = playerMatch.getPlayerResults()[0].getPlayer().getMemberId()
+        skillLevel1 = playerMatch.getPlayerResults()[0].getSkillLevel()
         scoreId1 = str(scoreId-1)
-        teamId2 = playerMatch.get('playerResults')[1].get('team').get('teamId')
-        memberId2 = playerMatch.get('playerResults')[1].get('player').get('memberId')
-        skillLevel2 = playerMatch.get('playerResults')[1].get('skillLevel')
+        teamId2 = playerMatch.getPlayerResults()[1].getTeam().getTeamId()
+        memberId2 = playerMatch.getPlayerResults()[1].getPlayer().getMemberId()
+        skillLevel2 = playerMatch.getPlayerResults()[1].getSkillLevel()
         scoreId2 = str(scoreId)
 
 
         self.cur.execute(
-            f"""INSERT INTO {gamePrefix}BallPlayerMatch VALUES ({playerMatchId}, {teamMatchId}, {teamId1}, {memberId1}, {skillLevel1}, {scoreId1}, {teamId2}, {memberId2}, {skillLevel2}, {scoreId2})"""
+            f"""INSERT INTO PlayerMatch VALUES ({playerMatchId}, {teamMatchId}, {teamId1}, {memberId1}, {skillLevel1}, {scoreId1}, {teamId2}, {memberId2}, {skillLevel2}, {scoreId2})"""
         )
         self.con.commit()
     
-    def addTeamMatch(self, teamMatchId, apaDatetime, divisionId, sessionId, isEightBall):
+    def addTeamMatch(self, teamMatchId, apaDatetime, divisionId, sessionId):
         try:
-            gamePrefix = self.getGamePrefix(isEightBall)
-            self.cur.execute("INSERT INTO {}BallTeamMatch VALUES ({}, '{}', {}, {})".format(gamePrefix, teamMatchId, apaDatetime, divisionId, sessionId))
+            self.cur.execute(f"INSERT INTO TeamMatch VALUES ({teamMatchId}, '{apaDatetime}', {divisionId}, {sessionId})")
             self.con.commit()
         except Exception:
             pass
     
     def addTeamInfo(self, team: Team):
-        teamData = team.toJson()
-        sessionId = teamData.get('division').get('session').get('sessionId')
-        divisionId = teamData.get('division').get('divisionId')
-        teamId = teamData.get('teamId')
-        teamNum = teamData.get('teamNum')
-        teamName = teamData.get('teamName')
+        sessionId = team.getDivision().getSession().getSessionId()
+        divisionId = team.getDivision().getDivisionId()
+        teamId = team.getTeamId()
+        teamNum = team.getTeamNum()
+        teamName = team.getTeamName()
         self.addTeam(sessionId, divisionId, teamId, teamNum, teamName)
         #TODO: Delete all currentTeamPlayer entries belonging to the team and re-add all the players
         # That way the table stays current
         
-        for player in teamData.get('players'):
-            memberId = player.get('memberId')
-            playerName = player.get('playerName')
-            currentSkillLevel = player.get('currentSkillLevel')
+        for player in team.getPlayers():
+            memberId = player.getMemberId()
+            playerName = player.getPlayerName()
+            currentSkillLevel = player.getCurrentSkillLevel()
 
             self.addCurrentTeamPlayer(teamId, memberId)
             self.addPlayer(memberId, playerName, currentSkillLevel)
 
     def addTeam(self, sessionId: int, divisionId: int, teamId: int, teamNum: int, teamName: str):
-        self.createTables(True)
+        self.createTables()
         try:
             self.cur.execute(
                 f"""INSERT INTO Team VALUES ({sessionId}, {divisionId}, {teamId}, {teamNum}, "{teamName}")"""
@@ -375,7 +330,7 @@ class Database:
         self.con.commit()
 
     def addCurrentTeamPlayer(self, teamId: int, memberId: int):
-        self.createTables(True)
+        self.createTables()
         try:
             self.cur.execute(
                 f"INSERT INTO CurrentTeamPlayer VALUES ({teamId}, {memberId})"
@@ -385,7 +340,7 @@ class Database:
         self.con.commit()
 
     def addPlayer(self, memberId: int, playerName: str, currentSkillLevel: int):
-        self.createTables(True)
+        self.createTables()
         try:
             self.cur.execute(
                 f"""INSERT INTO Player VALUES ({memberId}, "{playerName}", {currentSkillLevel})"""
@@ -395,26 +350,25 @@ class Database:
         self.con.commit() 
 
     def addSession(self, session):
-        self.createTables(True)
+        self.createTables()
         
-        if not self.getSession(session.get('sessionId')):
-            self.cur.execute(f"INSERT INTO Session VALUES ({session.get('sessionId')}, '{session.get('sessionSeason')}', {session.get('sessionYear')})")
+        if not self.getSession(session.getSessionId()):
+            self.cur.execute(f"INSERT INTO Session VALUES ({session.getSessionId()}, '{session.getSessionSeason()}', {session.getSessionYear()})")
             self.con.commit()
     
     def addDivision(self, division):
-        self.createTables(True)
-        divisionData = division.toJson()
-        session = divisionData.get('session')
+        self.createTables()
+        session = division.getSession()
         self.addSession(session)
 
-        if not self.getDivision(divisionData.get('divisionId'), session.get('sessionId')):
+        if not self.getDivision(division.getDivisionId(), session.getSessionId()):
             self.cur.execute(
                 "INSERT INTO Division VALUES (" +
-                f"{session.get('sessionId')}, " +
-                f"{divisionData.get('divisionId')}, " +
-                f"'{divisionData.get('divisionName')}', " + 
-                f"{divisionData.get('dayOfWeek')}, " +
-                f"'{divisionData.get('game')}')"
+                f"{session.getSessionId()}, " +
+                f"{division.getDivisionId()}, " +
+                f"'{division.getDivisionName()}', " + 
+                f"{division.getDayOfWeek()}, " +
+                f"'{division.getGame()}')"
             )
             self.con.commit()  
 
@@ -440,82 +394,52 @@ class Database:
     def deleteTeamMatch(self, sessionId, divisionId):
         self.deletePlayerMatch(sessionId, divisionId)
 
-        gamePrefixes = []
         if divisionId is None:
-            gamePrefixes.append("Eight")
-            # TODO: Add back in eventually
-            # gamePrefixes.append("Nine")
+            self.cur.execute(
+                f"DELETE FROM TeamMatch WHERE sessionId = {sessionId}"
+            )
         else:
-            game = self.cur.execute(f"SELECT game FROM Division WHERE divisionId = {divisionId}").fetchone()[0]
-            gamePrefixes.append(self.getGamePrefix(game == "8-ball"))
-
-        for gamePrefix in gamePrefixes:
-            if divisionId is None:
-                self.cur.execute(
-                    f"DELETE FROM {gamePrefix}BallTeamMatch WHERE sessionId = {sessionId}"
-                )
-            else:
-                self.cur.execute(
-                    f"DELETE FROM {gamePrefix}BallTeamMatch WHERE sessionId = {sessionId} AND divisionId = {divisionId}"
-                )
+            self.cur.execute(
+                f"DELETE FROM TeamMatch WHERE sessionId = {sessionId} AND divisionId = {divisionId}"
+            )
+            
         self.con.commit()
     
     def deletePlayerMatch(self, sessionId, divisionId):
         self.deleteScore(sessionId, divisionId)
 
-        gamePrefixes = []
         if divisionId is None:
-            gamePrefixes.append("Eight")
-            # TODO: Add back in eventually
-            # gamePrefixes.append("Nine")
+            self.cur.execute(
+                f"DELETE FROM PlayerMatch WHERE teamMatchId IN (" +
+                    f"SELECT teamMatchId FROM TeamMatch WHERE sessionId = {sessionId}" +
+                ")"
+            )
         else:
-            game = self.cur.execute(f"SELECT game FROM Division WHERE divisionId = {divisionId}").fetchone()[0]
-            gamePrefixes.append(self.getGamePrefix(game == "8-ball"))
-
-        for gamePrefix in gamePrefixes:
+            self.cur.execute(
+                f"DELETE FROM PlayerMatch WHERE teamMatchId IN (" +
+                    f"SELECT teamMatchId FROM TeamMatch WHERE sessionId = {sessionId} AND divisionId = {divisionId}" +
+                ")"
+            )
+        self.con.commit()
+    
+    def deleteScore(self, sessionId, divisionId):
+        for i in range(2):
             if divisionId is None:
                 self.cur.execute(
-                    f"DELETE FROM {gamePrefix}BallPlayerMatch WHERE teamMatchId IN (" +
-                        f"SELECT teamMatchId FROM {gamePrefix}BallTeamMatch WHERE sessionId = {sessionId}" +
+                    f"DELETE FROM Score WHERE scoreId IN (" +
+                        f"SELECT pm.scoreId{str(i+1)} FROM PlayerMatch pm " +
+                        f"LEFT JOIN TeamMatch tm ON pm.teamMatchId = tm.teamMatchId " +
+                        f"WHERE tm.sessionId = {sessionId}" +
                     ")"
                 )
             else:
                 self.cur.execute(
-                    f"DELETE FROM {gamePrefix}BallPlayerMatch WHERE teamMatchId IN (" +
-                        f"SELECT teamMatchId FROM {gamePrefix}BallTeamMatch WHERE sessionId = {sessionId} AND divisionId = {divisionId}" +
+                    f"DELETE FROM Score WHERE scoreId IN (" +
+                        f"SELECT pm.scoreId{str(i+1)} FROM PlayerMatch pm " +
+                        f"LEFT JOIN TeamMatch tm ON pm.teamMatchId = tm.teamMatchId " +
+                        f"WHERE tm.sessionId = {sessionId} AND tm.divisionId = {divisionId}" +
                     ")"
                 )
-        self.con.commit()
-    
-    def deleteScore(self, sessionId, divisionId):
-        
-        gamePrefixes = []
-        if divisionId is None:
-            gamePrefixes.append("Eight")
-            # TODO: Add back in eventually
-            # gamePrefixes.append("Nine")
-        else:
-            game = self.cur.execute(f"SELECT game FROM Division WHERE divisionId = {divisionId}").fetchone()[0]
-            gamePrefixes.append(self.getGamePrefix(game == "8-ball"))
-
-        for gamePrefix in gamePrefixes:
-            for i in range(2):
-                if divisionId is None:
-                    self.cur.execute(
-                        f"DELETE FROM {gamePrefix}BallScore WHERE scoreId IN (" +
-                            f"SELECT pm.scoreId{str(i+1)} FROM {gamePrefix}BallPlayerMatch pm " +
-                            f"LEFT JOIN {gamePrefix}BallTeamMatch tm ON pm.teamMatchId = tm.teamMatchId " +
-                            f"WHERE tm.sessionId = {sessionId}" +
-                        ")"
-                    )
-                else:
-                    self.cur.execute(
-                        f"DELETE FROM {gamePrefix}BallScore WHERE scoreId IN (" +
-                            f"SELECT pm.scoreId{str(i+1)} FROM {gamePrefix}BallPlayerMatch pm " +
-                            f"LEFT JOIN {gamePrefix}BallTeamMatch tm ON pm.teamMatchId = tm.teamMatchId " +
-                            f"WHERE tm.sessionId = {sessionId} AND tm.divisionId = {divisionId}" +
-                        ")"
-                    )
         self.con.commit()
     
     def deleteTeam(self, sessionId, divisionId):
@@ -543,50 +467,49 @@ class Database:
         self.con.commit()
     
     # ------------------------- Checking -------------------------
-    def isValueInTeamMatchTable(self, teamMatchId, isEightBall):
-        gamePrefix = self.getGamePrefix(isEightBall)
-        return self.cur.execute("SELECT COUNT(*) FROM {}BallTeamMatch WHERE teamMatchId = {}".format(gamePrefix, teamMatchId)).fetchone()[0] > 0
+    def isValueInTeamMatchTable(self, teamMatchId):
+        return self.cur.execute(f"SELECT COUNT(*) FROM TeamMatch WHERE teamMatchId = {teamMatchId}").fetchone()[0] > 0
 
     # ------------------------- Counting -------------------------
-    def countPlayerMatches(self, isEightBall):
-        gamePrefix = self.getGamePrefix(isEightBall)
-        return self.cur.execute("SELECT COUNT(*) FROM {}BallPlayerMatch".format(gamePrefix)).fetchone()[0]
-    
-    def countTeamMatches(self, isEightBall):
-        gamePrefix = self.getGamePrefix(isEightBall)
-        return self.cur.execute("SELECT COUNT(*) FROM {}BallTeamMatch".format(gamePrefix)).fetchone()[0]
+    def countPlayerMatches(self):
+        return self.cur.execute("SELECT COUNT(*) FROM PlayerMatch").fetchone()[0]
 
     
-    ############### 9 Ball functions ###############
-    def createNineBallMatrix(self):
+    # ------------------------- Skill Level -------------------------
+    def createSkillLevelMatrix(self, game):
         matrix = []
         matrix.append([])
-        for i in range(0, 10):
+        
+        numSkillLevels = 0
+        if game == Game.EightBall.value:
+            numSkillLevels = EIGHT_BALL_NUM_SKILL_LEVELS
+        elif game == Game.NineBall.value:
+            numSkillLevels = NINE_BALL_NUM_SKILL_LEVELS
+        
+        for i in range(0, numSkillLevels + 1):
             matrix[0].append(i)
-        for i in range(1, 10):
-            matrix.append([i, 0, 0, 0, 0, 0, 0, 0, 0, 0])
-        for i in range(1, 10):
-            for j in range(i+1, 10):
+        for i in range(1, numSkillLevels + 1):
+            matrix.append([i] + [0] * numSkillLevels)
+        for i in range(1, numSkillLevels + 1):
+            for j in range(i+1, numSkillLevels + 1):
                 matchesLowAgainstHigh = self.cur.execute(
-                    "SELECT SUM(score1.matchPtsEarned) AS totalPts1, " +
-                    "SUM(score2.matchPtsEarned) AS totalPts2, COUNT(*) " + 
-                    "FROM NineBallPlayerMatch n " +
-                    "LEFT JOIN NineBallScore score1 " +
-                    "ON score1.scoreId = n.scoreId1 " +
-                    "LEFT JOIN NineBallScore score2 " +
-                    "ON score2.scoreId = n.scoreId2 " +
-                    "WHERE n.skillLevel1 = {} AND n.skillLevel2 = {}".format(i, j)
+                    "SELECT SUM(s1.teamPtsEarned), SUM(s2.teamPtsEarned), COUNT(*) " + 
+                    "FROM Division d " +
+                    "LEFT JOIN TeamMatch tm ON d.divisionId = tm.divisionId " +
+                    "LEFT JOIN PlayerMatch pm ON pm.teamMatchId = tm.teamMatchId " +
+                    "LEFT JOIN Score s1 ON s1.scoreId = pm.scoreId1 " +
+                    "LEFT JOIN Score s2 ON s2.scoreId = pm.scoreId2 " +
+                    f"WHERE pm.skillLevel1 = {i} AND pm.skillLevel2 = {j} AND d.game = '{game}'"
                 ).fetchone()
 
                 matchesHighAgainstLow = self.cur.execute(
-                    "SELECT SUM(score1.matchPtsEarned) AS totalPts1, " +
-                    "SUM(score2.matchPtsEarned) AS totalPts2, COUNT(*) " + 
-                    "FROM NineBallPlayerMatch n " +
-                    "LEFT JOIN NineBallScore score1 " +
-                    "ON score1.scoreId = n.scoreId1 " +
-                    "LEFT JOIN NineBallScore score2 " +
-                    "ON score2.scoreId = n.scoreId2 " +
-                    "WHERE n.skillLevel1 = {} AND n.skillLevel2 = {}".format(j, i)
+                    "SELECT SUM(s1.teamPtsEarned), SUM(s2.teamPtsEarned), COUNT(*) " + 
+                    "FROM Division d " +
+                    "LEFT JOIN TeamMatch tm ON d.divisionId = tm.divisionId " +
+                    "LEFT JOIN PlayerMatch pm ON pm.teamMatchId = tm.teamMatchId " +
+                    "LEFT JOIN Score s1 ON s1.scoreId = pm.scoreId1 " +
+                    "LEFT JOIN Score s2 ON s2.scoreId = pm.scoreId2 " +
+                    f"WHERE pm.skillLevel1 = {j} AND pm.skillLevel2 = {i} AND d.game = '{game}'"
                 ).fetchone()
 
                 games = matchesLowAgainstHigh[2] + matchesHighAgainstLow[2]
@@ -595,43 +518,5 @@ class Database:
                     ptsFromHigherRatedPlayer = (matchesLowAgainstHigh[1] if matchesLowAgainstHigh[1] else 0) + (matchesHighAgainstLow[0] if matchesHighAgainstLow[0] else 0)
                     matrix[i][j] = str(round(ptsFromLowerRatedPlayer/games, 1)) + " pts expected\n" + str(games) + " games"
                     matrix[j][i] = str(round(ptsFromHigherRatedPlayer/games, 1)) + " pts expected\n" + str(games) + " games"
-        
-        print(tabulate(matrix, headers="firstrow", tablefmt="fancy_grid"))
-
-
-    def createNineBallMatrixMedian(self):
-        matrix = []
-        matrix.append([])
-        for i in range(0, 10):
-            matrix[0].append(i)
-        for i in range(1, 10):
-            matrix.append([i, 0, 0, 0, 0, 0, 0, 0, 0, 0])
-        for i in range(1, 10):
-            for j in range(i+1, 10):
-                scores = self.cur.execute("SELECT lowerLevelPts FROM "
-                    "(SELECT score1.matchPtsEarned AS lowerLevelPts, " +
-                    "score2.matchPtsEarned AS higherLevelPts " + 
-                    "FROM NineBallPlayerMatch n " +
-                    "LEFT JOIN NineBallScore score1 " +
-                    "ON score1.scoreId = n.scoreId1 " +
-                    "LEFT JOIN NineBallScore score2 " +
-                    "ON score2.scoreId = n.scoreId2 " +
-                    "WHERE n.skillLevel1 = {} AND n.skillLevel2 = {} ".format(i, j) +
-                    "UNION ALL SELECT score1.matchPtsEarned AS higherLevelPts, " +
-                    "score2.matchPtsEarned AS lowerLevelPts " + 
-                    "FROM NineBallPlayerMatch n " +
-                    "LEFT JOIN NineBallScore score1 " +
-                    "ON score1.scoreId = n.scoreId1 " +
-                    "LEFT JOIN NineBallScore score2 " +
-                    "ON score2.scoreId = n.scoreId2 " +
-                    "WHERE n.skillLevel1 = {} AND n.skillLevel2 = {}) ".format(j, i) +
-                    "ORDER BY lowerLevelPts"
-                ).fetchall()
-
-                numGames = len(scores)
-                if numGames > 0:
-                    median = round(self.getMedian(scores), 0)
-                    matrix[i][j] = str(median) + " pts expected\n" + str(numGames) + " games"
-                    matrix[j][i] = str(20 - median) + " pts expected\n" + str(numGames) + " games"
         
         print(tabulate(matrix, headers="firstrow", tablefmt="fancy_grid"))

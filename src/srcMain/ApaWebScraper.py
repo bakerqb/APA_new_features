@@ -56,26 +56,26 @@ class ApaWebScraper:
         noThanksButton.click()
 
     ############### Scraping Data for Division/Session ###############
-    def scrapeDivision(self, divisionLink, isEightBall):
+    def scrapeDivision(self, divisionLink):
         self.createWebDriver()
         print("Fetching results for session with link = {}".format(divisionLink))
         self.driver.get(divisionLink)
         time.sleep(2)
         division = self.addDivisionToDatabase()
         table = self.driver.find_element(By.TAG_NAME, "tbody")
-        divisionId = division.toJson().get('divisionId')
-        sessionId = division.toJson().get('session').get('sessionId')
+        divisionId = division.getDivisionId()
+        sessionId = division.getSession().getSessionId()
         teamLinks = []
         for row in table.find_elements(By.TAG_NAME, "tr"):
             teamLinks.append(self.config.get('apaWebsite').get('baseLink') + row.get_attribute("to"))
         
-        argsList = ((division, teamLink, divisionId, sessionId, isEightBall) for teamLink in teamLinks)
+        argsList = ((division, teamLink, divisionId, sessionId) for teamLink in teamLinks)
         start = time.time()
         with concurrent.futures.ThreadPoolExecutor() as executor:
             executor.map(self.scrapeTeamInfoAndTeamMatches, argsList) 
         print("finished first mapping")
         with concurrent.futures.ThreadPoolExecutor() as executor:
-            executor.map(self.transformScrapeMatchLinksAllTeams, self.db.getTeamMatches(sessionId, divisionId, isEightBall))
+            executor.map(self.transformScrapeMatchLinksAllTeams, self.db.getTeamMatches(sessionId, divisionId))
 
         end = time.time()
         
@@ -137,9 +137,10 @@ class ApaWebScraper:
         self.createWebDriver()
         self.navigateToTeamPage(divisionLink, myTeamName)
 
+        opponentTeamName = None
         headerTexts = ['Team Schedule & Results', 'Playoffs']
         for headerText in headerTexts:
-            header = self.driver.find_element(By.XPATH, "//h2 [contains( text(), '{}')]".format(headerText))
+            header = self.driver.find_element(By.XPATH, f"//h2 [contains( text(), '{headerText}')]")
             matches = header.find_element(By.XPATH, "..").find_elements(By.TAG_NAME, "a")
             for match in matches:
                 if '@' in match.text:
@@ -148,7 +149,10 @@ class ApaWebScraper:
                     team1 = textElements[4].split('(')[0]
                     team2 = textElements[5].split('(')[0]
                     if team1 == myTeamName:
-                        return team2
+                        opponentTeamName = team2
                     else:
-                        return team1
+                        opponentTeamName = team1
+
+                    break
+        
                     

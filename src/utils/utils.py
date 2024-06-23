@@ -1,3 +1,5 @@
+from datetime import datetime
+
 def nineBallSkillLevelMapper():
         map = {}
         map["14"] = "1"
@@ -10,10 +12,11 @@ def nineBallSkillLevelMapper():
         map["65"] = "8"
         map["75"] = "9"
         return map
-    
-def removeElements(testList, item): 
-        res = list(filter((item).__ne__, testList)) 
-        return res
+
+def removeElements(words, removableWordList):
+        for removableWord in removableWordList:
+            words = list(filter((removableWord).__ne__, words)) 
+        return words
 
 def eightBallGamesNeededMapper():
     map = {}
@@ -52,3 +55,12 @@ def eightBallGamesNeededMapper():
     
     return map
 
+def toReadableDateTimeString(date):
+    try:
+        readableDate = datetime.strptime(date, "%Y-%m-%d").strftime("%B %-d, %Y")
+        return readableDate
+    except Exception:
+        return date
+    
+EIGHT_BALL_NUM_SKILL_LEVELS = 7
+NINE_BALL_NUM_SKILL_LEVELS = 9

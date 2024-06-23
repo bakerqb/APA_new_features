@@ -1,12 +1,9 @@
-import dataClasses.IScore as IScore
+import dataClasses.Score as Score
 import dataClasses.Team as Team
 import dataClasses.Player as Player
-import math
-from src.srcMain.Database import Database
 
 class PlayerResult:
-    def __init__(self, team: Team, player: Player, skillLevel: int, score: IScore):      
-        self.db = Database()
+    def __init__(self, team: Team, player: Player, skillLevel: int, score: Score):      
         self.team = team
         self.player = player
         self.skillLevel = skillLevel

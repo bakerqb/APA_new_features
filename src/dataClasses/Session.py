@@ -10,3 +10,12 @@ class Session:
             "sessionSeason": self.sessionSeason,
             "sessionYear": self.sessionYear
         }
+    
+    def getSessionId(self):
+        return self.sessionId
+    
+    def getSessionSeason(self):
+        return self.sessionSeason
+    
+    def getSessionYear(self):
+        return self.sessionYear

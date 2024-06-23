@@ -1,39 +1,26 @@
-from dataClasses.eightBall.EightBallPlayerMatch import EightBallPlayerMatch
-from dataClasses.nineBall.NineBallPlayerMatch import NineBallPlayerMatch
+from dataClasses.PlayerMatch import PlayerMatch
 from dataClasses.Division import Division
 from dataClasses.Session import Session
 from dataClasses.Team import Team
 from dataClasses.Player import Player
-from dataClasses.IPlayerMatch import IPlayerMatch
-from dataClasses.eightBall.EightBallScore import EightBallScore
-from dataClasses.nineBall.NineBallScore import NineBallScore
+from src.dataClasses.PlayerMatch import PlayerMatch
+from dataClasses.Score import Score
 from dataClasses.PlayerResult import PlayerResult
 
 class Converter:
     def __init__(self):
         pass
 
-    def toPlayerMatchWithDiv(self, matchDiv: object, team1: Team, team2: Team, playerMatchId: int, teamMatchId: int, datePlayed: str, isEightBall: bool) -> IPlayerMatch:
-        playerMatch = EightBallPlayerMatch() if isEightBall else NineBallPlayerMatch()
-        return playerMatch.initWithDiv(matchDiv, team1, team2, playerMatchId, teamMatchId, datePlayed)
-
     def toPlayerMatchWithSql(self, sqlRow: list):
-        # s.sessionId, s.sessionSeason, s.sessionYear
-        # d.divisionId, d.divisionName, d.dayOfWeek, d.game
-        # tm.teamMatchId, tm.datePlayed, pm.playerMatchId, pr1.teamId, pr1.teamNum, pr1.teamName
-        # pr1.memberId, pr1.playerName, pr1.currentSkillLevel, pm.skillLevel1, pr1.matchPtsEarned, pr1.ballPtsEarned, pr1.ballPtsNeeded
-        # pr2.teamId, pr2.teamNum, pr2.teamName, pr2.memberId, pr2.playerName, pr2.currentSkillLevel, pm.skillLevel2, " +
-        # pr2.matchPtsEarned, pr2.ballPtsEarned, pr2.ballPtsNeeded """
-        
         sessionId, sessionSeason, sessionYear = sqlRow[:3]
         divisionId, divisionName, dayOfWeek, game = sqlRow[3:7]
         teamMatchId, datePlayed, playerMatchId, teamId1, teamNum1, teamName1 = sqlRow[7:13]
-        memberId1, playerName1, currentSkillLevel1, skillLevel1, matchPtsEarned1, ballPtsEarned1, ballPtsNeeded1 = sqlRow[13:20]
+        memberId1, playerName1, currentSkillLevel1, skillLevel1, teamPtsEarned1, playerPtsEarned1, playerPtsNeeded1 = sqlRow[13:20]
         teamId2, teamNum2, teamName2, memberId2, playerName2, currentSkillLevel2, skillLevel2 = sqlRow[20:27]
-        matchPtsEarned2, ballPtsEarned2, ballPtsNeeded2 = sqlRow[27:30]
+        teamPtsEarned2, playerPtsEarned2, playerPtsNeeded2 = sqlRow[27:30]
         
 
-        playerMatch = EightBallPlayerMatch() if game == "8-ball" else NineBallPlayerMatch()
+        
         session = Session(sessionId, sessionSeason, sessionYear)
         division = Division(session, divisionId, divisionName, dayOfWeek, game)
         
@@ -44,11 +31,11 @@ class Converter:
         team2 = Team(division, teamId2, teamNum2, teamName2, [])
         player1 = Player(memberId1, playerName1, currentSkillLevel1)
         player2 = Player(memberId2, playerName2, currentSkillLevel2)
-        score1 = EightBallScore(matchPtsEarned1, ballPtsEarned1, ballPtsNeeded1) if game == "8-ball" else NineBallScore(matchPtsEarned1, ballPtsEarned1, ballPtsNeeded1)
-        score2 = EightBallScore(matchPtsEarned2, ballPtsEarned2, ballPtsNeeded2) if game == "8-ball" else NineBallScore(matchPtsEarned2, ballPtsEarned2, ballPtsNeeded2)
+        score1 = Score(teamPtsEarned1, playerPtsEarned1, playerPtsNeeded1)
+        score2 = Score(teamPtsEarned2, playerPtsEarned2, playerPtsNeeded2)
         playerResults = [PlayerResult(team1, player1, skillLevel1, score1), PlayerResult(team2, player2, skillLevel2, score2)]
-        playerMatch.initNormal(playerResults, playerMatchId, teamMatchId, datePlayed)
-        return playerMatch
+        return PlayerMatch(playerResults, playerMatchId, teamMatchId, datePlayed)
+        
     
     def toDivisionWithSql(self, sqlRow: list):
         # Returns values in format: sessionId, sessionSeason, sessionYear, divisionId, divisionName, dayOfWeek, game
