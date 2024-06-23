@@ -17,3 +17,18 @@ class Division:
             "dayOfWeek": self.dayOfWeek,
             "game": self.game
         }
+    
+    def getSession(self):
+        return self.session
+    
+    def getDivisionId(self):
+        return self.divisionId
+    
+    def getDivisionName(self):
+        return self.divisionName
+    
+    def getDayOfWeek(self):
+        return self.dayOfWeek
+    
+    def getGame(self):
+        return self.game

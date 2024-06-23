@@ -20,3 +20,18 @@ class Team:
     
     def addPlayer(self, player: Player):
         self.players.append(player)
+
+    def getDivision(self):
+        return self.division
+    
+    def getTeamId(self):
+        return self.teamId
+    
+    def getTeamNum(self):
+        return self.teamNum
+    
+    def getTeamName(self):
+        return self.teamName
+    
+    def getPlayers(self):
+        return self.players

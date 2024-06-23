@@ -2,16 +2,19 @@ from src.srcMain.Database import Database
 from src.converter.Converter import Converter
 import math
 import time
+from utils.utils import *
+from src.dataClasses.Game import Game
+
 
 def getAdjustedSkillLevel(memberId, currentSkillLevel):
         
-
-        # TODO: remove hardcoded values
         db = Database()
         converter = Converter()
 
+        # TODO: remove hardcoded values
         limit = 10
-        game = "8-ball"
+        game = Game.EightBall.value
+
         playerResultsDb = db.getLatestPlayerMatchesForPlayer(memberId, game, limit)
         start = time.time()
         playerMatches = list(map(lambda playerMatch: converter.toPlayerMatchWithSql(playerMatch), playerResultsDb))
@@ -32,12 +35,12 @@ def getAdjustedSkillLevel(memberId, currentSkillLevel):
             playerResult0 = playerMatch.getPlayerResults()[0]
             playerResult1 = playerMatch.getPlayerResults()[1]
 
-            gamesWon1 = playerResult1.getScore().getGamesWon()
-            gamesWon0 = playerResult0.getScore().getGamesWon()
+            gamesWon1 = playerResult1.getScore().getPlayerPtsEarned()
+            gamesWon0 = playerResult0.getScore().getPlayerPtsEarned()
             skillLevel0 = playerResult0.getSkillLevel()
             skillLevel1 = playerResult1.getSkillLevel()
-            gamesNeeded0 = playerResult0.getScore().getGamesNeeded()
-            gamesNeeded1 = playerResult1.getScore().getGamesNeeded()
+            gamesNeeded0 = playerResult0.getScore().getPlayerPtsNeeded()
+            gamesNeeded1 = playerResult1.getScore().getPlayerPtsNeeded()
             if gamesNeeded0 == 0 or gamesNeeded1 == 0:
                 continue
 
@@ -48,7 +51,7 @@ def getAdjustedSkillLevel(memberId, currentSkillLevel):
                     *
                     abs(
                         math.ceil(gamesWon0/gamesNeeded0)
-                        + (skillLevel1/7) 
+                        + (skillLevel1/EIGHT_BALL_NUM_SKILL_LEVELS) 
                         - 1
                     )
             )*3

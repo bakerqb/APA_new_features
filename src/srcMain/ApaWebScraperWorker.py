@@ -13,6 +13,16 @@ from src.srcMain.Database import Database
 from src.srcMain.Config import Config
 import calendar
 import re
+from dataClasses.PlayerResult import PlayerResult
+from dataClasses.Score import Score
+from dataClasses.Team import Team
+from src.srcMain.Database import Database
+from dataClasses.Player import Player
+from dataClasses.PlayerMatch import PlayerMatch
+# sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+from utils.utils import *
+from dataClasses.Team import Team
+from dataClasses.Game import Game
 
 
 class ApaWebScraperWorker:
@@ -81,18 +91,18 @@ class ApaWebScraperWorker:
         return roster
     
     def scrapeTeamInfoAndTeamMatches(self, args):
-        division, teamLink, divisionId, sessionId, isEightBall = args
+        division, teamLink, divisionId, sessionId = args
         self.driver = None
         self.createWebDriver()
         self.driver.get(teamLink)
         teamInfo = self.scrapeTeamInfo(division)
         self.db.addTeamInfo(teamInfo)
 
-        matchLinks = self.scrapeTeamMatchesForTeam('Team Schedule & Results', divisionId, sessionId, isEightBall)
-        matchLinks = matchLinks + self.scrapeTeamMatchesForTeam('Playoffs', divisionId, sessionId, isEightBall)
+        matchLinks = self.scrapeTeamMatchesForTeam('Team Schedule & Results', divisionId, sessionId)
+        matchLinks = matchLinks + self.scrapeTeamMatchesForTeam('Playoffs', divisionId, sessionId)
         print("Got team data")
 
-    def scrapeTeamMatchesForTeam(self, headerTitle, divisionId, sessionId, isEightBall):
+    def scrapeTeamMatchesForTeam(self, headerTitle, divisionId, sessionId):
         self.createWebDriver()
         
         matchesHeader = self.driver.find_element(By.XPATH, "//h2 [contains( text(), '{}')]".format(headerTitle))
@@ -104,9 +114,9 @@ class ApaWebScraperWorker:
                 link = match.get_attribute("href")
                 teamMatchId = link.split("/")[-1]
                 apaDatetime = self.apaDateToDatetime(match.text.split(' | ')[-1])
-                if not self.db.isValueInTeamMatchTable(teamMatchId, isEightBall):
+                if not self.db.isValueInTeamMatchTable(teamMatchId):
                     matchLinks.append(link)
-                    self.db.addTeamMatch(teamMatchId, apaDatetime, divisionId, sessionId, isEightBall)
+                    self.db.addTeamMatch(teamMatchId, apaDatetime, divisionId, sessionId)
                 
         return matchLinks
     
@@ -118,28 +128,28 @@ class ApaWebScraperWorker:
 
     ############### PlayerMatch Scraping Functions ###############
     def scrapePlayerMatches(self, args):
-        teamMatchId, divisionId, sessionId, game = args
+        teamMatchId, divisionId, sessionId = args
         teamMatchLink = self.config.get('apaWebsite').get('teamMatchBaseLink') + str(teamMatchId)
-        isEightBall = game == "8-ball"
         self.createWebDriver()
-        for match in self.getPlayerMatchesFromTeamMatch(teamMatchLink, divisionId, sessionId, isEightBall):
-            self.db.addPlayerMatch(match, isEightBall)
-        print("Total player matches in database = {}".format(str(self.db.countPlayerMatches(isEightBall))))
+        for match in self.getPlayerMatchesFromTeamMatch(teamMatchLink, divisionId, sessionId):
+            self.db.addPlayerMatch(match)
+        print("Total player matches in database = {}".format(str(self.db.countPlayerMatches())))
 
-    def getPlayerMatchesFromTeamMatch(self, link, divisionId, sessionId, isEightBall):
+    def getPlayerMatchesFromTeamMatch(self, link, divisionId, sessionId):
+        game = self.db.getGame(divisionId)
+        
         self.createWebDriver()
         self.driver.get(link)
-        if isEightBall:
+
+        if game == Game.EightBall.value:
             time.sleep(10)
 
         teamsInfoHeader = self.driver.find_elements(By.CLASS_NAME, "teamName")
-        teamName1 = teamsInfoHeader[0].text.split(' (')[0]
         teamNum1 = int(re.sub(r'\W+', '', teamsInfoHeader[0].text.split(' (')[1])[-2:])
         
-        team1 = self.converter.toTeamWithSql(self.db.getTeam(teamName1, teamNum1, divisionId, sessionId))
-        teamName2 = teamsInfoHeader[1].text.split(' (')[0]
+        team1 = self.converter.toTeamWithSql(self.db.getTeam(teamNum1, divisionId, sessionId))
         teamNum2 = int(re.sub(r'\W+', '', teamsInfoHeader[1].text.split(' (')[1])[-2:])
-        team2 = self.converter.toTeamWithSql(self.db.getTeam(teamName2, teamNum2, divisionId, sessionId))
+        team2 = self.converter.toTeamWithSql(self.db.getTeam(teamNum2, divisionId, sessionId))
 
         matchesHeader = self.driver.find_element(By.XPATH, "//h3 [contains( text(), 'MATCH BREAKOUT')]")
         matchesDiv = matchesHeader.find_element(By.XPATH, "..")
@@ -148,14 +158,74 @@ class ApaWebScraperWorker:
         playerMatches = []
         playerMatchId = 0
         teamMatchId = link.split('/')[-1]
-        datePlayed = self.db.getDatePlayed(teamMatchId, isEightBall)
+        datePlayed = self.db.getDatePlayed(teamMatchId)
         for individualMatch in individualMatches:
             if 'LAG' not in individualMatch.text:
                 continue
             playerMatchId += 1
-            playerMatch = self.converter.toPlayerMatchWithDiv(individualMatch, team1, team2, playerMatchId, teamMatchId, datePlayed, isEightBall)
+            mapper = None
+            if game == Game.NineBall.value:
+                mapper = nineBallSkillLevelMapper()
+            
+            textElements = individualMatch.text.split('\n')
 
-            if playerMatch is not None and playerMatch.toJson().get('playerResults')[0].get('skillLevel') != 0 and playerMatch.toJson().get('playerResults')[1].get('skillLevel') != 0:
+            removableWordList = ['LAG', 'SL', 'Pts Earned']
+            if game == Game.EightBall.value:
+                removableWordList.append('GW/GMW')
+            elif game == Game.NineBall.value:
+                removableWordList.append('PE/PN')
+            textElements = removeElements(textElements, removableWordList)
+            
+            playerName1 = textElements[0]
+            skillLevel1 = textElements[1]
+            if game == Game.NineBall.value:
+                skillLevel1 = mapper.get(playerPtsNeeded1)
+            teamPtsEarned1 = textElements[2]
+
+            score = textElements[4]
+            scoreElements = score.split(' - ')
+            score1 = scoreElements[0].split('/')
+            if len(score1) == 1:
+                score1.insert(0, 0)
+            score2 = scoreElements[1].split('/')
+            if len(score2) == 1:
+                score2.insert(0, 0)
+
+            playerPtsEarned1, playerPtsNeeded1 = score1
+            
+            playerPtsEarned2, playerPtsNeeded2 = score2
+            skillLevel2 = textElements[5]
+            if game == Game.NineBall.value:
+                skillLevel2 = mapper.get(playerPtsNeeded2)
+            playerName2 = textElements[6]
+            teamPtsEarned2 = textElements[7]
+
+            db = Database()
+            
+            score1 = Score(teamPtsEarned1, playerPtsEarned1, playerPtsNeeded1)
+            score2 = Score(teamPtsEarned2, playerPtsEarned2, playerPtsNeeded2)
+
+            playerResults = []
+            
+            # TODO: Figure out how to find the memberId/currentSkillLevel of a player who once belonged to a team but no longer does
+            player1Info = db.getPlayerBasedOnTeamIdAndPlayerName(team1.getTeamId(), playerName1)
+            if player1Info is None:
+                return None
+            memberId1, playerName1, currentSkillLevel1 = player1Info
+            player1 = Player(memberId1, playerName1, currentSkillLevel1)
+            
+            player2Info = db.getPlayerBasedOnTeamIdAndPlayerName(team2.getTeamId(), playerName2)
+            if player2Info is None:
+                return None
+            memberId2, playerName2, currentSkillLevel2 = player2Info
+            player2 = Player(memberId2, playerName2, currentSkillLevel2)
+
+            playerResults.append(PlayerResult(team1, player1, skillLevel1, score1))
+            playerResults.append(PlayerResult(team2, player2, skillLevel2, score2))
+            datePlayed = toReadableDateTimeString(datePlayed)
+            playerMatch = PlayerMatch(playerResults, playerMatchId, teamMatchId, datePlayed)
+
+            if playerMatch is not None and playerMatch.getPlayerResults()[0].getSkillLevel() != 0 and playerMatch.getPlayerResults()[1].getSkillLevel() != 0:
                 playerMatches.append(playerMatch)   
         
         return playerMatches

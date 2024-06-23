@@ -181,7 +181,7 @@
         </a>
         {% for playerMatch in item.get('playerMatches') %}
             <div class="row p-2 rounded bg-dark text-white">
-                <div class="col-md-5 rounded border align-self-center {{'bg-secondary' if playerMatch.get('playerResults')[0].get('score').get('matchPtsEarned') < 2 else 'bg-success'}}">
+                <div class="col-md-5 rounded border align-self-center {{'bg-secondary' if playerMatch.get('playerResults')[0].get('score').get('teamPtsEarned') < 2 else 'bg-success'}}">
                     <div class="row">
                         
                         <div class="d-flex align-self-center col-md-1" style="margin: 0px; float: none; width: 75px; height: 75px;">
@@ -333,7 +333,7 @@
                                     <p style="font-size: 70%">Games won </p>
                                 </div>
                                 <div class="align-self-center col-md-4" style="margin-right:10px">
-                                    <h4>{{playerMatch.get('playerResults')[0].get('score').get('gamesWon')}}</h4>
+                                    <h4>{{playerMatch.get('playerResults')[0].get('score').get('playerPtsEarned')}}</h4>
                                 </div>
                             </div>
                             <div class="row border">
@@ -341,7 +341,7 @@
                                     <p style="font-size: 70%">Games needed </p>
                                 </div>
                                 <div class="align-self-center col-md-4" style="margin-right:10px">
-                                    <h4>{{playerMatch.get('playerResults')[0].get('score').get('gamesNeeded')}}</h4>
+                                    <h4>{{playerMatch.get('playerResults')[0].get('score').get('playerPtsNeeded')}}</h4>
                                 </div>
                             </div>
                             
@@ -349,7 +349,7 @@
                         </div>
                         <div class="col-md-2 text-center">
                             <div class="row">
-                                <h1>{{playerMatch.get('playerResults')[0].get('score').get('matchPtsEarned')}}</h1>
+                                <h1>{{playerMatch.get('playerResults')[0].get('score').get('teamPtsEarned')}}</h1>
                             </div>
                             <div class="row">
                                 <h6>Pts</h6>
@@ -383,7 +383,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-5 rounded border align-self-center {{'bg-secondary' if playerMatch.get('playerResults')[1].get('score').get('matchPtsEarned') < 2 else 'bg-success'}}">
+                <div class="col-md-5 rounded border align-self-center {{'bg-secondary' if playerMatch.get('playerResults')[1].get('score').get('teamPtsEarned') < 2 else 'bg-success'}}">
                     <div class="row flex-row-reverse">
                         
                         <div class="d-flex align-self-center col-md-1" style="margin: 0px; float: none; width: 75px; height: 75px;">
@@ -534,7 +534,7 @@
                                     <p style="font-size: 70%">Games won </p>
                                 </div>
                                 <div class="align-self-center col-md-4" style="margin-right:10px">
-                                    <h4>{{playerMatch.get('playerResults')[1].get('score').get('gamesWon')}}</h4>
+                                    <h4>{{playerMatch.get('playerResults')[1].get('score').get('playerPtsEarned')}}</h4>
                                 </div>
                             </div>
                             <div class="row border">
@@ -542,7 +542,7 @@
                                     <p style="font-size: 70%">Games needed </p>
                                 </div>
                                 <div class="align-self-center col-md-4" style="margin-right:10px">
-                                    <h4>{{playerMatch.get('playerResults')[1].get('score').get('gamesNeeded')}}</h4>
+                                    <h4>{{playerMatch.get('playerResults')[1].get('score').get('playerPtsNeeded')}}</h4>
                                 </div>
                             </div>
                             
@@ -550,7 +550,7 @@
                         </div>
                         <div class="col-md-2 text-center">
                             <div class="row">
-                                <h1>{{playerMatch.get('playerResults')[1].get('score').get('matchPtsEarned')}}</h1>
+                                <h1>{{playerMatch.get('playerResults')[1].get('score').get('teamPtsEarned')}}</h1>
                             </div>
                             <div class="row">
                                 <h6>Pts</h6>

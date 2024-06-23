@@ -27,11 +27,9 @@ sessionYearInQuestion: 2024
 game: 8-ball
 debugMode: false
 refreshTeams: false
-nineBallData:
-  divisionLink: https://league.poolplayers.com/centralchicago/divisions/379653
-  myTeamName: Miniclip
-  myPlayerName: Quinn Baker
-eightBallData:
-  divisionLink: https://league.poolplayers.com/centralchicago/divisions/379652
-  myTeamName: The Final Boss
-  myPlayerName: Quinn Baker
+myLeagues:
+  thursday:
+    divisionLink: https://league.poolplayers.com/centralchicago/divisions/387820
+    teamName: The Final Boss
+    playerName: Quinn Baker
+  

@@ -15,6 +15,3 @@ class Config:
         for root, dirs, files in os.walk(path):
             if name in files:
                 return os.path.join(root, name)
-
-    def getSessionConfig(self, isEightBall):
-        return self.config.get('eightBallData') if isEightBall else self.config.get('nineBallData')
