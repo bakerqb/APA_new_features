@@ -39,16 +39,23 @@ def home():
         url_for=url_for
     )
 
-@app.route("/test")
-def test():
+@app.route("/scrapeSession")
+def scrapeSession():
+    sessionId = request.args.get('sessionId')
+    apaWebScraper = ApaWebScraper()
+    apaWebScraper.scrapeDivisionsForSession(sessionId)
+    return redirect(f"/session?sessionId={sessionId}")
+
+@app.route("/test2")
+def test2():
     useCase = UseCase()
     db = Database()
     # db.refreshAllTables()
     # useCase.scrapeDivision()
-
-    print("Done scraping")
+    sessionId = request.args.get('sessionId')
+    db.deleteDivision(sessionId, 101)
     # TODO: put in these values and test it out!!!
-    return redirect("/home1")
+    return redirect(f"/session?sessionId={sessionId}")
 
 @app.route("/session")
 def session():
