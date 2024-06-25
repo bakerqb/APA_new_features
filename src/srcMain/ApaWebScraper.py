@@ -90,6 +90,21 @@ class ApaWebScraper:
         apaWebScraperWorker = ApaWebScraperWorker()
         apaWebScraperWorker.scrapePlayerMatches(args)
 
+    def scrapeDivisionsForSession(self, sessionId):
+        self.createWebDriver()
+        self.driver.get(f"{self.config.get('apaWebsite').get('sessionBaseLink')}{sessionId}")
+        time.sleep(4)
+        div = self.driver.find_element(By.CLASS_NAME, "m-b-30")
+        aTags = div.find_elements(By.TAG_NAME, "a")
+        divisionLinks = list(map(lambda aTag: aTag.get_attribute('href'), aTags))
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            executor.map(self.transformScrapeDivisionsForSession, divisionLinks)
+    
+    def transformScrapeDivisionsForSession(self, divisionLink):
+        apaWebScraperWorker = ApaWebScraperWorker()
+        apaWebScraperWorker.scrapeDivisionForSession(divisionLink)
+
+
     ############### Adding Values to Database ###############    
     def addDivisionToDatabase(self):
         # Check if division/session already exists in the database

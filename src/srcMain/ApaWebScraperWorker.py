@@ -229,3 +229,26 @@ class ApaWebScraperWorker:
                 playerMatches.append(playerMatch)   
         
         return playerMatches
+    
+    def scrapeDivisionForSession(self, divisionLink):
+        self.createWebDriver()
+        self.driver.get(divisionLink)
+        time.sleep(1)
+        # Check if division/session already exists in the database
+        divisionName = ' '.join(self.driver.find_element(By.CLASS_NAME, 'page-title').text.split(' ')[:-1])
+        divisionId = re.sub(r'\W+', '', self.driver.find_elements(By.XPATH, f"//option[contains(text(), '{divisionName}')]")[0].text.split('-')[-1])
+        sessionElement = self.driver.find_element(By.CLASS_NAME, "m-b-10")
+        sessionSeason, sessionYear = sessionElement.text.split(' ')
+        sessionId = sessionElement.find_elements(By.TAG_NAME, "a")[0].get_attribute('href').split('/')[-1]
+        
+        # Division/session doesn't exist in the database, so scrape all necessary values
+        formatElement = self.driver.find_elements(By.XPATH, "//*[contains(text(), 'Format:')]")[0]
+        game = formatElement.find_elements(By.XPATH, "..")[0].text.split(' ')[1].lower()
+        dayTimeElement = self.driver.find_elements(By.XPATH, "//*[contains(text(), 'Day/Time:')]")[0]
+        day = dayTimeElement.find_elements(By.XPATH, "..")[0].text.split(' ')[1].lower()
+        dayOfWeek = time.strptime(day, "%A").tm_wday
+        divisionId = re.sub(r'\W+', '', self.driver.find_elements(By.XPATH, f"//option[contains(text(), '{divisionName}')]")[0].text.split('-')[-1])
+
+        # Add division/sesion to database
+        division = self.converter.toDivisionWithDirectValues(sessionId, sessionSeason, sessionYear, divisionId, divisionName, dayOfWeek, game)
+        self.db.addDivision(division)

@@ -21,7 +21,10 @@
             </select>
             <button type="submit">Submit</button>
         </form>
-        
+        <form action="/scrapeSession">
+            <input type="hidden" name="sessionId" id="sessionId" value="{{sessionId}}" />
+            <button type="submit" class="btn btn-primary">Scrape Session</button>
+        </form>
         
     </body>
 </html>

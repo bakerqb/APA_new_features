@@ -11,7 +11,7 @@ apaWebsite:
   # Summer 2024 Thursday: https://league.poolplayers.com/centralchicago/divisions/387820
   divisionLink: https://league.poolplayers.com/centralchicago/divisions/379653
   baseLink: https://league.poolplayers.com
-  sessionLink: https://league.poolplayers.com/centralchicago/divisions/session/
+  sessionBaseLink: https://league.poolplayers.com/centralchicago/divisions/session/
   teamMatchBaseLink: https://league.poolplayers.com/centralchicago/match/
   startingSession: 78
   currentSession: 132
