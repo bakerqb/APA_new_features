@@ -12,7 +12,6 @@
         <label for="divisionId">Select a Division:</label>
         
         <form action="/division">
-            <input type="hidden" name="sessionId" id="sessionId" value="{{sessionId}}" />
             <select name="divisionId" id="divisionId">
                 {% for division in divisions %}
                 <option value="{{division.get('divisionId')}}">{{division.get('divisionName')}}</option>

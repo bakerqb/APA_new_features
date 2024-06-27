@@ -19,3 +19,6 @@ class Player:
     
     def getCurrentSkillLevel(self):
         return self.currentSkillLevel
+    
+    def __eq__(self, player):
+        return self.memberId == player.getMemberId()
