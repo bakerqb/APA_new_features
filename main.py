@@ -46,16 +46,24 @@ def scrapeSession():
     apaWebScraper.scrapeDivisionsForSession(sessionId)
     return redirect(f"/session?sessionId={sessionId}")
 
-@app.route("/test2")
-def test2():
-    useCase = UseCase()
+@app.route("/test")
+def test():
     db = Database()
-    # db.refreshAllTables()
-    # useCase.scrapeDivision()
+    db.refreshAllTables()
+
+    apaWebScraper = ApaWebScraper()
+    apaWebScraper.scrapeDivision(387820)
+    return redirect(f"/home1")
+
+@app.route("/scrapeDivision")
+def scrapeDivision():
     sessionId = request.args.get('sessionId')
-    db.deleteDivision(sessionId, 101)
-    # TODO: put in these values and test it out!!!
-    return redirect(f"/session?sessionId={sessionId}")
+    divisionId = request.args.get('divisionId')
+    apaWebScraper = ApaWebScraper()
+    db = Database()
+    db.deleteDivision(None, divisionId)
+    apaWebScraper.scrapeDivision(divisionId)
+    return redirect(f"/division?sessionId={sessionId}&divisionId={divisionId}")
 
 @app.route("/session")
 def session():
@@ -83,12 +91,11 @@ def home1():
 @app.route("/division")
 def division():
     useCase = UseCase()
-    sessionId = request.args.get('sessionId')
     divisionId = request.args.get('divisionId')
     return render_template(
         jinja_environment.get_template('division.html'),
         url_for=url_for,
-        **useCase.getTeamsJson(sessionId, divisionId)
+        **useCase.getTeamsJson(divisionId)
     )
 
 @app.route("/adjusted-skill-level")

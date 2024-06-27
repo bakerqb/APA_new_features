@@ -21,7 +21,7 @@ class TeamResults:
 
             for playerMatch in playerMatches:
                 if playerMatch.isPlayedBy(player):
-                    playerMatch.properPlayerResultOrderWithPlayer(player)
+                    playerMatch = playerMatch.properPlayerResultOrderWithPlayer(player)
                     '''
                     if decorateWithASL:
                         for playerResult in playerMatch.getPlayerResults():

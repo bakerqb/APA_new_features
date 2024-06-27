@@ -87,22 +87,24 @@ class ApaWebScraperWorker:
             playerName = data[0]
             memberId = int(re.sub(r'\W+', '', data[1]))
             currentSkillLevel = data[2][0]
+            if currentSkillLevel == "-":
+                currentSkillLevel = DEFAULT_SKILL_LEVEL
             roster.append(Player(memberId, playerName, currentSkillLevel))
         return roster
     
     def scrapeTeamInfoAndTeamMatches(self, args):
-        division, teamLink, divisionId, sessionId = args
+        division, teamLink, divisionId = args
         self.driver = None
         self.createWebDriver()
         self.driver.get(teamLink)
         teamInfo = self.scrapeTeamInfo(division)
         self.db.addTeamInfo(teamInfo)
 
-        matchLinks = self.scrapeTeamMatchesForTeam('Team Schedule & Results', divisionId, sessionId)
-        matchLinks = matchLinks + self.scrapeTeamMatchesForTeam('Playoffs', divisionId, sessionId)
+        matchLinks = self.scrapeTeamMatchesForTeam('Team Schedule & Results', divisionId)
+        matchLinks = matchLinks + self.scrapeTeamMatchesForTeam('Playoffs', divisionId)
         print("Got team data")
 
-    def scrapeTeamMatchesForTeam(self, headerTitle, divisionId, sessionId):
+    def scrapeTeamMatchesForTeam(self, headerTitle, divisionId):
         self.createWebDriver()
         
         matchesHeader = self.driver.find_element(By.XPATH, "//h2 [contains( text(), '{}')]".format(headerTitle))
@@ -116,7 +118,7 @@ class ApaWebScraperWorker:
                 apaDatetime = self.apaDateToDatetime(match.text.split(' | ')[-1])
                 if not self.db.isValueInTeamMatchTable(teamMatchId):
                     matchLinks.append(link)
-                    self.db.addTeamMatch(teamMatchId, apaDatetime, divisionId, sessionId)
+                    self.db.addTeamMatch(teamMatchId, apaDatetime, divisionId)
                 
         return matchLinks
     
@@ -128,14 +130,14 @@ class ApaWebScraperWorker:
 
     ############### PlayerMatch Scraping Functions ###############
     def scrapePlayerMatches(self, args):
-        teamMatchId, divisionId, sessionId = args
+        teamMatchId, divisionId = args
         teamMatchLink = self.config.get('apaWebsite').get('teamMatchBaseLink') + str(teamMatchId)
         self.createWebDriver()
-        for match in self.getPlayerMatchesFromTeamMatch(teamMatchLink, divisionId, sessionId):
+        for match in self.getPlayerMatchesFromTeamMatch(teamMatchLink, divisionId):
             self.db.addPlayerMatch(match)
         print("Total player matches in database = {}".format(str(self.db.countPlayerMatches())))
 
-    def getPlayerMatchesFromTeamMatch(self, link, divisionId, sessionId):
+    def getPlayerMatchesFromTeamMatch(self, link, divisionId):
         game = self.db.getGame(divisionId)
         
         self.createWebDriver()
@@ -147,9 +149,9 @@ class ApaWebScraperWorker:
         teamsInfoHeader = self.driver.find_elements(By.CLASS_NAME, "teamName")
         teamNum1 = int(re.sub(r'\W+', '', teamsInfoHeader[0].text.split(' (')[1])[-2:])
         
-        team1 = self.converter.toTeamWithSql(self.db.getTeam(teamNum1, divisionId, sessionId))
+        team1 = self.converter.toTeamWithSql(self.db.getTeam(teamNum1, divisionId))
         teamNum2 = int(re.sub(r'\W+', '', teamsInfoHeader[1].text.split(' (')[1])[-2:])
-        team2 = self.converter.toTeamWithSql(self.db.getTeam(teamNum2, divisionId, sessionId))
+        team2 = self.converter.toTeamWithSql(self.db.getTeam(teamNum2, divisionId))
 
         matchesHeader = self.driver.find_element(By.XPATH, "//h3 [contains( text(), 'MATCH BREAKOUT')]")
         matchesDiv = matchesHeader.find_element(By.XPATH, "..")
@@ -236,7 +238,7 @@ class ApaWebScraperWorker:
         time.sleep(1)
         # Check if division/session already exists in the database
         divisionName = ' '.join(self.driver.find_element(By.CLASS_NAME, 'page-title').text.split(' ')[:-1])
-        divisionId = re.sub(r'\W+', '', self.driver.find_elements(By.XPATH, f"//option[contains(text(), '{divisionName}')]")[0].text.split('-')[-1])
+        divisionId = removeElements(self.driver.current_url.split('/'), ["standings"])[-1]
         sessionElement = self.driver.find_element(By.CLASS_NAME, "m-b-10")
         sessionSeason, sessionYear = sessionElement.text.split(' ')
         sessionId = sessionElement.find_elements(By.TAG_NAME, "a")[0].get_attribute('href').split('/')[-1]
@@ -247,7 +249,6 @@ class ApaWebScraperWorker:
         dayTimeElement = self.driver.find_elements(By.XPATH, "//*[contains(text(), 'Day/Time:')]")[0]
         day = dayTimeElement.find_elements(By.XPATH, "..")[0].text.split(' ')[1].lower()
         dayOfWeek = time.strptime(day, "%A").tm_wday
-        divisionId = re.sub(r'\W+', '', self.driver.find_elements(By.XPATH, f"//option[contains(text(), '{divisionName}')]")[0].text.split('-')[-1])
 
         # Add division/sesion to database
         division = self.converter.toDivisionWithDirectValues(sessionId, sessionSeason, sessionYear, divisionId, divisionName, dayOfWeek, game)

@@ -26,7 +26,7 @@ class PlayerMatch:
         return False
 
     def properPlayerResultOrderWithPlayer(self, player: Player):
-        if self.playerResults[0].getPlayer() != player:
+        if not self.playerResults[0].getPlayer() == player:
             self.playerResults.reverse()
         return self
 

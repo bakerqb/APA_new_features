@@ -24,8 +24,15 @@ class UseCase:
         
         sessionSeason = self.config.getConfig().get('sessionSeasonInQuestion')
         sessionYear = self.config.getConfig().get('sessionYearInQuestion')
-        divisionConfig = self.config.get('myLeagues').get('thursday')
-        teamName = self.apaWebScraper.getOpponentTeamName(divisionConfig.get('teamName'), divisionConfig.get('divisionLink'), sessionSeason, sessionYear)
+        teamIds = self.config.get('myInfo').get('teamIds')
+
+        nextTeamId = None
+        for teamId in teamIds:
+            # Determine which of your teams is playing next and set that team's ID to nextTeamId
+            print(0)
+            
+
+        teamName = self.apaWebScraper.getOpponentTeam(nextTeamId)
         return self.getTeamResultsJson(sessionSeason, sessionYear, teamName)
 
     def getTeamResultsJson(self, teamId, decorateWithASL) -> dict:
@@ -38,11 +45,6 @@ class UseCase:
     
     def getDivisions(self, sessionId):
         return list(map(lambda division: self.converter.toDivisionWithSql(division), self.db.getDivisions(sessionId)))
-    
-    def scrapeDivision(self) -> dict:
-        # TODO: Find a way to know what the sessionId, divisionId, and teamId are just based on the info provided in the config
-        
-        self.apaWebScraper.scrapeDivision(self.config.getConfig().get('myLeagues').get('thursday').get('divisionLink'))
         
 
 
@@ -57,9 +59,10 @@ class UseCase:
 
     
     # ------------------------- Teams -------------------------
-    def getTeamsJson(self, sessionId, divisionId):
+    def getTeamsJson(self, divisionId):
         return {
-            "teams": list(map(lambda teamRow: { "teamId": teamRow[2], "teamName": teamRow[4] }, self.db.getTeamsFromDivision(sessionId, divisionId)))
+            "teams": list(map(lambda teamRow: { "teamId": teamRow[1], "teamName": teamRow[3] }, self.db.getTeamsFromDivision(divisionId))),
+            "divisionId": divisionId
         }
     
 

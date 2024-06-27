@@ -12,7 +12,9 @@ apaWebsite:
   divisionLink: https://league.poolplayers.com/centralchicago/divisions/379653
   baseLink: https://league.poolplayers.com
   sessionBaseLink: https://league.poolplayers.com/centralchicago/divisions/session/
+  teamBaseLink: https://league.poolplayers.com/centralchicago/team/
   teamMatchBaseLink: https://league.poolplayers.com/centralchicago/match/
+  divisionBaseLink: https://league.poolplayers.com/centralchicago/divisions/
   startingSession: 78
   currentSession: 132
 waitTimes:
@@ -27,9 +29,8 @@ sessionYearInQuestion: 2024
 game: 8-ball
 debugMode: false
 refreshTeams: false
-myLeagues:
-  thursday:
-    divisionLink: https://league.poolplayers.com/centralchicago/divisions/387820
-    teamName: The Final Boss
-    playerName: Quinn Baker
+myInfo:
+  memberId: 60903003
+  teamIds: [12531019, 12536150]
+    
   

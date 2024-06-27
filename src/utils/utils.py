@@ -64,3 +64,4 @@ def toReadableDateTimeString(date):
     
 EIGHT_BALL_NUM_SKILL_LEVELS = 7
 NINE_BALL_NUM_SKILL_LEVELS = 9
+DEFAULT_SKILL_LEVEL = 3

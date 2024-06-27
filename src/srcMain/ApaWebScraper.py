@@ -13,6 +13,7 @@ from src.srcMain.Config import Config
 from src.srcMain.ApaWebScraperWorker import ApaWebScraperWorker
 import re
 import concurrent.futures
+from utils.utils import *
 
 
 class ApaWebScraper:
@@ -56,26 +57,25 @@ class ApaWebScraper:
         noThanksButton.click()
 
     ############### Scraping Data for Division/Session ###############
-    def scrapeDivision(self, divisionLink):
+    def scrapeDivision(self, divisionId):
         self.createWebDriver()
-        print("Fetching results for session with link = {}".format(divisionLink))
-        self.driver.get(divisionLink)
+        print(f"Fetching results for division {divisionId}")
+        self.driver.get(f"{self.config.get('apaWebsite').get('divisionBaseLink')}{divisionId}")
         time.sleep(2)
         division = self.addDivisionToDatabase()
         table = self.driver.find_element(By.TAG_NAME, "tbody")
         divisionId = division.getDivisionId()
-        sessionId = division.getSession().getSessionId()
         teamLinks = []
         for row in table.find_elements(By.TAG_NAME, "tr"):
             teamLinks.append(self.config.get('apaWebsite').get('baseLink') + row.get_attribute("to"))
         
-        argsList = ((division, teamLink, divisionId, sessionId) for teamLink in teamLinks)
+        argsList = ((division, teamLink, divisionId) for teamLink in teamLinks)
         start = time.time()
         with concurrent.futures.ThreadPoolExecutor() as executor:
             executor.map(self.scrapeTeamInfoAndTeamMatches, argsList) 
         print("finished first mapping")
         with concurrent.futures.ThreadPoolExecutor() as executor:
-            executor.map(self.transformScrapeMatchLinksAllTeams, self.db.getTeamMatches(sessionId, divisionId))
+            executor.map(self.transformScrapeMatchLinksAllTeams, self.db.getTeamMatches(divisionId))
 
         end = time.time()
         
@@ -109,11 +109,11 @@ class ApaWebScraper:
     def addDivisionToDatabase(self):
         # Check if division/session already exists in the database
         divisionName = ' '.join(self.driver.find_element(By.CLASS_NAME, 'page-title').text.split(' ')[:-1])
-        divisionId = re.sub(r'\W+', '', self.driver.find_elements(By.XPATH, f"//option[contains(text(), '{divisionName}')]")[0].text.split('-')[-1])
+        divisionId = removeElements(self.driver.current_url.split('/'), ["standings"])[-1]
         sessionElement = self.driver.find_element(By.CLASS_NAME, "m-b-10")
         sessionSeason, sessionYear = sessionElement.text.split(' ')
         sessionId = sessionElement.find_elements(By.TAG_NAME, "a")[0].get_attribute('href').split('/')[-1]
-        division = self.converter.toDivisionWithSql(self.db.getDivision(divisionId, sessionId))
+        division = self.converter.toDivisionWithSql(self.db.getDivision(divisionId))
         if division is not None:
             return division
         
@@ -124,35 +124,21 @@ class ApaWebScraper:
         dayTimeElement = self.driver.find_elements(By.XPATH, "//*[contains(text(), 'Day/Time:')]")[0]
         day = dayTimeElement.find_elements(By.XPATH, "..")[0].text.split(' ')[1].lower()
         dayOfWeek = time.strptime(day, "%A").tm_wday
-        divisionId = re.sub(r'\W+', '', self.driver.find_elements(By.XPATH, f"//option[contains(text(), '{divisionName}')]")[0].text.split('-')[-1])
 
         # Add division/sesion to database
         division = self.converter.toDivisionWithDirectValues(sessionId, sessionSeason, sessionYear, divisionId, divisionName, dayOfWeek, game)
         self.db.addDivision(division)
         return division
     
-    ############### Finding Next Opponents ###############
-    def navigateToTeamPage(self, division_link, team_name):
-        self.createWebDriver()
-        self.driver.get(division_link)
-        table = self.driver.find_element(By.TAG_NAME, "tbody")
-        
-        for row in table.find_elements(By.TAG_NAME, "tr"):
-            elements = row.find_elements(By.TAG_NAME, "td")
-            textElement = elements[1].find_element(By.TAG_NAME, "h5")
-            potentialTeamName = textElement.text
-            if potentialTeamName == team_name:
-                row.click()
-                return
-    
-    def getOpponentTeamName(self, myTeamName, divisionLink):
+    ############### Finding Next Opponents ###############   
+    def getOpponentTeam(self, teamId):
         # Go to division link
         # Find and click on your team name
         # Go down their schedule and get the team name for the next match that hasn't been played
         self.createWebDriver()
-        self.navigateToTeamPage(divisionLink, myTeamName)
+        self.driver.get(f"{self.config.get('apaWebsite').get('teamBaseLink')}{teamId}")
+        teamNum = int(self.db.getTeamNum(teamId))
 
-        opponentTeamName = None
         headerTexts = ['Team Schedule & Results', 'Playoffs']
         for headerText in headerTexts:
             header = self.driver.find_element(By.XPATH, f"//h2 [contains( text(), '{headerText}')]")
@@ -161,13 +147,18 @@ class ApaWebScraper:
                 if '@' in match.text:
                     'WEEK 5\nFeb\n29\nThursday\nPool Gods(24505)\nSir-Scratch-A Lot(24504)\nCity Pool Hall @ 7:00 pm'
                     textElements = match.text.split('\n')
-                    team1 = textElements[4].split('(')[0]
-                    team2 = textElements[5].split('(')[0]
-                    if team1 == myTeamName:
-                        opponentTeamName = team2
-                    else:
-                        opponentTeamName = team1
 
-                    break
+                    teamNum1 = int(re.sub(r'\W+', '', removeElements(textElements[4].split('(')[1], [")"])[-2:]))
+                    teamNum2 = int(re.sub(r'\W+', '', removeElements(textElements[5].split('(')[1], [")"])[-2:]))
+                    opponentTeamNum = None
+                    if teamNum1 == teamNum:
+                        opponentTeamNum = teamNum2
+                    else:
+                        opponentTeamNum = teamNum1
+                    
+                    return self.converter.toTeamWithSql(self.db.getTeam(opponentTeamNum, self.db.getDivisionIdFromTeamId(teamId)))
+                
+
+                    
         
                     
