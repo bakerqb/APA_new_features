@@ -14,6 +14,8 @@ from src.srcMain.ApaWebScraperWorker import ApaWebScraperWorker
 import re
 import concurrent.futures
 from utils.utils import *
+from utils.asl import *
+from src.dataClasses.PlayerResult import PlayerResult
 
 
 class ApaWebScraper:
@@ -52,7 +54,7 @@ class ApaWebScraper:
         continueLink = self.driver.find_element(By.XPATH, "//button[text()='Continue']")
         print("found continue link")
         continueLink.click()
-        time.sleep(5)
+        time.sleep(2)
         noThanksButton = self.driver.find_element(By.XPATH, "//a[text()='No Thanks']")
         noThanksButton.click()
 
@@ -61,7 +63,7 @@ class ApaWebScraper:
         self.createWebDriver()
         print(f"Fetching results for division {divisionId}")
         self.driver.get(f"{self.config.get('apaWebsite').get('divisionBaseLink')}{divisionId}")
-        time.sleep(2)
+        time.sleep(1)
         division = self.addDivisionToDatabase()
         table = self.driver.find_element(By.TAG_NAME, "tbody")
         divisionId = division.getDivisionId()
@@ -76,6 +78,19 @@ class ApaWebScraper:
         print("finished first mapping")
         with concurrent.futures.ThreadPoolExecutor() as executor:
             executor.map(self.transformScrapeMatchLinksAllTeams, self.db.getTeamMatches(divisionId))
+
+        # Now set all the adjusted skills
+        playerMatches = list(map(lambda playerMatch: self.converter.toPlayerMatchWithSql(playerMatch), self.db.getPlayerMatches(divisionId, None, None, None, None, None, None)))
+       
+        for playerMatch in playerMatches:
+            for index, playerResult in enumerate(playerMatch.getPlayerResults()):
+                self.db.updateASL(
+                    playerMatch.getPlayerMatchId(),
+                    playerMatch.getTeamMatchId(),
+                    getAdjustedSkillLevel(playerResult.getPlayer().getMemberId(), playerResult.getSkillLevel(), playerMatch.getDatePlayed(), playerMatch.getPlayerMatchId()),
+                    index
+                )
+            
 
         end = time.time()
         

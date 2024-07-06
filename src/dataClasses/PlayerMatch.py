@@ -1,4 +1,5 @@
 from dataClasses.Player import Player
+from utils.utils import *
 
 class PlayerMatch:
     def __init__(self, playerResults: list, playerMatchId: int, teamMatchId: int, datePlayed: str):
@@ -6,6 +7,7 @@ class PlayerMatch:
         self.playerMatchId = playerMatchId
         self.teamMatchId = teamMatchId
         self.datePlayed = datePlayed
+        self.readableDatePlayed = toReadableDateTimeString(datePlayed)
 
     def getPlayerResults(self):
         return self.playerResults
@@ -18,6 +20,9 @@ class PlayerMatch:
     
     def getDatePlayed(self):
         return self.datePlayed
+    
+    def getReadableDatePlayed(self):
+        return self.readableDatePlayed
     
     def isPlayedBy(self, player: Player):
         for playerResult in self.playerResults:
@@ -36,7 +41,8 @@ class PlayerMatch:
             "playerResults": list(map(lambda playerResult: playerResult.toJson(), self.playerResults)),
             "playerMatchId": self.playerMatchId,
             "teamMatchId": self.teamMatchId,
-            "datePlayed": self.datePlayed
+            "datePlayed": self.datePlayed,
+            "readableDatePlayed": self.readableDatePlayed
         }
     
     

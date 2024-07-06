@@ -15,20 +15,13 @@ class TeamResults:
             playerName = player.getPlayerName()
             playerMatchesPerPlayer[playerName] = {
                 "player": player,
-                "ASL": getAdjustedSkillLevel(player.getMemberId(), player.getCurrentSkillLevel()),
+                "ASL": getAdjustedSkillLevel(player.getMemberId(), player.getCurrentSkillLevel(), None, None),
                 "playerMatches": []
             }
 
             for playerMatch in playerMatches:
                 if playerMatch.isPlayedBy(player):
                     playerMatch = playerMatch.properPlayerResultOrderWithPlayer(player)
-                    '''
-                    if decorateWithASL:
-                        for playerResult in playerMatch.getPlayerResults():
-                            skillLevel = playerResult.getSkillLevel()
-                            memberId = playerResult.getPlayer().getMemberId()
-                            playerResult.setAdjustedSkillLevel(getAdjustedSkillLevel(memberId, skillLevel))
-                    '''
                     playerMatchesPerPlayer[playerName]["playerMatches"].append(playerMatch)
         return playerMatchesPerPlayer
     

@@ -128,8 +128,8 @@ class Database:
             self.cur.execute(
                 "CREATE TABLE PlayerMatch(" +
                 "playerMatchId INTEGER, teamMatchId INTEGER, teamId1 TEXT, " +
-                "memberId1 INTEGER, skillLevel1 INTEGER, scoreId1 INTEGER, " + 
-                "teamId2 TEXT, memberId2 INTEGER, skillLevel2 INTEGER, scoreId2 INTEGER, " +
+                "memberId1 INTEGER, skillLevel1 INTEGER, adjustedSkillLevel1 INTEGER, scoreId1 INTEGER, " + 
+                "teamId2 TEXT, memberId2 INTEGER, skillLevel2 INTEGER, adjustedSkillLevel2 INTEGER, scoreId2 INTEGER, " +
                 "PRIMARY KEY (playerMatchId, teamMatchId))"
             )
         except Exception:
@@ -147,12 +147,12 @@ class Database:
         self.con.commit()
 
     # ------------------------- Getting -------------------------
-    def getTeamResults(self, teamId):
+    def getPlayerMatches(self, divisionId, teamId, memberId, game, limit, datePlayed, playerMatchId):
         return self.cur.execute(
             "SELECT s.sessionId, s.sessionSeason, s.sessionYear, d.divisionId, d.divisionName, d.dayOfWeek, d.game, " +
             "tm.teamMatchId, tm.datePlayed, pm.playerMatchId, t1.teamId, t1.teamNum, t1.teamName, " +
-            "p1.memberId, p1.playerName, p1.currentSkillLevel, pm.skillLevel1, s1.teamPtsEarned, s1.playerPtsEarned, s1.playerPtsNeeded, " +
-            "t2.teamId, t2.teamNum, t2.teamName, p2.memberId, p2.playerName, p2.currentSkillLevel, pm.skillLevel2, " +
+            "p1.memberId, p1.playerName, p1.currentSkillLevel, pm.skillLevel1, pm.adjustedSkillLevel1, s1.teamPtsEarned, s1.playerPtsEarned, s1.playerPtsNeeded, " +
+            "t2.teamId, t2.teamNum, t2.teamName, p2.memberId, p2.playerName, p2.currentSkillLevel, pm.skillLevel2, pm.adjustedSkillLevel2, " +
             "s2.teamPtsEarned, s2.playerPtsEarned, s2.playerPtsNeeded " +
             "FROM Session s LEFT JOIN Division d ON s.sessionId = d.sessionId " +
             "LEFT JOIN TeamMatch tm ON d.divisionId = tm.divisionId " +
@@ -163,29 +163,14 @@ class Database:
             "LEFT JOIN Team t2 ON t2.teamId = pm.teamId2 " +
             "LEFT JOIN Score s1 ON s1.scoreId = pm.scoreId1 " +
             "LEFT JOIN Score s2 ON s2.scoreId = pm.scoreId2 " +
-            f"WHERE t1.teamId = {teamId} OR t2.teamId = {teamId} " +
-            "ORDER BY tm.datePlayed"
-        ).fetchall()
-
-    def getLatestPlayerMatchesForPlayer(self, memberId, game, limit):
-        return self.cur.execute(
-            "SELECT s.sessionId, s.sessionSeason, s.sessionYear, d.divisionId, d.divisionName, d.dayOfWeek, d.game, " +
-            "tm.teamMatchId, tm.datePlayed, pm.playerMatchId, t1.teamId, t1.teamNum, t1.teamName, " +
-            "p1.memberId, p1.playerName, p1.currentSkillLevel, pm.skillLevel1, s1.teamPtsEarned, s1.playerPtsEarned, s1.playerPtsNeeded, " +
-            "t2.teamId, t2.teamNum, t2.teamName, p2.memberId, p2.playerName, p2.currentSkillLevel, pm.skillLevel2, " +
-            "s2.teamPtsEarned, s2.playerPtsEarned, s2.playerPtsNeeded " +
-            "FROM Session s LEFT JOIN Division d ON s.sessionId = d.sessionId " +
-            f"LEFT JOIN TeamMatch tm ON d.divisionId = tm.divisionId " +
-            f"LEFT JOIN PlayerMatch pm ON pm.teamMatchId = tm.teamMatchId " +
-            "LEFT JOIN Player p1 ON p1.memberId = pm.memberId1 " +
-            "LEFT JOIN Player p2 ON p2.memberId = pm.memberId2 " +
-            "LEFT JOIN Team t1 ON t1.teamId = pm.teamId1 " +
-            "LEFT JOIN Team t2 ON t2.teamId = pm.teamId2 " +
-            f"LEFT JOIN Score s1 ON s1.scoreId = pm.scoreId1 " +
-            f"LEFT JOIN Score s2 ON s2.scoreId = pm.scoreId2 " +
-            f"""WHERE d.game = "{game}" AND (p1.memberId = {memberId} OR p2.memberId = {memberId}) """ +
-            f"ORDER BY tm.datePlayed DESC LIMIT {limit}"
-            
+            "WHERE 1 = 1 " +
+            (f"AND d.divisionId = {divisionId} " if divisionId is not None else "") +
+            (f"AND t1.teamId = {teamId} OR t2.teamId = {teamId} " if teamId is not None else "") +
+            (f"""AND d.game = "{game}" """ if game is not None else "") +
+            (f"AND (p1.memberId = {memberId} OR p2.memberId = {memberId}) " if memberId is not None else "") +
+            (f"""AND (tm.datePlayed < "{datePlayed}" OR (tm.datePlayed = "{datePlayed}" AND pm.playerMatchId < {playerMatchId})) """ if datePlayed is not None else "") +
+            "ORDER BY tm.datePlayed ASC " +
+            (f"LIMIT {limit}" if limit is not None else "")
         ).fetchall()
     
     def getTeamRoster(self, teamId):
@@ -200,7 +185,7 @@ class Database:
         return self.cur.execute(
             f"SELECT s.sessionId, s.sessionSeason, s.sessionYear, d.divisionId, d.divisionName, d.dayOfWeek, d.game " +
             "FROM Session s LEFT JOIN Division d ON s.sessionId = d.sessionId " +
-            f"WHERE s.sessionId = {sessionId}"
+            f"WHERE s.sessionId = {sessionId} ORDER BY d.dayOfWeek"
         ).fetchall()
     
     def getSessions(self):
@@ -216,7 +201,13 @@ class Database:
             "SELECT tm.teamMatchId, d.divisionId " +
             "FROM Division d " +
             f"LEFT JOIN TeamMatch tm ON tm.divisionId = d.divisionId " +
-            f"WHERE d.divisionId = {divisionId}"
+            f"WHERE d.divisionId = {divisionId} AND " +
+            f"tm.teamMatchId NOT IN (" +
+                "SELECT pm.teamMatchId FROM PlayerMatch pm " +
+                "LEFT JOIN TeamMatch tm " +
+                "ON pm.teamMatchId = tm.teamMatchId " +
+                f"WHERE tm.divisionId = {divisionId}" +
+            ")"
         ).fetchall()
     
     def getTeamsFromDivision(self, divisionId):
@@ -298,7 +289,7 @@ class Database:
 
 
         self.cur.execute(
-            f"""INSERT INTO PlayerMatch VALUES ({playerMatchId}, {teamMatchId}, {teamId1}, {memberId1}, {skillLevel1}, {scoreId1}, {teamId2}, {memberId2}, {skillLevel2}, {scoreId2})"""
+            f"""INSERT INTO PlayerMatch VALUES ({playerMatchId}, {teamMatchId}, {teamId1}, {memberId1}, {skillLevel1}, "NULL", {scoreId1}, {teamId2}, {memberId2}, {skillLevel2}, "NULL", {scoreId2})"""
         )
         self.con.commit()
     
@@ -394,8 +385,6 @@ class Database:
 
         if divisionId is None:
             self.cur.execute(f"DELETE FROM Division WHERE sessionId = {sessionId}")
-        else:
-            self.cur.execute(f"DELETE FROM Division WHERE divisionId = {divisionId}")
     
         self.con.commit()
 
@@ -423,10 +412,10 @@ class Database:
         if divisionId is None:
             self.cur.execute(
                 "DELETE FROM PlayerMatch WHERE teamMatchId IN (" +
-                    "SELECT tm.teamMatchId FROM TeamMatch tm" +
+                    "SELECT tm.teamMatchId FROM TeamMatch tm " +
                     "LEFT JOIN Division d ON tm.divisionId = d.divisionId " +
                     "LEFT JOIN Session s ON d.sessionId = s.sessionId " +
-                    f"WHERE sessionId = {sessionId}" +
+                    f"WHERE s.sessionId = {sessionId}" +
                 ")"
             )
         else:
@@ -467,7 +456,7 @@ class Database:
                 "DELETE FROM Team WHERE divisionId IN (" +
                     "SELECT d.divisionId FROM Division d " +
                     "LEFT JOIN Session s ON d.sessionId = s.sessionId " +
-                    f"WHERE sessionId = {sessionId}" +
+                    f"WHERE s.sessionId = {sessionId}" +
                 ")"
             )
         else:
@@ -480,8 +469,8 @@ class Database:
                 "DELETE FROM CurrentTeamPlayer WHERE teamId IN (" +
                     "SELECT t.teamId FROM Team t " +
                     "LEFT JOIN Division d ON t.divisionId = d.divisionId " +
-                    "LEFT JOIN Session s ON d.sessionId = d.divisionId " +
-                    f"WHERE sessionId = {sessionId}"
+                    "LEFT JOIN Session s ON d.sessionId = s.sessionId " +
+                    f"WHERE s.sessionId = {sessionId}"
                 ")"
             )
         else:
@@ -502,6 +491,14 @@ class Database:
 
     
     # ------------------------- Skill Level -------------------------
+    def updateASL(self, playerMatchId, teamMatchId, adjustedSkillLevel, playerResultId):
+        self.cur.execute(
+            "UPDATE PlayerMatch " +
+            f"SET adjustedSkillLevel{playerResultId + 1} = {adjustedSkillLevel} " +
+            f"WHERE playerMatchId = {playerMatchId} AND teamMatchId = {teamMatchId}"
+        )
+        self.con.commit()
+    
     def createSkillLevelMatrix(self, game):
         matrix = []
         matrix.append([])

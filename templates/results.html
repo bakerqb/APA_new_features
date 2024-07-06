@@ -319,12 +319,14 @@
                         </div>
                         <div class="align-self-center col-md-6">
                             <div class="row-md-6">
-                                <h4>{{playerMatch.get('playerResults')[0].get('player').get('playerName')}} 
-                                    {{playerMatch.get('playerResults')[0].get('player').get('adjustedSkillLevel')}}
+                                <h4>{{playerMatch.get('playerResults')[0].get('player').get('playerName')}}
                                 </h4>
                             </div>
                             <div class="row-md-6">
                                 <p>{{playerMatch.get('playerResults')[0].get('team').get('teamName')}}</p>
+                            </div>
+                            <div class="row-md-6">
+                                <p>{{playerMatch.get('playerResults')[0].get('adjustedSkillLevel')}}</p>
                             </div>
                         </div>
                         <div class="col-md-2 bg-dark align-self-center">
@@ -368,7 +370,7 @@
                             </svg>
                         </div>
                         <div class="col-md-10">
-                            <h5>{{playerMatch.get('datePlayed')}}</h5>
+                            <h5>{{playerMatch.get('readableDatePlayed')}}</h5>
                         </div>
                         
                     </div>
@@ -526,6 +528,9 @@
                             </div>
                             <div class="row-md-6">
                                 <p>{{playerMatch.get('playerResults')[1].get('team').get('teamName')}}</p>
+                            </div>
+                            <div class="row-md-6">
+                                <p>{{playerMatch.get('playerResults')[1].get('adjustedSkillLevel')}}</p>
                             </div>
                         </div>
                         <div class="col-md-2 bg-dark align-self-center">

@@ -6,8 +6,8 @@ from utils.utils import *
 from src.dataClasses.Game import Game
 
 
-def getAdjustedSkillLevel(memberId, currentSkillLevel):
-        
+def getAdjustedSkillLevel(memberId, currentSkillLevel, datePlayed, playerMatchId):
+        currentSkillLevel = int(currentSkillLevel)
         db = Database()
         converter = Converter()
 
@@ -15,7 +15,7 @@ def getAdjustedSkillLevel(memberId, currentSkillLevel):
         limit = 10
         game = Game.EightBall.value
 
-        playerResultsDb = db.getLatestPlayerMatchesForPlayer(memberId, game, limit)
+        playerResultsDb = db.getPlayerMatches(None, None, memberId, game, limit, datePlayed, playerMatchId)
         start = time.time()
         playerMatches = list(map(lambda playerMatch: converter.toPlayerMatchWithSql(playerMatch), playerResultsDb))
         end = time.time()
@@ -24,6 +24,8 @@ def getAdjustedSkillLevel(memberId, currentSkillLevel):
 
         #TODO: put playerMatches through algorithm
         adjustedScoreOffsetTotal = 0
+        numWins = 0
+        numLosses = 0
         for playerMatch in playerMatches:
             playerResults = playerMatch.getPlayerResults()
             player = playerResults[0].getPlayer() if playerResults[0].getPlayer().getMemberId() == memberId else playerResults[1].getPlayer()
@@ -44,13 +46,19 @@ def getAdjustedSkillLevel(memberId, currentSkillLevel):
             if gamesNeeded0 == 0 or gamesNeeded1 == 0:
                 continue
 
+            didWin = int(gamesWon0/gamesNeeded0)
+            if didWin:
+                numWins += 1
+            else:
+                numLosses += 1
+
             adjustedScoreOffset = (
                     (
                         ((gamesNeeded1 - gamesWon1)-(gamesNeeded0 - gamesWon0))/(gamesNeeded1 + gamesNeeded0)
                     )
                     *
                     abs(
-                        math.ceil(gamesWon0/gamesNeeded0)
+                        didWin
                         + (skillLevel1/EIGHT_BALL_NUM_SKILL_LEVELS) 
                         - 1
                     )
@@ -85,13 +93,18 @@ def getAdjustedSkillLevel(memberId, currentSkillLevel):
         adjustedScoreOffset = 0
         if len(playerMatches) > 0:
             adjustedScoreOffset = adjustedScoreOffsetTotal/len(playerMatches)
+            if adjustedScoreOffset > 0:
+                adjustedScoreOffset *= (numWins/10)
+            elif adjustedScoreOffset < 0:
+                adjustedScoreOffset *= (numLosses/10)
         if adjustedScoreOffset >= .5:
             adjustedScoreOffset = .49
         elif adjustedScoreOffset <= -.5:
             adjustedScoreOffset = -.49
         
+        adjustedScoreOffset = float(f'{adjustedScoreOffset:.2f}')
         end = time.time()
         length = end - start
         print(f"ASL calculation duration: {length} seconds")
 
-        return str(currentSkillLevel + .5 + adjustedScoreOffset)
+        return str(int(currentSkillLevel) + .5 + adjustedScoreOffset)

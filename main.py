@@ -46,24 +46,36 @@ def scrapeSession():
     apaWebScraper.scrapeDivisionsForSession(sessionId)
     return redirect(f"/session?sessionId={sessionId}")
 
-@app.route("/test")
-def test():
-    db = Database()
-    db.refreshAllTables()
-
-    apaWebScraper = ApaWebScraper()
-    apaWebScraper.scrapeDivision(387820)
-    return redirect(f"/home1")
-
 @app.route("/scrapeDivision")
 def scrapeDivision():
     sessionId = request.args.get('sessionId')
     divisionId = request.args.get('divisionId')
     apaWebScraper = ApaWebScraper()
-    db = Database()
-    db.deleteDivision(None, divisionId)
     apaWebScraper.scrapeDivision(divisionId)
     return redirect(f"/division?sessionId={sessionId}&divisionId={divisionId}")
+
+@app.route("/deleteDivision")
+def deleteDivision():
+    divisionId = request.args.get('divisionId')
+    db = Database()
+    db.deleteDivision(None, divisionId)
+    return redirect(f"/division?divisionId={divisionId}")
+
+@app.route("/deleteSession")
+def deleteSession():
+    sessionId = request.args.get('sessionId')
+    db = Database()
+    db.deleteSession(sessionId)
+    return redirect("/home1")
+
+@app.route("/test")
+def test():
+    db = Database()
+    db.refreshAllTables()
+    return redirect("/home1")
+
+
+    
 
 @app.route("/session")
 def session():

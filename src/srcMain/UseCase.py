@@ -14,7 +14,7 @@ class UseCase:
 
     # ------------------------- Team Results -------------------------
     def getTeamResults(self, teamId, decorateWithASL) -> dict:
-        teamResultsDb = self.db.getTeamResults(teamId)
+        teamResultsDb = self.db.getPlayerMatches(None, teamId, None, None, None, None, None)
         teamResultsPlayerMatches = list(map(lambda playerMatch: self.converter.toPlayerMatchWithSql(playerMatch), teamResultsDb))
         results = TeamResults(int(teamId), teamResultsPlayerMatches, list(map(lambda player: self.converter.toPlayerWithSql(player), self.db.getTeamRoster(teamId))), decorateWithASL)
         return results

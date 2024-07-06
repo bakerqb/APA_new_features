@@ -15,11 +15,9 @@ class Converter:
         sessionId, sessionSeason, sessionYear = sqlRow[:3]
         divisionId, divisionName, dayOfWeek, game = sqlRow[3:7]
         teamMatchId, datePlayed, playerMatchId, teamId1, teamNum1, teamName1 = sqlRow[7:13]
-        memberId1, playerName1, currentSkillLevel1, skillLevel1, teamPtsEarned1, playerPtsEarned1, playerPtsNeeded1 = sqlRow[13:20]
-        teamId2, teamNum2, teamName2, memberId2, playerName2, currentSkillLevel2, skillLevel2 = sqlRow[20:27]
-        teamPtsEarned2, playerPtsEarned2, playerPtsNeeded2 = sqlRow[27:30]
-        
-
+        memberId1, playerName1, currentSkillLevel1, skillLevel1, adjustedSkillLevel1, teamPtsEarned1, playerPtsEarned1, playerPtsNeeded1 = sqlRow[13:21]
+        teamId2, teamNum2, teamName2, memberId2, playerName2, currentSkillLevel2, skillLevel2, adjustedSkillLevel2 = sqlRow[21:29]
+        teamPtsEarned2, playerPtsEarned2, playerPtsNeeded2 = sqlRow[29:32]
         
         session = Session(sessionId, sessionSeason, sessionYear)
         division = Division(session, divisionId, divisionName, dayOfWeek, game)
@@ -33,7 +31,9 @@ class Converter:
         player2 = Player(memberId2, playerName2, currentSkillLevel2)
         score1 = Score(teamPtsEarned1, playerPtsEarned1, playerPtsNeeded1)
         score2 = Score(teamPtsEarned2, playerPtsEarned2, playerPtsNeeded2)
-        playerResults = [PlayerResult(team1, player1, skillLevel1, score1), PlayerResult(team2, player2, skillLevel2, score2)]
+        playerResult1 = PlayerResult(team1, player1, skillLevel1, score1, adjustedSkillLevel1)
+        playerResult2 = PlayerResult(team2, player2, skillLevel2, score2, adjustedSkillLevel2)
+        playerResults = [playerResult1, playerResult2]
         return PlayerMatch(playerResults, playerMatchId, teamMatchId, datePlayed)
         
     
