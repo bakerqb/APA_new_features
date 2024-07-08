@@ -35,3 +35,6 @@ class Team:
     
     def getPlayers(self):
         return self.players
+    
+    def setPlayers(self, players):
+        self.players = players

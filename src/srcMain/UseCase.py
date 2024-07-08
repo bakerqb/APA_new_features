@@ -64,8 +64,3 @@ class UseCase:
             "teams": list(map(lambda teamRow: { "teamId": teamRow[1], "teamName": teamRow[3] }, self.db.getTeamsFromDivision(divisionId))),
             "divisionId": divisionId
         }
-    
-
-    # ------------------------- Skill Level -------------------------
-    def getSkillLevelMatrix(self) -> None:
-        self.db.createSkillLevelMatrix()

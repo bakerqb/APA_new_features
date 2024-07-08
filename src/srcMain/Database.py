@@ -163,7 +163,7 @@ class Database:
             "LEFT JOIN Team t2 ON t2.teamId = pm.teamId2 " +
             "LEFT JOIN Score s1 ON s1.scoreId = pm.scoreId1 " +
             "LEFT JOIN Score s2 ON s2.scoreId = pm.scoreId2 " +
-            "WHERE 1 = 1 " +
+            "WHERE pm.playerMatchId IS NOT NULL " +
             (f"AND d.divisionId = {divisionId} " if divisionId is not None else "") +
             (f"AND t1.teamId = {teamId} OR t2.teamId = {teamId} " if teamId is not None else "") +
             (f"""AND d.game = "{game}" """ if game is not None else "") +
@@ -213,7 +213,7 @@ class Database:
     def getTeamsFromDivision(self, divisionId):
         return self.cur.execute(f"SELECT * FROM Team WHERE divisionId = {divisionId}").fetchall()
     
-    def getTeam(self, teamNum, divisionId):
+    def getTeamWithTeamNum(self, teamNum, divisionId):
         # Data comes in the format of list(divisionId, teamId, teamNum, teamName, memberId, playerName, currentSkillLevel)
         return self.cur.execute(
             "SELECT s.sessionId, s.sessionSeason, s.sessionYear, " +
@@ -225,6 +225,20 @@ class Database:
             "LEFT JOIN CurrentTeamPlayer c ON c.teamId = t.teamId " +
             "LEFT JOIN Player p ON c.memberId = p.memberId " +
             f"WHERE t.teamNum={teamNum} AND t.divisionId={divisionId}"
+        ).fetchall()
+    
+    def getTeamWithTeamId(self, teamId):
+        # Data comes in the format of list(divisionId, teamId, teamNum, teamName, memberId, playerName, currentSkillLevel)
+        return self.cur.execute(
+            "SELECT s.sessionId, s.sessionSeason, s.sessionYear, " +
+            "d.divisionId, d.divisionName, d.dayOfWeek, d.game, " +
+            "t.teamId, t.teamNum, t.teamName, p.memberId, p.playerName, p.currentSkillLevel " +
+            "FROM Team t " +
+            "LEFT JOIN Division d ON t.divisionId = d.divisionId " +
+            "LEFT JOIN Session s ON d.sessionId = s.sessionId " +
+            "LEFT JOIN CurrentTeamPlayer c ON c.teamId = t.teamId " +
+            "LEFT JOIN Player p ON c.memberId = p.memberId " +
+            f"WHERE t.teamId={teamId}"
         ).fetchall()
     
     def getTeamNum(self, teamId):
@@ -243,6 +257,13 @@ class Database:
             "SELECT p.memberId, p.playerName, p.currentSkillLevel " +
             "FROM currentTeamPlayer c LEFT JOIN Player p ON c.memberId = p.memberId " +
             f"""WHERE c.teamId = {teamId} AND p.playerName = "{playerName}" """
+        ).fetchone()
+    
+    def getPlayerBasedOnMemberId(self, memberId):
+        return self.cur.execute(
+            "SELECT memberId, playerName, currentSkillLevel " +
+            "FROM Player " +
+            f"WHERE memberId = {memberId}"
         ).fetchone()
     
     def getDivision(self, divisionId):
@@ -351,9 +372,11 @@ class Database:
     def addSession(self, session):
         self.createTables()
         
-        if not self.getSession(session.getSessionId()):
+        try:
             self.cur.execute(f"INSERT INTO Session VALUES ({session.getSessionId()}, '{session.getSessionSeason()}', {session.getSessionYear()})")
-            self.con.commit()
+        except Exception:
+            pass
+        self.con.commit()
     
     def addDivision(self, division):
         self.createTables()
@@ -499,47 +522,3 @@ class Database:
         )
         self.con.commit()
     
-    def createSkillLevelMatrix(self, game):
-        matrix = []
-        matrix.append([])
-        
-        numSkillLevels = 0
-        if game == Game.EightBall.value:
-            numSkillLevels = EIGHT_BALL_NUM_SKILL_LEVELS
-        elif game == Game.NineBall.value:
-            numSkillLevels = NINE_BALL_NUM_SKILL_LEVELS
-        
-        for i in range(0, numSkillLevels + 1):
-            matrix[0].append(i)
-        for i in range(1, numSkillLevels + 1):
-            matrix.append([i] + [0] * numSkillLevels)
-        for i in range(1, numSkillLevels + 1):
-            for j in range(i+1, numSkillLevels + 1):
-                matchesLowAgainstHigh = self.cur.execute(
-                    "SELECT SUM(s1.teamPtsEarned), SUM(s2.teamPtsEarned), COUNT(*) " + 
-                    "FROM Division d " +
-                    "LEFT JOIN TeamMatch tm ON d.divisionId = tm.divisionId " +
-                    "LEFT JOIN PlayerMatch pm ON pm.teamMatchId = tm.teamMatchId " +
-                    "LEFT JOIN Score s1 ON s1.scoreId = pm.scoreId1 " +
-                    "LEFT JOIN Score s2 ON s2.scoreId = pm.scoreId2 " +
-                    f"WHERE pm.skillLevel1 = {i} AND pm.skillLevel2 = {j} AND d.game = '{game}'"
-                ).fetchone()
-
-                matchesHighAgainstLow = self.cur.execute(
-                    "SELECT SUM(s1.teamPtsEarned), SUM(s2.teamPtsEarned), COUNT(*) " + 
-                    "FROM Division d " +
-                    "LEFT JOIN TeamMatch tm ON d.divisionId = tm.divisionId " +
-                    "LEFT JOIN PlayerMatch pm ON pm.teamMatchId = tm.teamMatchId " +
-                    "LEFT JOIN Score s1 ON s1.scoreId = pm.scoreId1 " +
-                    "LEFT JOIN Score s2 ON s2.scoreId = pm.scoreId2 " +
-                    f"WHERE pm.skillLevel1 = {j} AND pm.skillLevel2 = {i} AND d.game = '{game}'"
-                ).fetchone()
-
-                games = matchesLowAgainstHigh[2] + matchesHighAgainstLow[2]
-                if games > 0:
-                    ptsFromLowerRatedPlayer = (matchesLowAgainstHigh[0] if matchesLowAgainstHigh[0] else 0)  + (matchesHighAgainstLow[1] if matchesHighAgainstLow[1] else 0)
-                    ptsFromHigherRatedPlayer = (matchesLowAgainstHigh[1] if matchesLowAgainstHigh[1] else 0) + (matchesHighAgainstLow[0] if matchesHighAgainstLow[0] else 0)
-                    matrix[i][j] = str(round(ptsFromLowerRatedPlayer/games, 1)) + " pts expected\n" + str(games) + " games"
-                    matrix[j][i] = str(round(ptsFromHigherRatedPlayer/games, 1)) + " pts expected\n" + str(games) + " games"
-        
-        print(tabulate(matrix, headers="firstrow", tablefmt="fancy_grid"))
