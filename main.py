@@ -6,6 +6,8 @@ from src.srcMain.UseCase import UseCase
 from src.srcMain.Database import Database
 from src.srcMain.ApaWebScraper import ApaWebScraper
 from src.srcMain.Config import Config
+from src.srcMain.TeamMatchup import TeamMatchup
+from src.converter.Converter import Converter
 from waitress import serve
 from flask import Flask, render_template, request, url_for, redirect
 import jinja2
@@ -68,11 +70,76 @@ def deleteSession():
     db.deleteSession(sessionId)
     return redirect("/home1")
 
-@app.route("/test")
-def test():
+@app.route("/matchups")
+def matchups():
     db = Database()
-    db.refreshAllTables()
-    return redirect("/home1")
+    converter = Converter()
+    teamId1 = request.args.get('teamId1')
+    teamId2 = request.args.get('teamId2')
+
+    team1 = converter.toTeamWithSql(db.getTeamWithTeamId(teamId1))
+    team2 = converter.toTeamWithSql(db.getTeamWithTeamId(teamId2))
+
+    teamPlayerPairings = []
+    for key in list(request.args.keys()):
+        if "-" in key:
+            teamPlayerPairings.append(key)
+    
+    team1memberIds, team2memberIds = keysToTeams(teamPlayerPairings)
+    team1Roster = list(map(lambda memberId: converter.toPlayerWithSql(db.getPlayerBasedOnMemberId(memberId)), team1memberIds))
+    team2Roster = list(map(lambda memberId: converter.toPlayerWithSql(db.getPlayerBasedOnMemberId(memberId)), team2memberIds))
+    team1.setPlayers(team1Roster)
+    team2.setPlayers(team2Roster)
+
+    db = Database()
+    converter = Converter()
+
+    
+    teamMatchup = TeamMatchup(team1, team2, True)
+    bestMatchups, ptsExpected =  teamMatchup.decideBestMatchups()
+    jsonObj = {
+        "bestMatchups": bestMatchups,
+        "ptsExpected": ptsExpected
+    }
+    
+    return render_template(
+        jinja_environment.get_template('matchups.html'),
+        url_for=url_for,
+        **jsonObj
+    )
+
+def keysToTeams(keys):
+    teamId1 = keys[0].split('-')[0]
+    teamRoster1 = []
+    teamRoster2 = []
+    for key in keys:
+        teamId, memberId = key.split('-')
+        if teamId == teamId1:
+            teamRoster1.append(memberId)
+        else:
+            teamRoster2.append(memberId)
+    return (teamRoster1, teamRoster2)
+
+
+@app.route("/matchupTeams")
+def matchupTeams():
+    teamId1 = request.args.get('teamId1')
+    teamId2 = request.args.get('teamId2')
+
+    db = Database()
+    converter = Converter()
+    team1 = converter.toTeamWithSql(db.getTeamWithTeamId(teamId1))
+    team2 = converter.toTeamWithSql(db.getTeamWithTeamId(teamId2))
+    jsonObj = {
+        "team1": team1,
+        "team2": team2
+    }
+    
+    return render_template(
+        jinja_environment.get_template('matchupTeams.html'),
+        url_for=url_for,
+        **jsonObj
+    )
 
 
     
@@ -109,13 +176,6 @@ def division():
         url_for=url_for,
         **useCase.getTeamsJson(divisionId)
     )
-
-@app.route("/adjusted-skill-level")
-def adjustedSkillLevel():
-    useCase = UseCase()
-    playerName = request.args.get('playerName')
-    currentSkillLevel = int(request.args.get('sl'))
-    return useCase.getAdjustedSkillLevel(playerName, currentSkillLevel)
 
 if __name__ == "__main__":
     serve(app, host="127.0.0.1", port=8000)

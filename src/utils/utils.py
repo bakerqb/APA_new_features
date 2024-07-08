@@ -1,4 +1,5 @@
 from datetime import datetime
+from src.dataClasses.Game import Game
 
 def nineBallSkillLevelMapper():
         map = {}
@@ -55,6 +56,23 @@ def eightBallGamesNeededMapper():
     
     return map
 
+def eightBallTeamPtsEarnedMapper(playerPtsEarned1, playerPtsEarned2, playerPtsNeeded1, playerPtsNeeded2):
+    if playerPtsEarned1 == playerPtsNeeded1:
+        if playerPtsEarned2 == 0:
+            return (3, 0)
+        elif playerPtsEarned2 == playerPtsNeeded2 - 1:
+            return (2, 1)
+        else:
+            return (2, 0)
+    else:
+        if playerPtsEarned1 == 0:
+            return (0, 3)
+        elif playerPtsEarned1 == playerPtsNeeded1 - 1:
+            return (1, 2)
+        else:
+            return (0, 2)
+     
+
 def toReadableDateTimeString(date):
     try:
         readableDate = datetime.strptime(date, "%Y-%m-%d").strftime("%B %-d, %Y")
@@ -62,6 +80,15 @@ def toReadableDateTimeString(date):
     except Exception:
         return date
     
+def getRangeStart(game):
+    if game == Game.EightBall.value:
+        return 2
+    elif game == Game.NineBall.value:
+        return 1
+    
 EIGHT_BALL_NUM_SKILL_LEVELS = 7
 NINE_BALL_NUM_SKILL_LEVELS = 9
 DEFAULT_SKILL_LEVEL = 3
+
+NUM_SECTIONS_PER_SKILL_LEVEL = 3
+SECTIONS_PER_SKILL_LEVEL = [(0, 0.42), (0.42, 0.58), (0.58, 1)]

@@ -81,11 +81,12 @@ class ApaWebScraperWorker:
     
     def getRoster(self):
         self.createWebDriver()
+        time.sleep(1)
         rows = self.driver.find_element(By.XPATH, "//h2 [contains( text(), 'Team Roster')]").find_element(By.XPATH, "..").find_elements(By.TAG_NAME, 'table')[0].find_elements(By.TAG_NAME, "tr")
         roster = []
         for row in rows[1:]:
             data = row.text.split('\n')
-            playerName = data[0]
+            playerName = data[0].replace('"', "'")
             memberId = int(re.sub(r'\W+', '', data[1]))
             currentSkillLevel = data[2][0]
             if currentSkillLevel == "-":
@@ -151,9 +152,9 @@ class ApaWebScraperWorker:
         teamsInfoHeader = self.driver.find_elements(By.CLASS_NAME, "teamName")
         teamNum1 = int(re.sub(r'\W+', '', teamsInfoHeader[0].text.split(' (')[1])[-2:])
         
-        team1 = self.converter.toTeamWithSql(self.db.getTeam(teamNum1, divisionId))
+        team1 = self.converter.toTeamWithSql(self.db.getTeamWithTeamNum(teamNum1, divisionId))
         teamNum2 = int(re.sub(r'\W+', '', teamsInfoHeader[1].text.split(' (')[1])[-2:])
-        team2 = self.converter.toTeamWithSql(self.db.getTeam(teamNum2, divisionId))
+        team2 = self.converter.toTeamWithSql(self.db.getTeamWithTeamNum(teamNum2, divisionId))
 
         matchesHeader = self.driver.find_element(By.XPATH, "//h3 [contains( text(), 'MATCH BREAKOUT')]")
         matchesDiv = matchesHeader.find_element(By.XPATH, "..")
@@ -180,7 +181,7 @@ class ApaWebScraperWorker:
                 removableWordList.append('PE/PN')
             textElements = removeElements(textElements, removableWordList)
             
-            playerName1 = textElements[0]
+            playerName1 = textElements[0].replace('"', "'")
             skillLevel1 = textElements[1]
             if game == Game.NineBall.value:
                 skillLevel1 = mapper.get(playerPtsNeeded1)
@@ -201,7 +202,7 @@ class ApaWebScraperWorker:
             skillLevel2 = textElements[5]
             if game == Game.NineBall.value:
                 skillLevel2 = mapper.get(playerPtsNeeded2)
-            playerName2 = textElements[6]
+            playerName2 = textElements[6].replace('"', "'")
             teamPtsEarned2 = textElements[7]
 
             db = Database()
@@ -225,12 +226,6 @@ class ApaWebScraperWorker:
                 continue
             memberId2, playerName2, currentSkillLevel2 = player2Info
             player2 = Player(memberId2, playerName2, currentSkillLevel2)
-
-            '''
-            asl1 = getAdjustedSkillLevel(memberId1, skillLevel1, datePlayed)
-            asl2 = getAdjustedSkillLevel(memberId2, skillLevel2, datePlayed)
-            '''
-            
 
             playerResults.append(PlayerResult(team1, player1, skillLevel1, score1, None))
             playerResults.append(PlayerResult(team2, player2, skillLevel2, score2, None))
