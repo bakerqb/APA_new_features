@@ -38,6 +38,15 @@ class UseCase:
     def getTeamResultsJson(self, teamId, decorateWithASL) -> dict:
         return self.getTeamResults(teamId, decorateWithASL).toJson()
     
+    def getPlayerMatchesForPlayerJson(self, memberId) -> dict:
+        player = self.converter.toPlayerWithSql(self.db.getPlayerBasedOnMemberId(memberId))
+        return {
+            "player": player.toJson(),
+            "playerMatches": list(map(lambda playerMatch: self.converter.toPlayerMatchWithSql(playerMatch).properPlayerResultOrderWithPlayer(player).toJson(), self.db.getPlayerMatches(None, None, memberId, "8-ball", 15, None, None)))
+        }
+    
+
+    
 
     # ------------------------- Divisions -------------------------
     def getDivisionsJson(self, sessionId):

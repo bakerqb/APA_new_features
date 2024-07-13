@@ -96,10 +96,12 @@ def matchups():
 
     
     teamMatchup = TeamMatchup(team1, team2, True)
-    bestMatchups, ptsExpected =  teamMatchup.decideBestMatchups()
+    bestMatchups, ptsExpected, team1, team2 =  teamMatchup.decideBestMatchups()
     jsonObj = {
         "bestMatchups": bestMatchups,
-        "ptsExpected": ptsExpected
+        "ptsExpected": ptsExpected,
+        "team1": team1,
+        "team2": team2
     }
     
     return render_template(
@@ -167,6 +169,17 @@ def home1():
         **useCase.getSessionsJson()
     )
 
+@app.route("/playerMatches")
+def playerMatches():
+    useCase = UseCase()
+    memberId = request.args.get('memberId')
+    return render_template(
+        jinja_environment.get_template('player.html'),
+        url_for=url_for,
+        **useCase.getPlayerMatchesForPlayerJson(memberId)
+    )
+
+
 @app.route("/division")
 def division():
     useCase = UseCase()
@@ -176,6 +189,13 @@ def division():
         url_for=url_for,
         **useCase.getTeamsJson(divisionId)
     )
+
+@app.route("/test")
+def test():
+    apaWebScraper = ApaWebScraper()
+    db = Database()
+    db.deleteDivision(None, 208953)
+    apaWebScraper.scrapeAllEightBallThursDivisions()
 
 if __name__ == "__main__":
     serve(app, host="127.0.0.1", port=8000)

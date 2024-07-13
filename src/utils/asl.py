@@ -13,7 +13,7 @@ def getAdjustedSkillLevel(memberId, currentSkillLevel, datePlayed, playerMatchId
         converter = Converter()
 
         # TODO: remove hardcoded values
-        limit = 10
+        limit = 15
         game = Game.EightBall.value
 
         playerResultsDb = db.getPlayerMatches(None, None, memberId, game, limit, datePlayed, playerMatchId)
@@ -33,7 +33,7 @@ def getAdjustedSkillLevel(memberId, currentSkillLevel, datePlayed, playerMatchId
 
             playerMatch = playerMatch.properPlayerResultOrderWithPlayer(player)
             
-            # Make sure you know how the opponent and who the "YOU" player is
+            # Make sure you know who the opponent and who the "YOU" player is
             # Then just plug that shit into the algorithm
             playerResult0 = playerMatch.getPlayerResults()[0]
             playerResult1 = playerMatch.getPlayerResults()[1]
