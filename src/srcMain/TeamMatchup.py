@@ -35,7 +35,7 @@ class TeamMatchup():
 
         bestMatchup = list(map(lambda pairing: (pairing[0].toJson(), pairing[1].toJson()), bestMatchup))
         print(self.getBestPutup())
-        return (bestMatchup, maxPts)      
+        return (bestMatchup, maxPts, self.myTeam, self.opponentTeam)      
     
     def populateAllMatchups(self, roster1, roster2):
         uniqueCombinations = []

@@ -174,6 +174,24 @@ class ApaWebScraper:
                     
                     return self.converter.toTeamWithSql(self.db.getTeamWithTeamNum(opponentTeamNum, self.db.getDivisionIdFromTeamId(teamId)))
                 
+    def scrapeAllEightBallThursDivisions(self):
+        self.createWebDriver()
+        
+        
+        for sessionId in range(89, 131):
+            self.scrapeDivisionsForSession(sessionId)
+            
+            self.driver.get(f"{self.config.get('apaWebsite').get('sessionBaseLink')}{sessionId}")
+            time.sleep(4)
+            div = self.driver.find_element(By.CLASS_NAME, "m-b-30")
+            aTags = div.find_elements(By.TAG_NAME, "a")
+            for tag in aTags:
+                if "245" in tag.text:
+                    divisionId = int(tag.get_attribute('href').split('/')[-1])
+                    self.scrapeDivision(divisionId)
+                    break
+
+                
 
                     
         

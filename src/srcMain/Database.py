@@ -169,7 +169,7 @@ class Database:
             (f"""AND d.game = "{game}" """ if game is not None else "") +
             (f"AND (p1.memberId = {memberId} OR p2.memberId = {memberId}) " if memberId is not None else "") +
             (f"""AND (tm.datePlayed < "{datePlayed}" OR (tm.datePlayed = "{datePlayed}" AND pm.playerMatchId < {playerMatchId})) """ if datePlayed is not None else "") +
-            "ORDER BY tm.datePlayed ASC " +
+            "ORDER BY tm.datePlayed DESC " +
             (f"LIMIT {limit}" if limit is not None else "")
         ).fetchall()
     
