@@ -189,7 +189,7 @@ class Database:
         ).fetchall()
     
     def getSessions(self):
-        return self.cur.execute("SELECT * FROM Session s").fetchall()
+        return self.cur.execute("SELECT * FROM Session s ORDER BY sessionId DESC").fetchall()
     
     def getDatePlayed(self, teamMatchId: int):
         return self.cur.execute(
@@ -207,7 +207,7 @@ class Database:
                 "LEFT JOIN TeamMatch tm " +
                 "ON pm.teamMatchId = tm.teamMatchId " +
                 f"WHERE tm.divisionId = {divisionId}" +
-            ")"
+            ") AND tm.teamMatchId IS NOT NULL"
         ).fetchall()
     
     def getTeamsFromDivision(self, divisionId):
@@ -286,6 +286,43 @@ class Database:
         self.createTables()
         return self.cur.execute(f"SELECT game FROM Division WHERE divisionId = {divisionId}").fetchone()[0]
     
+    def getPlayers(self, criteria):
+        self.createTables()
+        results = self.cur.execute(
+            "SELECT * FROM (" +
+                "SELECT players.memberId, " +
+                "players.playerName, " +
+                "players.currentSkillLevel, " +
+                "players.datePlayed, " +
+                "ROW_NUMBER() OVER (PARTITION BY players.memberId ORDER BY players.datePlayed DESC) AS row_number " +
+                "FROM (" +
+                    "SELECT p1.memberId, p1.playerName, p1.currentSkillLevel, tm1.datePlayed " +
+                    "FROM Player p1 " +
+                    "LEFT JOIN PlayerMatch pm1 ON p1.memberId = pm1.memberId1 " +
+                    "LEFT JOIN TeamMatch tm1 ON pm1.teamMatchId = tm1.teamMatchId " +
+                    "UNION " +
+                    "SELECT p2.memberId, p2.playerName, p2.currentSkillLevel, tm2.datePlayed " +
+                    "FROM Player p2 " +
+                    "LEFT JOIN PlayerMatch pm2 ON p2.memberId = pm2.memberId1 " +
+                    "LEFT JOIN TeamMatch tm2 ON pm2.teamMatchId = tm2.teamMatchId" +
+                ") players " +
+            ") WHERE row_number = 1 " +
+            ("" if not criteria.getMemberId() else f"AND memberId = {criteria.getMemberId()} ") +
+            ("" if not criteria.getPlayerName() else f"AND playerName LIKE '%{criteria.getPlayerName()}%' ") +
+            ("" if not criteria.getMinSkillLevel() else f"AND currentSkillLevel >= {criteria.getMinSkillLevel()} ") +
+            ("" if not criteria.getMaxSkillLevel() else f"AND currentSkillLevel <= {criteria.getMaxSkillLevel()} ") +
+            ("" if not criteria.getDateLastPlayed() else f"AND CAST(datePlayed AS DATE) >= CAST({criteria.getDateLastPlayed()} AS DATE)") +
+            "ORDER BY datePlayed DESC"
+            
+        ).fetchall()
+
+        new_results = []
+        for result in results:
+            if result[4] == 1:
+                new_results.append(result)
+        return new_results
+
+    
 
     # ------------------------- Inserting -------------------------
     def addPlayerMatch(self, playerMatch):
@@ -326,6 +363,7 @@ class Database:
         teamId = team.getTeamId()
         teamNum = team.getTeamNum()
         teamName = team.getTeamName()
+        self.deleteTeamWithTeamId(teamId)
         self.addTeam(divisionId, teamId, teamNum, teamName)
         #TODO: Delete all currentTeamPlayer entries belonging to the team and re-add all the players
         # That way the table stays current
@@ -366,7 +404,9 @@ class Database:
                 f"""INSERT INTO Player VALUES ({memberId}, "{playerName}", {currentSkillLevel})"""
             )
         except Exception:
-            pass
+            self.cur.execute(
+                f"""UPDATE Player SET currentSkillLevel = {currentSkillLevel}, playerName = "{playerName}" WHERE memberId = {memberId}"""
+            )
         self.con.commit() 
 
     def addSession(self, session):
@@ -484,6 +524,22 @@ class Database:
             )
         else:
             self.cur.execute(f"DELETE FROM Team WHERE divisionId = {divisionId}")
+        self.con.commit()
+
+    def deleteTeamWithTeamId(self, teamId):
+        self.deleteCurrentTeamPlayerWithTeamId(teamId)
+        
+        self.cur.execute(
+            f"DELETE FROM Team WHERE teamId = {teamId}"
+        )
+
+        self.con.commit()
+
+    def deleteCurrentTeamPlayerWithTeamId(self, teamId):
+        self.cur.execute(
+            f"DELETE FROM CurrentTeamPlayer WHERE teamId = {teamId}"
+        )
+        
         self.con.commit()
         
     def deleteCurrentTeamPlayer(self, sessionId, divisionId):

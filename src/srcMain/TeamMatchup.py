@@ -2,8 +2,8 @@ from src.dataClasses.Team import Team
 from utils.asl import *
 from utils.utils import *
 import math
-import itertools
-from src.dataClasses.Player import Player
+from src.dataClasses.PotentialPlayerResult import PotentialPlayerResult
+import sys
 
 class TeamMatchup():
     def __init__(self, myTeam: Team, opponentTeam: Team, doesMyTeamPutUp: bool):
@@ -20,45 +20,6 @@ class TeamMatchup():
         # TODO: Remove hardcoded values
         self.game = "8-ball"
         self.skillLevelMatrix = createASLMatrix(self.game)
-
-    def decideBestMatchups(self):
-        bestMatchup = None
-        maxPts = 0
-        allMatchups = self.populateAllMatchups(self.myTeam.getPlayers(), self.opponentTeam.getPlayers())
-        for matchup in allMatchups:
-            expectedPts = 0
-            for player1, player2 in matchup:
-                expectedPts += self.getExpectedPts(player1, player2)
-            if expectedPts > maxPts:
-                maxPts = expectedPts
-                bestMatchup = matchup
-
-        bestMatchup = list(map(lambda pairing: (pairing[0].toJson(), pairing[1].toJson()), bestMatchup))
-        print(self.getBestPutup())
-        return (bestMatchup, maxPts, self.myTeam, self.opponentTeam)      
-    
-    def populateAllMatchups(self, roster1, roster2):
-        uniqueCombinations = []
-        perms = None
-        reverse = len(roster2) > len(roster1)
-        if reverse:
-            perms = itertools.permutations(roster2, len(roster1))
-        else:
-            perms = itertools.permutations(roster1, len(roster2))
-        for combination in perms:
-            zipped = None
-            if reverse:
-                zipped = zip(combination, roster1)
-            else:
-                zipped = zip(combination, roster2)
-            uniqueCombinations.append(list(zipped))
-        
-        if reverse:
-            for innerIndex, uniqueCombination in enumerate(uniqueCombinations):
-                for outerIndex, pairing in enumerate(uniqueCombination):
-                    uniqueCombinations[innerIndex][outerIndex] = (pairing[1], pairing[0])
-        return uniqueCombinations
-
 
     def getExpectedPts(self, player1, player2):
         asl1 = float(player1.getAdjustedSkillLevel())
@@ -84,28 +45,86 @@ class TeamMatchup():
         
         index1 = ((skillLevel1 - rangeStart) * NUM_SECTIONS_PER_SKILL_LEVEL) + asl1SectionIndex + 1 
         index2 = ((skillLevel2 - rangeStart) * NUM_SECTIONS_PER_SKILL_LEVEL) + asl2SectionIndex + 1 
-        return self.skillLevelMatrix[index1][index2]
-    
-    def getBestPutup(self):
-        bestExpectedPts = 0
-        bestPlayers = []
-        for player in self.myTeam.getPlayers():
-            totalExpectedPts = 0
-            allMatchups = self.populateAllMatchups([player], self.opponentTeam.getPlayers())
-            
-            for matchup in allMatchups:
-                for player1, player2 in matchup:
-                    totalExpectedPts += self.getExpectedPts(player1, player2)
-                
-            expectedPtsAvg = totalExpectedPts/len(allMatchups)
-            if expectedPtsAvg > bestExpectedPts:
-                bestExpectedPts = expectedPtsAvg
-                bestPlayers = [player]
-            elif bestExpectedPts == expectedPtsAvg:
-                bestPlayers.append(player)
-        return ((list(map(lambda player: player.toJson(), bestPlayers))), bestExpectedPts)
+        return (self.skillLevelMatrix[index1][index2], self.skillLevelMatrix[index2][index1])
 
+    def putupBlind(self, myPlayers, theirPlayers, potentialTeamMatch):
+        # Assert len(myPlayers) - 1 == len(theirPlayers)
+        if len(myPlayers) == 1:
+            myPlayer = myPlayers[0]
+            theirPlayer = theirPlayers[0]
+            myExpectedPts, theirExpectedPts = self.getExpectedPts(myPlayer, theirPlayer)
+            if self.myTeam.isPlayerOnTeam(myPlayer):
+                potentialTeamMatch.addPotentialPlayerResult(PotentialPlayerResult(myPlayer, myExpectedPts))
+                potentialTeamMatch.addPotentialPlayerResult(PotentialPlayerResult(theirPlayer, theirExpectedPts))
+            else:
+                potentialTeamMatch.addPotentialPlayerResult(PotentialPlayerResult(theirPlayer, theirExpectedPts))
+                potentialTeamMatch.addPotentialPlayerResult(PotentialPlayerResult(myPlayer, myExpectedPts))
+            return potentialTeamMatch
         
+        bestPotentialTeamMatch = None
+        worstExpectedPtsForOpponents = (-1 * sys.maxsize, sys.maxsize)
+        for player in myPlayers:
+            # tell the other team who your theoretical putup is
+            tempMyPlayers = myPlayers.copy()
+            tempMyPlayers.remove(player)
 
+            tempTheirPlayers = theirPlayers.copy()
+            tempPotentialTeamMatch = potentialTeamMatch.copy()
+            
+            # Assume they go through each of their players and decide the best one to putup against you
+            newPotentialTeamMatch = self.putupNonBlind(player, tempTheirPlayers, tempMyPlayers, tempPotentialTeamMatch)
+            amILookingAtMyTeam = self.myTeam.isPlayerOnTeam(player)
+            theirExpectedTotalPts = newPotentialTeamMatch.sumPoints(not amILookingAtMyTeam)
+            myExpectedTotalPts = newPotentialTeamMatch.sumPoints(amILookingAtMyTeam)
 
+            if len(self.opponentTeam.getPlayers()) == len(newPotentialTeamMatch.getPotentialPlayerMatches()):
+                print(myExpectedTotalPts - theirExpectedTotalPts, "if we throw", player.getPlayerName())
 
+            if theirExpectedTotalPts - myExpectedTotalPts < worstExpectedPtsForOpponents[1] - worstExpectedPtsForOpponents[0]:
+                worstExpectedPtsForOpponents = (myExpectedTotalPts, theirExpectedTotalPts)
+                bestPotentialTeamMatch = newPotentialTeamMatch
+        
+        # Pick player from your team where the opponent will get the lowest number of points
+        
+        return bestPotentialTeamMatch
+                
+    
+    def putupNonBlind(self, chosenPlayer, myPlayers, theirPlayers, potentialTeamMatch):
+        # Assert len(myPlayers) - 1 == len(theirPlayers)
+        if len(myPlayers) == 1:
+            myPlayer = myPlayers[0]
+            theirPlayer = theirPlayers[0]
+            myExpectedPts, theirExpectedPts = self.getExpectedPts(myPlayer, chosenPlayer)
+            if self.myTeam.isPlayerOnTeam(myPlayer):
+                potentialTeamMatch.addPotentialPlayerResult(PotentialPlayerResult(myPlayer, myExpectedPts))
+                potentialTeamMatch.addPotentialPlayerResult(PotentialPlayerResult(theirPlayer, theirExpectedPts))
+            else:
+                potentialTeamMatch.addPotentialPlayerResult(PotentialPlayerResult(theirPlayer, theirExpectedPts))
+                potentialTeamMatch.addPotentialPlayerResult(PotentialPlayerResult(myPlayer, myExpectedPts))
+            return potentialTeamMatch
+        
+        bestPotentialTeamMatch = None
+        bestPlayerExpectedPts = (-1 * sys.maxsize, sys.maxsize)
+        for player in myPlayers:
+            myPoints, theirPoints = self.getExpectedPts(player, chosenPlayer)
+            tempMyPlayers = myPlayers.copy()
+            tempMyPlayers.remove(player)
+            tempTheirPlayers = theirPlayers.copy()
+            tempPotentialTeamMatch = potentialTeamMatch.copy()
+            newPotentialTeamMatch = self.putupBlind(tempMyPlayers, tempTheirPlayers, tempPotentialTeamMatch)
+            amILookingAtMyOwnTeam = not self.myTeam.isPlayerOnTeam(chosenPlayer)
+            theirExpectedTotalPts = theirPoints + newPotentialTeamMatch.sumPoints(not amILookingAtMyOwnTeam)
+            myExpectedTotalPts = myPoints + newPotentialTeamMatch.sumPoints(amILookingAtMyOwnTeam)
+
+            if myExpectedTotalPts - theirExpectedTotalPts > bestPlayerExpectedPts[0] - bestPlayerExpectedPts[1]:
+                if self.myTeam.isPlayerOnTeam(player):
+                    newPotentialTeamMatch.addPotentialPlayerResult(PotentialPlayerResult(player, myPoints))
+                    newPotentialTeamMatch.addPotentialPlayerResult(PotentialPlayerResult(chosenPlayer, theirPoints))
+                else:
+                    newPotentialTeamMatch.addPotentialPlayerResult(PotentialPlayerResult(chosenPlayer, theirPoints))
+                    newPotentialTeamMatch.addPotentialPlayerResult(PotentialPlayerResult(player, myPoints))
+                
+                bestPotentialTeamMatch = newPotentialTeamMatch
+                bestPlayerExpectedPts = (myExpectedTotalPts, theirExpectedTotalPts)
+        
+        return bestPotentialTeamMatch

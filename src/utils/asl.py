@@ -1,7 +1,5 @@
 from src.srcMain.Database import Database
 from src.converter.Converter import Converter
-import math
-import time
 from utils.utils import *
 from src.dataClasses.Game import Game
 from tabulate import tabulate
@@ -17,11 +15,7 @@ def getAdjustedSkillLevel(memberId, currentSkillLevel, datePlayed, playerMatchId
         game = Game.EightBall.value
 
         playerResultsDb = db.getPlayerMatches(None, None, memberId, game, limit, datePlayed, playerMatchId)
-        start = time.time()
         playerMatches = list(map(lambda playerMatch: converter.toPlayerMatchWithSql(playerMatch), playerResultsDb))
-        end = time.time()
-        length = end - start
-        print(f"conversion duration: {length} seconds")
 
         #TODO: put playerMatches through algorithm
         adjustedScoreOffsetTotal = 0
@@ -104,9 +98,6 @@ def getAdjustedSkillLevel(memberId, currentSkillLevel, datePlayed, playerMatchId
             adjustedScoreOffset = -.49
         
         adjustedScoreOffset = float(f'{adjustedScoreOffset:.2f}')
-        end = time.time()
-        length = end - start
-        print(f"ASL calculation duration: {length} seconds")
 
         return str(int(currentSkillLevel) + .5 + adjustedScoreOffset)
 
@@ -138,10 +129,13 @@ def createASLMatrix(game):
         for skillLevel in range(rangeStart, numSkillLevels + 1):
             for section in sectionsPerSkillLevel:
                 matrix.append([skillLevel + section[0]] + ([1.5] * (numSkillLevels - rangeStart + 1) * numSectionsPerSkillLevel))
-        for lowerIndex, lowerSL in enumerate(range(rangeStart, numSkillLevels + 1)):
-            for higherIndex, higherSL in enumerate(range(lowerSL+1, numSkillLevels + 1)):
-                for lowerSLIndex, lowerSLSection in enumerate(sectionsPerSkillLevel):
-                    for higherSLIndex, higherSLSection in enumerate(sectionsPerSkillLevel):
+        for lowerSLIndex, lowerSL in enumerate(range(rangeStart, numSkillLevels + 1)):
+            for higherSLIndex, higherSL in enumerate(range(lowerSL, numSkillLevels + 1)):
+                for lowerSectionIndex, lowerSection in enumerate(sectionsPerSkillLevel):
+                    for higherSectionIndex, higherSection in enumerate(sectionsPerSkillLevel):
+                        if lowerSL == higherSL and lowerSectionIndex > higherSectionIndex:
+                            continue
+                        
                         matchesLowAgainstHigh = db.cur.execute(
                             "SELECT SUM(s1.teamPtsEarned), SUM(s2.teamPtsEarned), COUNT(*) " + 
                             "FROM Division d " +
@@ -149,12 +143,21 @@ def createASLMatrix(game):
                             "LEFT JOIN PlayerMatch pm ON pm.teamMatchId = tm.teamMatchId " +
                             "LEFT JOIN Score s1 ON s1.scoreId = pm.scoreId1 " +
                             "LEFT JOIN Score s2 ON s2.scoreId = pm.scoreId2 " +
-                            f"WHERE pm.adjustedSkillLevel1 >= {lowerSL + lowerSLSection[0]} " +
-                            f"AND pm.adjustedSkillLevel1 < {lowerSL + lowerSLSection[1]} " +
-                            f"AND pm.adjustedSkillLevel2 >= {higherSL + higherSLSection[0]} " +
-                            f"AND pm.adjustedSkillLevel2 < {higherSL + higherSLSection[1]} " +
+                            f"WHERE pm.adjustedSkillLevel1 >= {lowerSL + lowerSection[0]} " +
+                            f"AND pm.adjustedSkillLevel1 < {lowerSL + lowerSection[1]} " +
+                            f"AND pm.adjustedSkillLevel2 >= {higherSL + higherSection[0]} " +
+                            f"AND pm.adjustedSkillLevel2 < {higherSL + higherSection[1]} " +
                             f"AND d.game = '{game}'"
                         ).fetchone()
+
+                        if lowerSL == higherSL and lowerSectionIndex == higherSectionIndex:
+                            games = matchesLowAgainstHigh[2]
+                            if games > 0:
+                                pts = ((matchesLowAgainstHigh[0] if matchesLowAgainstHigh[0] else 0)  + (matchesLowAgainstHigh[1] if matchesLowAgainstHigh[1] else 0)) / 2
+                                matrixIndex = (lowerSLIndex * numSectionsPerSkillLevel) + lowerSectionIndex + 1
+                                matrix[matrixIndex][matrixIndex] = round(pts/games, 1)
+                                
+                            continue
 
                         matchesHighAgainstLow = db.cur.execute(
                             "SELECT SUM(s1.teamPtsEarned), SUM(s2.teamPtsEarned), COUNT(*) " + 
@@ -163,10 +166,10 @@ def createASLMatrix(game):
                             "LEFT JOIN PlayerMatch pm ON pm.teamMatchId = tm.teamMatchId " +
                             "LEFT JOIN Score s1 ON s1.scoreId = pm.scoreId1 " +
                             "LEFT JOIN Score s2 ON s2.scoreId = pm.scoreId2 " +
-                            f"WHERE pm.adjustedSkillLevel1 >= {higherSL + higherSLSection[0]} " +
-                            f"AND pm.adjustedSkillLevel1 < {higherSL + higherSLSection[1]} " +
-                            f"AND pm.adjustedSkillLevel2 >= {lowerSL + lowerSLSection[0]} " +
-                            f"AND pm.adjustedSkillLevel2 < {lowerSL + lowerSLSection[1]} " +
+                            f"WHERE pm.adjustedSkillLevel1 >= {higherSL + higherSection[0]} " +
+                            f"AND pm.adjustedSkillLevel1 < {higherSL + higherSection[1]} " +
+                            f"AND pm.adjustedSkillLevel2 >= {lowerSL + lowerSection[0]} " +
+                            f"AND pm.adjustedSkillLevel2 < {lowerSL + lowerSection[1]} " +
                             f"AND d.game = '{game}'"
                         ).fetchone()
 
@@ -174,11 +177,103 @@ def createASLMatrix(game):
                         if games > 0:
                             ptsFromLowerRatedPlayer = (matchesLowAgainstHigh[0] if matchesLowAgainstHigh[0] else 0)  + (matchesHighAgainstLow[1] if matchesHighAgainstLow[1] else 0)
                             ptsFromHigherRatedPlayer = (matchesLowAgainstHigh[1] if matchesLowAgainstHigh[1] else 0) + (matchesHighAgainstLow[0] if matchesHighAgainstLow[0] else 0)
-                            lowerIndexIndexyPoo = (lowerIndex * numSectionsPerSkillLevel) + lowerSLIndex + 1
-                            higherIndexIndexyPoo = ((higherIndex + lowerIndex + 1) * numSectionsPerSkillLevel) + higherSLIndex + 1
+                            lowerIndexIndexyPoo = (lowerSLIndex * numSectionsPerSkillLevel) + lowerSectionIndex + 1
+                            higherIndexIndexyPoo = ((higherSLIndex + lowerSLIndex) * numSectionsPerSkillLevel) + higherSectionIndex + 1
                             matrix[lowerIndexIndexyPoo][higherIndexIndexyPoo] = round(ptsFromLowerRatedPlayer/games, 1)
                             matrix[higherIndexIndexyPoo][lowerIndexIndexyPoo] = round(ptsFromHigherRatedPlayer/games, 1)
         
         
         print(tabulate(matrix, headers="firstrow", tablefmt="fancy_grid"))
+        getPointSpread(game)
         return matrix
+
+def getPointSpread(game):
+    db = Database()
+
+    totalMatches = db.cur.execute(
+                            "SELECT COUNT(*) " + 
+                            "FROM Division d " +
+                            "LEFT JOIN TeamMatch tm ON d.divisionId = tm.divisionId " +
+                            "LEFT JOIN PlayerMatch pm ON pm.teamMatchId = tm.teamMatchId " +
+                            "LEFT JOIN Score s1 ON s1.scoreId = pm.scoreId1 " +
+                            "LEFT JOIN Score s2 ON s2.scoreId = pm.scoreId2 " +
+                            f"WHERE d.game = '{game}'"
+                        ).fetchone()[0]
+
+    matchesHighAgainstLow = db.cur.execute(
+                            "SELECT COUNT(*) " + 
+                            "FROM Division d " +
+                            "LEFT JOIN TeamMatch tm ON d.divisionId = tm.divisionId " +
+                            "LEFT JOIN PlayerMatch pm ON pm.teamMatchId = tm.teamMatchId " +
+                            "LEFT JOIN Score s1 ON s1.scoreId = pm.scoreId1 " +
+                            "LEFT JOIN Score s2 ON s2.scoreId = pm.scoreId2 " +
+                            f"WHERE s1.teamPtsEarned = 0 " +
+                            f"AND s2.teamPtsEarned = 3 " +
+                            f"AND d.game = '{game}'"
+                        ).fetchone()
+    
+    matchesLowAgainstHigh = db.cur.execute(
+                            "SELECT COUNT(*) " + 
+                            "FROM Division d " +
+                            "LEFT JOIN TeamMatch tm ON d.divisionId = tm.divisionId " +
+                            "LEFT JOIN PlayerMatch pm ON pm.teamMatchId = tm.teamMatchId " +
+                            "LEFT JOIN Score s1 ON s1.scoreId = pm.scoreId1 " +
+                            "LEFT JOIN Score s2 ON s2.scoreId = pm.scoreId2 " +
+                            f"WHERE s1.teamPtsEarned = 3 " +
+                            f"AND s2.teamPtsEarned = 0 " +
+                            f"AND d.game = '{game}'"
+                        ).fetchone()
+    
+    print("3-0's: " + str(matchesHighAgainstLow[0] + matchesLowAgainstHigh[0]) + " " + str(float((matchesHighAgainstLow[0] + matchesLowAgainstHigh[0])/totalMatches*100)) + "%")
+
+    matchesHighAgainstLow = db.cur.execute(
+                            "SELECT COUNT(*) " + 
+                            "FROM Division d " +
+                            "LEFT JOIN TeamMatch tm ON d.divisionId = tm.divisionId " +
+                            "LEFT JOIN PlayerMatch pm ON pm.teamMatchId = tm.teamMatchId " +
+                            "LEFT JOIN Score s1 ON s1.scoreId = pm.scoreId1 " +
+                            "LEFT JOIN Score s2 ON s2.scoreId = pm.scoreId2 " +
+                            f"WHERE s1.teamPtsEarned = 0 " +
+                            f"AND s2.teamPtsEarned = 2 " +
+                            f"AND d.game = '{game}'"
+                        ).fetchone()
+    
+    matchesLowAgainstHigh = db.cur.execute(
+                            "SELECT COUNT(*) " + 
+                            "FROM Division d " +
+                            "LEFT JOIN TeamMatch tm ON d.divisionId = tm.divisionId " +
+                            "LEFT JOIN PlayerMatch pm ON pm.teamMatchId = tm.teamMatchId " +
+                            "LEFT JOIN Score s1 ON s1.scoreId = pm.scoreId1 " +
+                            "LEFT JOIN Score s2 ON s2.scoreId = pm.scoreId2 " +
+                            f"WHERE s1.teamPtsEarned = 2 " +
+                            f"AND s2.teamPtsEarned = 0 " +
+                            f"AND d.game = '{game}'"
+                        ).fetchone()
+    
+    print("2-0's: " + str(matchesHighAgainstLow[0] + matchesLowAgainstHigh[0]) + " " + str(float((matchesHighAgainstLow[0] + matchesLowAgainstHigh[0])/totalMatches*100)) + "%")
+
+    matchesHighAgainstLow = db.cur.execute(
+                            "SELECT COUNT(*) " + 
+                            "FROM Division d " +
+                            "LEFT JOIN TeamMatch tm ON d.divisionId = tm.divisionId " +
+                            "LEFT JOIN PlayerMatch pm ON pm.teamMatchId = tm.teamMatchId " +
+                            "LEFT JOIN Score s1 ON s1.scoreId = pm.scoreId1 " +
+                            "LEFT JOIN Score s2 ON s2.scoreId = pm.scoreId2 " +
+                            f"WHERE s1.teamPtsEarned = 1 " +
+                            f"AND s2.teamPtsEarned = 2 " +
+                            f"AND d.game = '{game}'"
+                        ).fetchone()
+    
+    matchesLowAgainstHigh = db.cur.execute(
+                            "SELECT COUNT(*) " + 
+                            "FROM Division d " +
+                            "LEFT JOIN TeamMatch tm ON d.divisionId = tm.divisionId " +
+                            "LEFT JOIN PlayerMatch pm ON pm.teamMatchId = tm.teamMatchId " +
+                            "LEFT JOIN Score s1 ON s1.scoreId = pm.scoreId1 " +
+                            "LEFT JOIN Score s2 ON s2.scoreId = pm.scoreId2 " +
+                            f"WHERE s1.teamPtsEarned = 2 " +
+                            f"AND s2.teamPtsEarned = 1 " +
+                            f"AND d.game = '{game}'"
+                        ).fetchone()
+    
+    print("2-1's: " + str(matchesHighAgainstLow[0] + matchesLowAgainstHigh[0]) + " " + str(float((matchesHighAgainstLow[0] + matchesLowAgainstHigh[0])/totalMatches*100)) + "%")

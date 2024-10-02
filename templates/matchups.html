@@ -169,7 +169,14 @@
                             <p>{{matchup[0].get('adjustedSkillLevel')}}</p>
                         </div>
                     </div>
-
+                    <div class="col-md-2 text-center">
+                        <div class="row">
+                            <h1>{{matchup[2]}}</h1>
+                        </div>
+                        <div class="row">
+                            <h6>Pts Expected</h6>
+                        </div>
+                    </div>
                 </div>
 
             </div>
@@ -345,7 +352,14 @@
                             <p>{{matchup[1].get('adjustedSkillLevel')}}</p>
                         </div>
                     </div>
-
+                    <div class="col-md-2 text-center">
+                        <div class="row">
+                            <h1>{{"{:.1f}".format(3 - matchup[2])}}</h1>
+                        </div>
+                        <div class="row">
+                            <h6>Pts Expected</h6>
+                        </div>
+                    </div>
 
 
                 </div>

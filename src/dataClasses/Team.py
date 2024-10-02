@@ -38,3 +38,9 @@ class Team:
     
     def setPlayers(self, players):
         self.players = players
+
+    def isPlayerOnTeam(self, playerInQuestion: Player):
+        for player in self.players:
+            if player == playerInQuestion:
+                return True
+        return False

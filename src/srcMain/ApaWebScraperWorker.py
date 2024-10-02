@@ -153,8 +153,12 @@ class ApaWebScraperWorker:
         teamNum1 = int(re.sub(r'\W+', '', teamsInfoHeader[0].text.split(' (')[1])[-2:])
         
         team1 = self.converter.toTeamWithSql(self.db.getTeamWithTeamNum(teamNum1, divisionId))
+        if not team1:
+            return []
         teamNum2 = int(re.sub(r'\W+', '', teamsInfoHeader[1].text.split(' (')[1])[-2:])
         team2 = self.converter.toTeamWithSql(self.db.getTeamWithTeamNum(teamNum2, divisionId))
+        if not team2:
+            return []
 
         matchesHeader = self.driver.find_element(By.XPATH, "//h3 [contains( text(), 'MATCH BREAKOUT')]")
         matchesDiv = matchesHeader.find_element(By.XPATH, "..")

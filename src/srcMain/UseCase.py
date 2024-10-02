@@ -16,7 +16,8 @@ class UseCase:
     def getTeamResults(self, teamId, decorateWithASL) -> dict:
         teamResultsDb = self.db.getPlayerMatches(None, teamId, None, None, None, None, None)
         teamResultsPlayerMatches = list(map(lambda playerMatch: self.converter.toPlayerMatchWithSql(playerMatch), teamResultsDb))
-        results = TeamResults(int(teamId), teamResultsPlayerMatches, list(map(lambda player: self.converter.toPlayerWithSql(player), self.db.getTeamRoster(teamId))), decorateWithASL)
+        team = self.converter.toTeamWithSql(self.db.getTeamWithTeamId(teamId))
+        results = TeamResults(team, teamResultsPlayerMatches, list(map(lambda player: self.converter.toPlayerWithSql(player), self.db.getTeamRoster(teamId))), decorateWithASL)
         return results
     
     def getUpcomingTeamResultsJson(self) -> dict:
@@ -69,7 +70,10 @@ class UseCase:
     
     # ------------------------- Teams -------------------------
     def getTeamsJson(self, divisionId):
+        db = Database()
+        converter = Converter()
+        division = converter.toDivisionWithSql(db.getDivision(divisionId))
         return {
             "teams": list(map(lambda teamRow: { "teamId": teamRow[1], "teamName": teamRow[3] }, self.db.getTeamsFromDivision(divisionId))),
-            "divisionId": divisionId
+            "division": division
         }
