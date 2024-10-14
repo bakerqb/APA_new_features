@@ -92,6 +92,9 @@ def getAdjustedSkillLevel(memberId, currentSkillLevel, datePlayed, playerMatchId
                 adjustedScoreOffset *= (numWins/10)
             elif adjustedScoreOffset < 0:
                 adjustedScoreOffset *= (numLosses/10)
+
+        if memberId == 60902883:
+            adjustedScoreOffset -= 1
         if adjustedScoreOffset >= .5:
             adjustedScoreOffset = .49
         elif adjustedScoreOffset <= -.5:

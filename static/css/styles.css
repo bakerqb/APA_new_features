@@ -17,13 +17,55 @@ body {
     font-size: 2rem;
 }
 
-input, button {
+input,
+button {
     font-size: 2rem;
     padding: 1rem;
     border-radius: 100px;
 }
 
-table, th, td {
+table,
+th,
+td {
     border: 1px solid;
     float: left
+}
+
+.row {
+    background-color: #708090;
+    height: 460px;
+}
+
+.text {
+    padding-left: 20px;
+    margin-top: 20px;
+    font-weight: bold;
+    color: rgba(255, 255, 255, 0.2);
+    font-size: 20px;
+}
+
+button {
+    margin-left: 50%;
+    margin-top: 5%;
+    border-radius: 50% !important;
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: none !important;
+    padding: 30px 30px !important;
+    -webkit-transition: background-color 1s, color 1s, -webkit-transform 0.5s;
+    transition: background-color 1s, transform 0.5s;
+}
+
+button:hover {
+    background-color: rgba(255, 255, 255, 0.8);
+    color: black;
+    -webkit-transform: translateX(-5px);
+    -webkit-box-shadow: 5px 0px 18px 0px rgba(105, 105, 105, 0.8);
+    -moz-box-shadow: 5px 0px 18px 0px rgba(105, 105, 105, 0.8);
+    box-shadow: 5px 0px 18px 0px rgba(105, 105, 105, 0.8);
+}
+
+a {
+    color: rgb(32, 201, 210);
+    ;
 }

@@ -26,19 +26,25 @@
             <option value="{{team.get('teamId')}}">{{team.get('teamName')}}</option>
             {% endfor %}
         </select>
+        <input type="hidden" name="divisionId" id="divisionId" value="{{division.getDivisionId()}}" />
+        <input type="hidden" name="sessionId" id="sessionId" value="{{division.getSession().getSessionId()}}" />
         <input type="submit" value="Submit">
     </form>
     <form action="/scrapeDivision">
         <input type="hidden" name="divisionId" id="divisionId" value="{{division.getDivisionId()}}" />
+        <input type="hidden" name="sessionId" id="sessionId" value="{{division.getSession().getSessionId()}}" />
         <button type="submit" class="btn btn-primary">Scrape Division</button>
     </form>
     <form action="/deleteDivision">
         <input type="hidden" name="divisionId" id="divisionId" value="{{division.getDivisionId()}}" />
+        <input type="hidden" name="sessionId" id="sessionId" value="{{division.getSession().getSessionId()}}" />
         <button type="submit" class="btn btn-primary">Delete Division</button>
     </form>
     <div>
         <h4>Matchup teams</h4>
         <form action="/matchupTeams">
+            <input type="hidden" name="divisionId" id="divisionId" value="{{division.getDivisionId()}}" />
+            <input type="hidden" name="sessionId" id="sessionId" value="{{division.getSession().getSessionId()}}" />
 
             <label for="teamId1">Select your team:</label>
 

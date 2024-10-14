@@ -29,6 +29,9 @@ class PotentialTeamMatch:
     def copy(self):
         tempPotentialPlayerMatches = self.potentialPlayerMatches.copy()
         return PotentialTeamMatch(tempPotentialPlayerMatches)
+    
+    def reversePotentialPlayerMatches(self):
+        self.potentialPlayerMatches = list(reversed(self.potentialPlayerMatches))
 
     
     

@@ -27,13 +27,17 @@ def results():
     apaWebScraper = ApaWebScraper()
     db = Database()
     teamId = request.args.get('teamId')
+    divisionId = request.args.get('divisionId')
+    sessionId = request.args.get('sessionId')
     # return useCase.getTeamResultsJson("SPRING", 2024, teamName, True)
+
+    jsonObj = useCase.getTeamResultsJson(teamId, True) | { "divisionId": divisionId, "sessionId": sessionId}
 
     # TODO: fix the parameters for getTeamResultsJson
     return render_template(
         jinja_environment.get_template('results.html'),
         url_for=url_for,
-        **useCase.getTeamResultsJson(teamId, True)
+        **jsonObj
     )
 
 @app.route("/index", methods=['GET'])
@@ -60,10 +64,11 @@ def scrapeDivision():
 
 @app.route("/deleteDivision")
 def deleteDivision():
+    sessionId = request.args.get('sessionId')
     divisionId = request.args.get('divisionId')
     db = Database()
     db.deleteDivision(None, divisionId)
-    return redirect(f"/division?divisionId={divisionId}")
+    return redirect(f"/division?sessionId={sessionId}&divisionId={divisionId}")
 
 @app.route("/deleteSession")
 def deleteSession():
@@ -78,7 +83,9 @@ def matchups():
     converter = Converter()
     teamId1 = request.args.get('teamId1')
     teamId2 = request.args.get('teamId2')
-    putupTeamId = request.args.get('putupTeamId')
+    putupMemberId = request.args.get('putupMemberId')
+    sessionId = request.args.get('sessionId')
+    divisionId = request.args.get('divisionId')
 
     team1 = converter.toTeamWithSql(db.getTeamWithTeamId(teamId1))
     team2 = converter.toTeamWithSql(db.getTeamWithTeamId(teamId2))
@@ -94,20 +101,20 @@ def matchups():
     team1.setPlayers(team1Roster)
     team2.setPlayers(team2Roster)
 
-    db = Database()
-    converter = Converter()
+    putupPlayer = None
+    if putupMemberId is not None:
+        putupPlayer = converter.toPlayerWithSql(db.getPlayerBasedOnMemberId(putupMemberId))
 
     
-    teamMatchup = TeamMatchup(team1, team2, putupTeamId == teamId1)
-    potentialTeamMatch = teamMatchup.putupBlind(team1Roster, team2Roster, PotentialTeamMatch([]))
-    return potentialTeamMatch.toJson()
-    '''
-    bestMatchups, ptsExpected, team1, team2 =  teamMatchup.decideBestMatchups()
+    teamMatchup = TeamMatchup(team1, team2, putupPlayer)
+    potentialTeamMatch = teamMatchup.start()
     jsonObj = {
-        "bestMatchups": bestMatchups,
-        "ptsExpected": ptsExpected,
+        "potentialTeamMatch": potentialTeamMatch,
         "team1": team1,
-        "team2": team2
+        "team2": team2,
+        "doesTeam1PutUpFirst": putupMemberId is None,
+        "sessionId": sessionId,
+        "divisionId": divisionId
     }
     
     return render_template(
@@ -115,7 +122,6 @@ def matchups():
         url_for=url_for,
         **jsonObj
     )
-    '''
 
 def keysToTeams(keys):
     teamId1 = keys[0].split('-')[0]
@@ -134,14 +140,19 @@ def keysToTeams(keys):
 def matchupTeams():
     teamId1 = request.args.get('teamId1')
     teamId2 = request.args.get('teamId2')
+    sessionId = request.args.get('sessionId')
+    divisionId = request.args.get('divisionId')
+
 
     db = Database()
     converter = Converter()
     team1 = converter.toTeamWithSql(db.getTeamWithTeamId(teamId1))
     team2 = converter.toTeamWithSql(db.getTeamWithTeamId(teamId2))
+    division = converter.toDivisionWithSql(db.getDivision(divisionId))
     jsonObj = {
         "team1": team1,
-        "team2": team2
+        "team2": team2,
+        "division": division
     }
     
     return render_template(

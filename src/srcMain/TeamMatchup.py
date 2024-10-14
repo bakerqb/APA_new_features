@@ -3,12 +3,19 @@ from utils.asl import *
 from utils.utils import *
 import math
 from src.dataClasses.PotentialPlayerResult import PotentialPlayerResult
+from src.dataClasses.PotentialTeamMatch import PotentialTeamMatch
+from src.dataClasses.Player import Player
 import sys
 
 class TeamMatchup():
-    def __init__(self, myTeam: Team, opponentTeam: Team, doesMyTeamPutUp: bool):
+    def __init__(self, myTeam: Team, opponentTeam: Team, putupPlayer: Player):
         self.myTeam = myTeam
         self.opponentTeam = opponentTeam
+        self.doesMyTeamPutUp = putupPlayer is None
+        self.putupPlayer = putupPlayer
+
+        if self.putupPlayer is not None:
+            self.putupPlayer.setAdjustedSkillLevel(getAdjustedSkillLevel(putupPlayer.getMemberId(), putupPlayer.getCurrentSkillLevel(), None, None))
 
         for player in self.myTeam.getPlayers():
             player.setAdjustedSkillLevel(getAdjustedSkillLevel(player.getMemberId(), player.getCurrentSkillLevel(), None, None))
@@ -16,7 +23,6 @@ class TeamMatchup():
         for player in self.opponentTeam.getPlayers():
             player.setAdjustedSkillLevel(getAdjustedSkillLevel(player.getMemberId(), player.getCurrentSkillLevel(), None, None))
 
-        self.doesMyTeamPutUp = doesMyTeamPutUp
         # TODO: Remove hardcoded values
         self.game = "8-ball"
         self.skillLevelMatrix = createASLMatrix(self.game)
@@ -46,6 +52,16 @@ class TeamMatchup():
         index1 = ((skillLevel1 - rangeStart) * NUM_SECTIONS_PER_SKILL_LEVEL) + asl1SectionIndex + 1 
         index2 = ((skillLevel2 - rangeStart) * NUM_SECTIONS_PER_SKILL_LEVEL) + asl2SectionIndex + 1 
         return (self.skillLevelMatrix[index1][index2], self.skillLevelMatrix[index2][index1])
+    
+    def start(self):
+        potentialTeamMatch = PotentialTeamMatch([])
+        if self.doesMyTeamPutUp:
+            potentialTeamMatch = self.putupBlind(self.myTeam.getPlayers(), self.opponentTeam.getPlayers(), potentialTeamMatch)
+
+        else:
+            potentialTeamMatch = self.putupNonBlind(self.putupPlayer, self.myTeam.getPlayers(), self.opponentTeam.getPlayers(), potentialTeamMatch)
+        potentialTeamMatch.reversePotentialPlayerMatches()
+        return potentialTeamMatch
 
     def putupBlind(self, myPlayers, theirPlayers, potentialTeamMatch):
         # Assert len(myPlayers) - 1 == len(theirPlayers)
@@ -77,8 +93,10 @@ class TeamMatchup():
             theirExpectedTotalPts = newPotentialTeamMatch.sumPoints(not amILookingAtMyTeam)
             myExpectedTotalPts = newPotentialTeamMatch.sumPoints(amILookingAtMyTeam)
 
+            '''
             if len(self.opponentTeam.getPlayers()) == len(newPotentialTeamMatch.getPotentialPlayerMatches()):
                 print(myExpectedTotalPts - theirExpectedTotalPts, "if we throw", player.getPlayerName())
+            '''
 
             if theirExpectedTotalPts - myExpectedTotalPts < worstExpectedPtsForOpponents[1] - worstExpectedPtsForOpponents[0]:
                 worstExpectedPtsForOpponents = (myExpectedTotalPts, theirExpectedTotalPts)
@@ -116,6 +134,11 @@ class TeamMatchup():
             theirExpectedTotalPts = theirPoints + newPotentialTeamMatch.sumPoints(not amILookingAtMyOwnTeam)
             myExpectedTotalPts = myPoints + newPotentialTeamMatch.sumPoints(amILookingAtMyOwnTeam)
 
+            '''
+            if chosenPlayer.getPlayerName() == "Patrick Barrett":
+                print(myExpectedTotalPts - theirExpectedTotalPts, "if we throwww", player.getPlayerName())
+            '''
+
             if myExpectedTotalPts - theirExpectedTotalPts > bestPlayerExpectedPts[0] - bestPlayerExpectedPts[1]:
                 if self.myTeam.isPlayerOnTeam(player):
                     newPotentialTeamMatch.addPotentialPlayerResult(PotentialPlayerResult(player, myPoints))
@@ -126,5 +149,6 @@ class TeamMatchup():
                 
                 bestPotentialTeamMatch = newPotentialTeamMatch
                 bestPlayerExpectedPts = (myExpectedTotalPts, theirExpectedTotalPts)
+            
         
         return bestPotentialTeamMatch
