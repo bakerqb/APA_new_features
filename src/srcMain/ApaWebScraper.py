@@ -32,7 +32,7 @@ class ApaWebScraper:
         driver = webdriver.Chrome()
         if not self.config.get('debugMode'):
             options = webdriver.ChromeOptions()
-            options.add_argument('--headless')
+            options.add_argument('--headless=new')
             driver = webdriver.Chrome(options=options)
         driver.implicitly_wait(10)
         self.driver = driver

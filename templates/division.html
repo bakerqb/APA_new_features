@@ -1,33 +1,70 @@
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>APA MoneyPool</title>
-        
-    </head>
-    <link rel= "stylesheet" href= "{{ url_for('static', filename='css/styles.css') }}">
 
-    <body>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APA MoneyPool</title>
+
+</head>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+
+<body>
+    <a href="/home1">
         <h1>APA MoneyPool</h1>
-        <form action="/results">
-            
-            <label for="teamId">Select a Team:</label>
-            
-            <select name="teamId" id="teamId">
-                
+    </a>
+    <a href="/session?sessionId={{division.getSession().getSessionId()}}">
+        <h2>{{division.getSession().getSessionSeason()}} {{division.getSession().getSessionYear()}}</h2>
+    </a>
+    <h2>{{division.getDivisionName()}}</h2>
+    <form action="/results">
+
+        <label for="teamId">Select a Team:</label>
+
+        <select name="teamId" id="teamId">
+
+            {% for team in teams %}
+            <option value="{{team.get('teamId')}}">{{team.get('teamName')}}</option>
+            {% endfor %}
+        </select>
+        <input type="hidden" name="divisionId" id="divisionId" value="{{division.getDivisionId()}}" />
+        <input type="hidden" name="sessionId" id="sessionId" value="{{division.getSession().getSessionId()}}" />
+        <input type="submit" value="Submit">
+    </form>
+    <form action="/scrapeDivision">
+        <input type="hidden" name="divisionId" id="divisionId" value="{{division.getDivisionId()}}" />
+        <input type="hidden" name="sessionId" id="sessionId" value="{{division.getSession().getSessionId()}}" />
+        <button type="submit" class="btn btn-primary">Scrape Division</button>
+    </form>
+    <form action="/deleteDivision">
+        <input type="hidden" name="divisionId" id="divisionId" value="{{division.getDivisionId()}}" />
+        <input type="hidden" name="sessionId" id="sessionId" value="{{division.getSession().getSessionId()}}" />
+        <button type="submit" class="btn btn-primary">Delete Division</button>
+    </form>
+    <div>
+        <h4>Matchup teams</h4>
+        <form action="/matchupTeams">
+            <input type="hidden" name="divisionId" id="divisionId" value="{{division.getDivisionId()}}" />
+            <input type="hidden" name="sessionId" id="sessionId" value="{{division.getSession().getSessionId()}}" />
+
+            <label for="teamId1">Select your team:</label>
+
+            <select name="teamId1" id="teamId1">
+
                 {% for team in teams %}
-                    <option value="{{team.get('teamId')}}">{{team.get('teamName')}}</option>
+                <option value="{{team.get('teamId')}}">{{team.get('teamName')}}</option>
+                {% endfor %}
+            </select>
+            <label for="teamId2">Select your opponent:</label>
+
+            <select name="teamId2" id="teamId2">
+
+                {% for team in teams %}
+                <option value="{{team.get('teamId')}}">{{team.get('teamName')}}</option>
                 {% endfor %}
             </select>
             <input type="submit" value="Submit">
         </form>
-        <form action="/scrapeDivision">
-            <input type="hidden" name="divisionId" id="divisionId" value="{{divisionId}}" />
-            <button type="submit" class="btn btn-primary">Scrape Division</button>
-        </form>
-        <form action="/deleteDivision">
-            <input type="hidden" name="divisionId" id="divisionId" value="{{divisionId}}" />
-            <button type="submit" class="btn btn-primary">Delete Division</button>
-        </form>
-    </body>
+    </div>
+</body>
+
 </html>

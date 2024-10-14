@@ -11,6 +11,8 @@ from src.converter.Converter import Converter
 from waitress import serve
 from flask import Flask, render_template, request, url_for, redirect
 import jinja2
+from src.dataClasses.Criteria import Criteria
+from src.dataClasses.PotentialTeamMatch import PotentialTeamMatch
 
 jinja_environment = jinja2.Environment(autoescape=True,
     loader=jinja2.FileSystemLoader(os.path.join(os.path.dirname(__file__), 'templates')))
@@ -25,13 +27,17 @@ def results():
     apaWebScraper = ApaWebScraper()
     db = Database()
     teamId = request.args.get('teamId')
+    divisionId = request.args.get('divisionId')
+    sessionId = request.args.get('sessionId')
     # return useCase.getTeamResultsJson("SPRING", 2024, teamName, True)
+
+    jsonObj = useCase.getTeamResultsJson(teamId, True) | { "divisionId": divisionId, "sessionId": sessionId}
 
     # TODO: fix the parameters for getTeamResultsJson
     return render_template(
         jinja_environment.get_template('results.html'),
         url_for=url_for,
-        **useCase.getTeamResultsJson(teamId, True)
+        **jsonObj
     )
 
 @app.route("/index", methods=['GET'])
@@ -58,10 +64,11 @@ def scrapeDivision():
 
 @app.route("/deleteDivision")
 def deleteDivision():
+    sessionId = request.args.get('sessionId')
     divisionId = request.args.get('divisionId')
     db = Database()
     db.deleteDivision(None, divisionId)
-    return redirect(f"/division?divisionId={divisionId}")
+    return redirect(f"/division?sessionId={sessionId}&divisionId={divisionId}")
 
 @app.route("/deleteSession")
 def deleteSession():
@@ -76,6 +83,9 @@ def matchups():
     converter = Converter()
     teamId1 = request.args.get('teamId1')
     teamId2 = request.args.get('teamId2')
+    putupMemberId = request.args.get('putupMemberId')
+    sessionId = request.args.get('sessionId')
+    divisionId = request.args.get('divisionId')
 
     team1 = converter.toTeamWithSql(db.getTeamWithTeamId(teamId1))
     team2 = converter.toTeamWithSql(db.getTeamWithTeamId(teamId2))
@@ -91,17 +101,20 @@ def matchups():
     team1.setPlayers(team1Roster)
     team2.setPlayers(team2Roster)
 
-    db = Database()
-    converter = Converter()
+    putupPlayer = None
+    if putupMemberId is not None:
+        putupPlayer = converter.toPlayerWithSql(db.getPlayerBasedOnMemberId(putupMemberId))
 
     
-    teamMatchup = TeamMatchup(team1, team2, True)
-    bestMatchups, ptsExpected, team1, team2 =  teamMatchup.decideBestMatchups()
+    teamMatchup = TeamMatchup(team1, team2, putupPlayer)
+    potentialTeamMatch = teamMatchup.start()
     jsonObj = {
-        "bestMatchups": bestMatchups,
-        "ptsExpected": ptsExpected,
+        "potentialTeamMatch": potentialTeamMatch,
         "team1": team1,
-        "team2": team2
+        "team2": team2,
+        "doesTeam1PutUpFirst": putupMemberId is None,
+        "sessionId": sessionId,
+        "divisionId": divisionId
     }
     
     return render_template(
@@ -127,18 +140,42 @@ def keysToTeams(keys):
 def matchupTeams():
     teamId1 = request.args.get('teamId1')
     teamId2 = request.args.get('teamId2')
+    sessionId = request.args.get('sessionId')
+    divisionId = request.args.get('divisionId')
+
 
     db = Database()
     converter = Converter()
     team1 = converter.toTeamWithSql(db.getTeamWithTeamId(teamId1))
     team2 = converter.toTeamWithSql(db.getTeamWithTeamId(teamId2))
+    division = converter.toDivisionWithSql(db.getDivision(divisionId))
     jsonObj = {
         "team1": team1,
-        "team2": team2
+        "team2": team2,
+        "division": division
     }
     
     return render_template(
         jinja_environment.get_template('matchupTeams.html'),
+        url_for=url_for,
+        **jsonObj
+    )
+
+@app.route("/players1")
+def players1():
+    memberId = request.args.get('memberId')
+    playerName = request.args.get('playerName')
+    minSkillLevel = request.args.get('minSkillLevel')
+    maxSkillLevel = request.args.get('maxSkillLevel')
+    dateLastPlayed = request.args.get('dateLastPlayed')
+
+    db = Database()
+    converter = Converter()
+    criteria = Criteria(memberId, playerName, minSkillLevel, maxSkillLevel, dateLastPlayed)
+    jsonObj = { "players": db.getPlayers(criteria) }
+    
+    return render_template(
+        jinja_environment.get_template('players1.html'),
         url_for=url_for,
         **jsonObj
     )
@@ -150,8 +187,11 @@ def matchupTeams():
 def session():
     useCase = UseCase()
     sessionId = request.args.get('sessionId')
+    db = Database()
+    converter = Converter()
+    session = converter.toSessionWithSql(db.getSession(sessionId)[0])
     context = {
-        "sessionId": sessionId,
+        "session": session,
         "divisions": useCase.getDivisionsJson(sessionId)
     }
     return render_template(
@@ -184,6 +224,7 @@ def playerMatches():
 def division():
     useCase = UseCase()
     divisionId = request.args.get('divisionId')
+
     return render_template(
         jinja_environment.get_template('division.html'),
         url_for=url_for,

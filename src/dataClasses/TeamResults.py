@@ -1,10 +1,9 @@
 from utils.asl import *
+from dataClasses.Team import Team
 
 class TeamResults:
-    def __init__(self, teamId: int, playerMatches: list, roster: list, decorateWithASL: bool):
-        for playerResult in playerMatches[0].getPlayerResults():
-            if playerResult.getTeam().getTeamId() == teamId:
-                self.team = playerResult.getTeam()
+    def __init__(self, team: Team, playerMatches: list, roster: list, decorateWithASL: bool):
+        self.team = team
         self.roster = roster
         self.playerMatchesPerPlayer = self.toPlayerMatchesPerPlayer(playerMatches, decorateWithASL)
         

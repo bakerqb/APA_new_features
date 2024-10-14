@@ -1,32 +1,39 @@
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>APA MoneyPool</title>
-        
-    </head>
-    <link rel= "stylesheet" href= "{{ url_for('static', filename='css/styles.css') }}">
 
-    <body>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APA MoneyPool</title>
+
+</head>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+
+<body>
+    <a href="/home1">
         <h1>APA MoneyPool</h1>
-        <label for="divisionId">Select a Division:</label>
-        
-        <form action="/division">
-            <select name="divisionId" id="divisionId">
-                {% for division in divisions %}
-                <option value="{{division.get('divisionId')}}">{{division.get('divisionName')}}</option>
-                
-                {% endfor %}
-            </select>
-            <button type="submit">Submit</button>
-        </form>
-        <form action="/scrapeSession">
-            <input type="hidden" name="sessionId" id="sessionId" value="{{sessionId}}" />
-            <button type="submit" class="btn btn-primary">Scrape Session</button>
-        </form>
-        <form action="/deleteSession">
-            <input type="hidden" name="sessionId" id="sessionId" value="{{sessionId}}" />
-            <button type="submit" class="btn btn-primary">Delete Session</button>
-        </form>
-    </body>
+    </a>
+    <h2>{{session.getSessionSeason()}} {{session.getSessionYear()}}</h2>
+    <label for="divisionId">Select a Division:</label>
+
+    <form action="/division">
+        <input type="hidden" name="sessionId" id="sessionId" value="{{session.getSessionId()}}" />
+        <select name="divisionId" id="divisionId">
+
+            {% for division in divisions %}
+            <option value="{{division.get('divisionId')}}">{{division.get('divisionName')}}</option>
+
+            {% endfor %}
+        </select>
+        <button type="submit">Submit</button>
+    </form>
+    <form action="/scrapeSession">
+        <input type="hidden" name="sessionId" id="sessionId" value="{{session.getSessionId()}}" />
+        <button type="submit" class="btn btn-primary">Scrape Session</button>
+    </form>
+    <form action="/deleteSession">
+        <input type="hidden" name="sessionId" id="sessionId" value="{{session.getSessionId()}}" />
+        <button type="submit" class="btn btn-primary">Delete Session</button>
+    </form>
+</body>
+
 </html>

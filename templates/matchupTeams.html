@@ -1,29 +1,55 @@
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>APA MoneyPool</title>
-        
-    </head>
-    <link rel= "stylesheet" href= "{{ url_for('static', filename='css/styles.css') }}">
 
-    <body>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APA MoneyPool</title>
+
+</head>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+
+<body>
+    <a href="/home1">
         <h1>APA MoneyPool</h1>
-        <form action="/matchups">
-            <input type="hidden" name="teamId1" id="teamId1" value="{{team1.getTeamId()}}">
-            <input type="hidden" name="teamId2" id="teamId2" value="{{team2.getTeamId()}}">
-            <h2>{{team1.getTeamName()}}</h2>
-            {% for player in team1.getPlayers() %} 
-                <input type="checkbox" id="{{team1.getTeamId()}}-{{player.getMemberId()}}" name="{{team1.getTeamId()}}-{{player.getMemberId()}}" value="">
-                <label for="{{team1.getTeamId()}}-{{player.getMemberId()}}"> {{player.getPlayerName()}}</label><br>
+    </a>
+
+    <a href="/division?sessionId={{division.getSession().getSessionId()}}&divisionId={{division.getDivisionId()}}">
+        <h2>{{division.getDivisionName()}}</h2>
+    </a>
+    <form action="/matchups">
+        <input type="hidden" name="teamId1" id="teamId1" value="{{team1.getTeamId()}}">
+        <input type="hidden" name="teamId2" id="teamId2" value="{{team2.getTeamId()}}">
+        <input type="hidden" name="sessionId" id="sessionId" value="{{division.getSession().getSessionId()}}">
+        <input type="hidden" name="divisionId" id="divisionId" value="{{division.getDivisionId()}}">
+
+        <label for="putupMemberId">If {{team1.getTeamName()}} puts up first, leave this blank. Who is
+            {{team2.getTeamName()}}
+            putting up?</label>
+
+        <select name="putupMemberId" id="putupMemberId">
+            <option disabled selected value> -- Select a player -- </option>
+            {% for player in team2.getPlayers() %}
+            <option value="{{player.getMemberId()}}">{{player.getPlayerName()}}
+            </option>
             {% endfor %}
-            <br>
-            <h2>{{team2.getTeamName()}}</h2>
-            {% for player in team2.getPlayers() %} 
-                <input type="checkbox" id="{{team2.getTeamId()}}-{{player.getMemberId()}}" name="{{team2.getTeamId()}}-{{player.getMemberId()}}" value="">
-                <label for="{{team2.getTeamId()}}-{{player.getMemberId()}}"> {{player.getPlayerName()}}</label><br>
-            {% endfor %}
-            <button type="submit">Get Best Matchups</button>
-        </form>
-    </body>
+        </select>
+        <h2>{{team1.getTeamName()}}</h2>
+        {% for player in team1.getPlayers() %}
+        <input type="checkbox" id="{{team1.getTeamId()}}-{{player.getMemberId()}}"
+            name="{{team1.getTeamId()}}-{{player.getMemberId()}}" value="">
+        <label for="{{team1.getTeamId()}}-{{player.getMemberId()}}"> {{player.getPlayerName()}}
+            [{{player.getCurrentSkillLevel()}}]</label><br>
+        {% endfor %}
+        <br>
+        <h2>{{team2.getTeamName()}}</h2>
+        {% for player in team2.getPlayers() %}
+        <input type="checkbox" id="{{team2.getTeamId()}}-{{player.getMemberId()}}"
+            name="{{team2.getTeamId()}}-{{player.getMemberId()}}" value="">
+        <label for="{{team2.getTeamId()}}-{{player.getMemberId()}}"> {{player.getPlayerName()}}
+            [{{player.getCurrentSkillLevel()}}]</label><br>
+        {% endfor %}
+        <button type="submit">Get Best Matchups</button>
+    </form>
+</body>
+
 </html>
