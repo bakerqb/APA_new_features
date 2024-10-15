@@ -34,15 +34,3 @@ class PlayerMatch:
         if not self.playerResults[0].getPlayer() == player:
             self.playerResults.reverse()
         return self
-
-
-    def toJson(self):
-        return {
-            "playerResults": list(map(lambda playerResult: playerResult.toJson(), self.playerResults)),
-            "playerMatchId": self.playerMatchId,
-            "teamMatchId": self.teamMatchId,
-            "datePlayed": self.datePlayed,
-            "readableDatePlayed": self.readableDatePlayed
-        }
-    
-    

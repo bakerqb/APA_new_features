@@ -20,7 +20,7 @@
         <select name="divisionId" id="divisionId">
 
             {% for division in divisions %}
-            <option value="{{division.get('divisionId')}}">{{division.get('divisionName')}}</option>
+            <option value="{{division.getDivisionId()}}">{{division.getDivisionName()}}</option>
 
             {% endfor %}
         </select>

@@ -5,12 +5,6 @@ class PotentialPlayerResult:
         self.player = player
         self.expectedPts = expectedPts
 
-    def toJson(self):
-        return {
-            "player": self.player.toJson(),
-            "expectedPts": self.expectedPts
-        }
-    
     def getPlayer(self):
         return self.player
     

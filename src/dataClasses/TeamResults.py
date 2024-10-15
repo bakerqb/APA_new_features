@@ -23,13 +23,7 @@ class TeamResults:
                     playerMatch = playerMatch.properPlayerResultOrderWithPlayer(player)
                     playerMatchesPerPlayer[playerName]["playerMatches"].append(playerMatch)
         return playerMatchesPerPlayer
-    
-    def toJson(self):
-        return {
-            "team" : self.team.toJson(),
-            "playerMatchesPerPlayer": { playerName: { "player": playerMatchesPerPlayerItem.get('player').toJson(), "ASL": playerMatchesPerPlayerItem.get('ASL'), "playerMatches": list(map(lambda playerMatch: playerMatch.toJson(), playerMatchesPerPlayerItem.get('playerMatches'))) } for playerName, playerMatchesPerPlayerItem in self.playerMatchesPerPlayer.items()}
-        }
-    
+
     def getTeam(self):
         return self.team
     
