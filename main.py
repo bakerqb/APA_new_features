@@ -22,22 +22,21 @@ app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'sta
 
 @app.route("/results")
 def results():
-    config = Config()
     useCase = UseCase()
-    apaWebScraper = ApaWebScraper()
-    db = Database()
     teamId = request.args.get('teamId')
     divisionId = request.args.get('divisionId')
     sessionId = request.args.get('sessionId')
-    # return useCase.getTeamResultsJson("SPRING", 2024, teamName, True)
 
-    jsonObj = useCase.getTeamResultsJson(teamId, True) | { "divisionId": divisionId, "sessionId": sessionId}
+    data = { 
+        "teamResults": useCase.getTeamResults(teamId, True),
+        "divisionId": divisionId,
+        "sessionId": sessionId
+    }
 
-    # TODO: fix the parameters for getTeamResultsJson
     return render_template(
         jinja_environment.get_template('results.html'),
         url_for=url_for,
-        **jsonObj
+        **data
     )
 
 @app.route("/index", methods=['GET'])
@@ -108,7 +107,7 @@ def matchups():
     
     teamMatchup = TeamMatchup(team1, team2, putupPlayer)
     potentialTeamMatch = teamMatchup.start()
-    jsonObj = {
+    data = {
         "potentialTeamMatch": potentialTeamMatch,
         "team1": team1,
         "team2": team2,
@@ -120,7 +119,7 @@ def matchups():
     return render_template(
         jinja_environment.get_template('matchups.html'),
         url_for=url_for,
-        **jsonObj
+        **data
     )
 
 def keysToTeams(keys):
@@ -149,7 +148,7 @@ def matchupTeams():
     team1 = converter.toTeamWithSql(db.getTeamWithTeamId(teamId1))
     team2 = converter.toTeamWithSql(db.getTeamWithTeamId(teamId2))
     division = converter.toDivisionWithSql(db.getDivision(divisionId))
-    jsonObj = {
+    data = {
         "team1": team1,
         "team2": team2,
         "division": division
@@ -158,7 +157,7 @@ def matchupTeams():
     return render_template(
         jinja_environment.get_template('matchupTeams.html'),
         url_for=url_for,
-        **jsonObj
+        **data
     )
 
 @app.route("/players")
@@ -170,18 +169,14 @@ def players():
     dateLastPlayed = request.args.get('dateLastPlayed')
 
     db = Database()
-    converter = Converter()
     criteria = Criteria(memberId, playerName, minSkillLevel, maxSkillLevel, dateLastPlayed)
-    jsonObj = { "players": db.getPlayers(criteria) }
+    data = { "players": db.getPlayers(criteria) }
     
     return render_template(
         jinja_environment.get_template('players.html'),
         url_for=url_for,
-        **jsonObj
+        **data
     )
-
-
-    
 
 @app.route("/session")
 def session():
@@ -190,14 +185,14 @@ def session():
     db = Database()
     converter = Converter()
     session = converter.toSessionWithSql(db.getSession(sessionId)[0])
-    context = {
+    data = {
         "session": session,
-        "divisions": useCase.getDivisionsJson(sessionId)
+        "divisions": useCase.getDivisions(sessionId)
     }
     return render_template(
         jinja_environment.get_template('session.html'),
         url_for=url_for,
-        **context
+        **data
     )
 
 @app.route("/home1")
@@ -206,7 +201,7 @@ def home1():
     return render_template(
         jinja_environment.get_template('home1.html'),
         url_for=url_for,
-        **useCase.getSessionsJson()
+        **useCase.getSessions()
     )
 
 @app.route("/playerMatches")
@@ -216,7 +211,7 @@ def playerMatches():
     return render_template(
         jinja_environment.get_template('player.html'),
         url_for=url_for,
-        **useCase.getPlayerMatchesForPlayerJson(memberId)
+        **useCase.getPlayerMatchesForPlayer(memberId)
     )
 
 
@@ -228,15 +223,8 @@ def division():
     return render_template(
         jinja_environment.get_template('division.html'),
         url_for=url_for,
-        **useCase.getTeamsJson(divisionId)
+        **useCase.getTeams(divisionId)
     )
-
-@app.route("/test")
-def test():
-    apaWebScraper = ApaWebScraper()
-    db = Database()
-    db.deleteDivision(None, 208953)
-    apaWebScraper.scrapeAllEightBallThursDivisions()
 
 if __name__ == "__main__":
     serve(app, host="127.0.0.1", port=8000)

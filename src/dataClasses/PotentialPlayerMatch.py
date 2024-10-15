@@ -19,12 +19,6 @@ class PotentialPlayerMatch:
             self.potentialPlayerResults.reverse()
         return self
 
-
-    def toJson(self):
-        return {
-            "potentialPlayerResults": list(map(lambda potentialPlayerResult: potentialPlayerResult.toJson(), self.potentialPlayerResults))
-        }
-    
     def addPotentialPlayerResult(self, potentialPlayerResult):
         self.potentialPlayerResults.append(potentialPlayerResult)
     

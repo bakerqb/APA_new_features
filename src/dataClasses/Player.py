@@ -4,13 +4,6 @@ class Player:
         self.playerName = playerName
         self.currentSkillLevel = int(currentSkillLevel)
         self.adjustedSkillLevel = None
-    def toJson(self):
-        return {
-            "memberId": self.memberId,
-            "playerName": self.playerName,
-            "currentSkillLevel": self.currentSkillLevel,
-            "adjustedSkillLevel": self.adjustedSkillLevel
-        }
     
     def getMemberId(self):
         return self.memberId

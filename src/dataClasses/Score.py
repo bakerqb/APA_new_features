@@ -4,13 +4,6 @@ class Score():
         self.playerPtsEarned = int(playerPtsEarned)
         self.playerPtsNeeded = int(playerPtsNeeded)
 
-    def toJson(self):
-        return {
-            "teamPtsEarned": self.teamPtsEarned,
-            "playerPtsEarned": self.playerPtsEarned,
-            "playerPtsNeeded": self.playerPtsNeeded
-        }
-    
     def getTeamPtsEarned(self):
         return self.teamPtsEarned
     

@@ -10,15 +10,6 @@ class PlayerResult:
         self.score = score
         self.adjustedSkillLevel = adjustedSkillLevel
 
-    def toJson(self):
-        return {
-            "team": self.team.toJson(),
-            "player": self.player.toJson(),
-            "skillLevel": self.skillLevel,
-            "score": self.score.toJson(),
-            "adjustedSkillLevel": self.adjustedSkillLevel
-        }
-    
     def getTeam(self):
         return self.team
     

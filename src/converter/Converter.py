@@ -79,6 +79,10 @@ class Converter:
             team.addPlayer(Player(memberId, playerName, currentSkillLevel))
         return team
     
+    def toTeamWithoutRosterWithSql(self, sqlRow, division):
+        divisionId, teamId, teamNum, teamName = sqlRow
+        return Team(division, teamId, teamNum, teamName, [])
+    
     def toPlayerWithSql(self, sqlRow):
         # Data comes in the format of: memberId, playerName, currentSkillLevel
         memberId, playerName, currentSkillLevel = sqlRow

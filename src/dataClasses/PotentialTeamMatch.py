@@ -20,12 +20,7 @@ class PotentialTeamMatch:
         for potentialPlayerMatch in self.potentialPlayerMatches:
             sum += potentialPlayerMatch.getPotentialPlayerResults()[isMyTeam].getExpectedPts()
         return sum
-    
-    def toJson(self):
-        return {
-            "potentialPlayerMatches": list(map(lambda potentialPlayerMatch: potentialPlayerMatch.toJson(), self.potentialPlayerMatches))
-        }
-    
+ 
     def copy(self):
         tempPotentialPlayerMatches = self.potentialPlayerMatches.copy()
         return PotentialTeamMatch(tempPotentialPlayerMatches)

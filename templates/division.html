@@ -23,7 +23,7 @@
         <select name="teamId" id="teamId">
 
             {% for team in teams %}
-            <option value="{{team.get('teamId')}}">{{team.get('teamName')}}</option>
+            <option value="{{team.getTeamId()}}">{{team.getTeamName()}}</option>
             {% endfor %}
         </select>
         <input type="hidden" name="divisionId" id="divisionId" value="{{division.getDivisionId()}}" />
@@ -51,7 +51,7 @@
             <select name="teamId1" id="teamId1">
 
                 {% for team in teams %}
-                <option value="{{team.get('teamId')}}">{{team.get('teamName')}}</option>
+                <option value="{{team.getTeamId()}}">{{team.getTeamName()}}</option>
                 {% endfor %}
             </select>
             <label for="teamId2">Select your opponent:</label>
@@ -59,7 +59,7 @@
             <select name="teamId2" id="teamId2">
 
                 {% for team in teams %}
-                <option value="{{team.get('teamId')}}">{{team.get('teamName')}}</option>
+                <option value="{{team.getTeamId()}}">{{team.getTeamName()}}</option>
                 {% endfor %}
             </select>
             <input type="submit" value="Submit">

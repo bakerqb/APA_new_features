@@ -6,15 +6,6 @@ class Criteria:
         self.maxSkillLevel = maxSkillLevel
         self.dateLastPlayed = dateLastPlayed
 
-    def toJson(self):
-        return {
-            "memberId": self.memberId,
-            "playerName": self.playerName,
-            "minSkillLevel": self.minSkillLevel,
-            "maxSkillLevel": self.maxSkillLevel,
-            "dateLastPlayed": self.dateLastPlayed
-        }
-    
     def getMemberId(self):
         return self.memberId
     

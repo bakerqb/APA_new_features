@@ -9,15 +9,6 @@ class Team:
         self.teamName = teamName
         self.players = players
 
-    def toJson(self):
-        return {
-            "division": self.division.toJson(),
-            "teamId": self.teamId,
-            "teamNum": self.teamNum,
-            "teamName": self.teamName,
-            "players": list(map(lambda player: player.toJson(), self.players))
-        }
-    
     def addPlayer(self, player: Player):
         self.players.append(player)
 

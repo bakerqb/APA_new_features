@@ -4,13 +4,6 @@ class Session:
         self.sessionSeason = sessionSeason
         self.sessionYear = sessionYear
 
-    def toJson(self):
-        return {
-            "sessionId": self.sessionId,
-            "sessionSeason": self.sessionSeason,
-            "sessionYear": self.sessionYear
-        }
-    
     def getSessionId(self):
         return self.sessionId
     

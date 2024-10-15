@@ -20,60 +20,27 @@ class UseCase:
         results = TeamResults(team, teamResultsPlayerMatches, list(map(lambda player: self.converter.toPlayerWithSql(player), self.db.getTeamRoster(teamId))), decorateWithASL)
         return results
     
-    def getUpcomingTeamResultsJson(self) -> dict:
-        # TODO: Find a way to know what the sessionId, divisionId, and teamId are just based on the info provided in the config
-        
-        sessionSeason = self.config.getConfig().get('sessionSeasonInQuestion')
-        sessionYear = self.config.getConfig().get('sessionYearInQuestion')
-        teamIds = self.config.get('myInfo').get('teamIds')
-
-        nextTeamId = None
-        for teamId in teamIds:
-            # Determine which of your teams is playing next and set that team's ID to nextTeamId
-            print(0)
-            
-
-        teamName = self.apaWebScraper.getOpponentTeam(nextTeamId)
-        return self.getTeamResultsJson(sessionSeason, sessionYear, teamName)
-
-    def getTeamResultsJson(self, teamId, decorateWithASL) -> dict:
-        return self.getTeamResults(teamId, decorateWithASL).toJson()
-    
-    def getPlayerMatchesForPlayerJson(self, memberId) -> dict:
+    def getPlayerMatchesForPlayer(self, memberId) -> dict:
         player = self.converter.toPlayerWithSql(self.db.getPlayerBasedOnMemberId(memberId))
         return {
-            "player": player.toJson(),
-            "playerMatches": list(map(lambda playerMatch: self.converter.toPlayerMatchWithSql(playerMatch).properPlayerResultOrderWithPlayer(player).toJson(), self.db.getPlayerMatches(None, None, memberId, "8-ball", 15, None, None)))
+            "player": player,
+            "playerMatches": list(map(lambda playerMatch: self.converter.toPlayerMatchWithSql(playerMatch).properPlayerResultOrderWithPlayer(player), self.db.getPlayerMatches(None, None, memberId, "8-ball", 15, None, None)))
         }
-    
-
-    
 
     # ------------------------- Divisions -------------------------
-    def getDivisionsJson(self, sessionId):
-        return list(map(lambda division: division.toJson(), self.getDivisions(sessionId)))
-    
     def getDivisions(self, sessionId):
         return list(map(lambda division: self.converter.toDivisionWithSql(division), self.db.getDivisions(sessionId)))
-        
-
 
     # ------------------------- Sessions -------------------------
     def getSessions(self):
-        return list(map(lambda session: self.converter.toSessionWithSql(session), self.db.getSessions()))
-    
-    def getSessionsJson(self):
-        return {
-            "sessions": list(map(lambda session: session.toJson(), self.getSessions()))
-        }
-
+        return { "sessions": list(map(lambda session: self.converter.toSessionWithSql(session), self.db.getSessions())) }
     
     # ------------------------- Teams -------------------------
-    def getTeamsJson(self, divisionId):
+    def getTeams(self, divisionId):
         db = Database()
         converter = Converter()
         division = converter.toDivisionWithSql(db.getDivision(divisionId))
         return {
-            "teams": list(map(lambda teamRow: { "teamId": teamRow[1], "teamName": teamRow[3] }, self.db.getTeamsFromDivision(divisionId))),
+            "teams": list(map(lambda teamRow: self.converter.toTeamWithoutRosterWithSql(teamRow, division), self.db.getTeamsFromDivision(divisionId))),
             "division": division
         }
