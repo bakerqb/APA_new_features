@@ -1,22 +1,26 @@
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>APA MoneyPool</title>
-        
-    </head>
-    <link rel= "stylesheet" href= "{{ url_for('static', filename='css/styles.css') }}">
 
-    <body>
-        <h1>APA MoneyPool</h1>
-        <form action="/session">
-            <label for="sessionId">Select a Session:</label>
-            <select name="sessionId" id="sessionId">
-                {% for session in sessions %}
-                    <option value="{{session.get('sessionId')}}">{{session.get('sessionSeason')}} {{session.get('sessionYear')}}</option>
-                {% endfor %}
-            </select>
-            <input type="submit" value="Submit">
-        </form>
-    </body>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APA MoneyPool</title>
+
+</head>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+
+<body>
+    <h1>APA MoneyPool</h1>
+    <form action="/session">
+        <label for="sessionId">Select a Session:</label>
+        <select name="sessionId" id="sessionId">
+            {% for session in sessions %}
+            <option value="{{session.get('sessionId')}}">{{session.get('sessionSeason')}} {{session.get('sessionYear')}}
+            </option>
+            {% endfor %}
+        </select>
+        <input type="submit" value="Submit">
+    </form>
+    <a href="/players">Player database</a>
+</body>
+
 </html>

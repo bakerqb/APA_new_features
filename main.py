@@ -161,8 +161,8 @@ def matchupTeams():
         **jsonObj
     )
 
-@app.route("/players1")
-def players1():
+@app.route("/players")
+def players():
     memberId = request.args.get('memberId')
     playerName = request.args.get('playerName')
     minSkillLevel = request.args.get('minSkillLevel')
@@ -175,7 +175,7 @@ def players1():
     jsonObj = { "players": db.getPlayers(criteria) }
     
     return render_template(
-        jinja_environment.get_template('players1.html'),
+        jinja_environment.get_template('players.html'),
         url_for=url_for,
         **jsonObj
     )
