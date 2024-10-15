@@ -10,14 +10,16 @@ def getAdjustedSkillLevel(memberId, currentSkillLevel, datePlayed, playerMatchId
         db = Database()
         converter = Converter()
 
-        # TODO: remove hardcoded values
-        limit = 15
-        game = Game.EightBall.value
+        NUM_RELEVANT_PLAYERMATCHES = 15
+        GAME = Game.EightBall.value
+        NUM_GAMES_CONSIDERED_RECENT = 3
+        SKILL_LEVEL_CHANGE_ADJUSTMENT = .25
+        MAX_ADJUSTED_SCORE_OFFSET = .49
+        ADJUSTED_SCORE_OFFSET_THRESHOLD = .5
 
-        playerResultsDb = db.getPlayerMatches(None, None, memberId, game, limit, datePlayed, playerMatchId)
+        playerResultsDb = db.getPlayerMatches(None, None, memberId, GAME, NUM_RELEVANT_PLAYERMATCHES, datePlayed, playerMatchId)
         playerMatches = list(map(lambda playerMatch: converter.toPlayerMatchWithSql(playerMatch), playerResultsDb))
 
-        #TODO: put playerMatches through algorithm
         adjustedScoreOffsetTotal = 0
         numWins = 0
         numLosses = 0
@@ -93,16 +95,32 @@ def getAdjustedSkillLevel(memberId, currentSkillLevel, datePlayed, playerMatchId
             elif adjustedScoreOffset < 0:
                 adjustedScoreOffset *= (numLosses/10)
 
-        if memberId == 60902883:
-            adjustedScoreOffset -= 1
-        if adjustedScoreOffset >= .5:
-            adjustedScoreOffset = .49
-        elif adjustedScoreOffset <= -.5:
-            adjustedScoreOffset = -.49
+        # Refine adjusted skill level if player has changed recently
+        wasLowerSkillLevelRecently = False
+        wasHigherSkillLevelRecently = False
+        for playerMatch in playerMatches[0:NUM_GAMES_CONSIDERED_RECENT]:
+            playerResults = playerMatch.getPlayerResults()
+            skillLevel = playerResults[0].getSkillLevel() if playerResults[0].getPlayer().getMemberId() == memberId else playerResults[1].getSkillLevel()
+            if skillLevel < currentSkillLevel:
+                wasLowerSkillLevelRecently = True
+            elif skillLevel > currentSkillLevel:
+                wasHigherSkillLevelRecently = True
+        
+        if wasLowerSkillLevelRecently:
+            adjustedScoreOffset -= SKILL_LEVEL_CHANGE_ADJUSTMENT
+        if wasHigherSkillLevelRecently:
+            adjustedScoreOffset += SKILL_LEVEL_CHANGE_ADJUSTMENT
+        
+
+        # If adjusted skill level is off the charts, set it to be max, like 4.99, for example
+        if adjustedScoreOffset >= ADJUSTED_SCORE_OFFSET_THRESHOLD:
+            adjustedScoreOffset = MAX_ADJUSTED_SCORE_OFFSET
+        elif adjustedScoreOffset <= -1 * ADJUSTED_SCORE_OFFSET_THRESHOLD:
+            adjustedScoreOffset = -1 * ADJUSTED_SCORE_OFFSET_THRESHOLD
         
         adjustedScoreOffset = float(f'{adjustedScoreOffset:.2f}')
 
-        return str(int(currentSkillLevel) + .5 + adjustedScoreOffset)
+        return str(int(currentSkillLevel) + ADJUSTED_SCORE_OFFSET_THRESHOLD + adjustedScoreOffset)
 
 
 def createASLMatrix(game):
