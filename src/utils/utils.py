@@ -71,6 +71,72 @@ def eightBallTeamPtsEarnedMapper(playerPtsEarned1, playerPtsEarned2, playerPtsNe
             return (1, 2)
         else:
             return (0, 2)
+        
+def eightBallNewPlayerMapper(oldPlayerSkillLevel, newPlayerTeamPtsEarned, oldPlayerTeamPtsEarned):
+    if oldPlayerSkillLevel == 2:
+        if newPlayerTeamPtsEarned == 3 and oldPlayerTeamPtsEarned == 0:
+            return ((3, 3), (0, 2))
+        elif newPlayerTeamPtsEarned == 2 and oldPlayerTeamPtsEarned == 1:
+            return ((3, 3), (1, 2))
+        elif newPlayerTeamPtsEarned == 1 and oldPlayerTeamPtsEarned == 2:
+            return ((2, 3), (2, 2))
+        elif newPlayerTeamPtsEarned == 0 and oldPlayerTeamPtsEarned == 2:
+            return ((1, 3), (2, 2))
+        else:
+            return ((0, 3), (2, 2))
+    elif oldPlayerSkillLevel == 3 or oldPlayerSkillLevel == 0:
+        if newPlayerTeamPtsEarned == 3 and oldPlayerTeamPtsEarned == 0:
+            return ((2, 2), (0, 2))
+        elif newPlayerTeamPtsEarned == 2 and oldPlayerTeamPtsEarned == 1:
+            return ((2, 2), (1, 2))
+        elif newPlayerTeamPtsEarned == 1 and oldPlayerTeamPtsEarned == 2:
+            return ((1, 2), (2, 2))
+        else:
+            return ((0, 2), (2, 2))
+    elif oldPlayerSkillLevel == 4:
+        if newPlayerTeamPtsEarned == 3 and oldPlayerTeamPtsEarned == 0:
+            return ((2, 2), (0, 3))
+        elif newPlayerTeamPtsEarned == 2 and oldPlayerTeamPtsEarned == 0:
+            return ((2, 2), (1, 3))
+        elif newPlayerTeamPtsEarned == 2 and oldPlayerTeamPtsEarned == 1:
+            return ((2, 2), (2, 3))
+        elif newPlayerTeamPtsEarned == 1 and oldPlayerTeamPtsEarned == 2:
+            return ((1, 2), (3, 3))
+        else:
+            return ((0, 2), (3, 3))
+    elif oldPlayerSkillLevel == 5:
+        if newPlayerTeamPtsEarned == 3 and oldPlayerTeamPtsEarned == 0:
+            return ((2, 2), (0, 4))
+        elif newPlayerTeamPtsEarned == 2 and oldPlayerTeamPtsEarned == 0:
+            return ((2, 2), (1, 4))
+        elif newPlayerTeamPtsEarned == 2 and oldPlayerTeamPtsEarned == 1:
+            return ((2, 2), (3, 4))
+        elif newPlayerTeamPtsEarned == 1 and oldPlayerTeamPtsEarned == 2:
+            return ((1, 2), (4, 4))
+        else:
+            return ((0, 2), (4, 4))
+    elif oldPlayerSkillLevel == 6:
+        if newPlayerTeamPtsEarned == 3 and oldPlayerTeamPtsEarned == 0:
+            return ((2, 2), (0, 5))
+        elif newPlayerTeamPtsEarned == 2 and oldPlayerTeamPtsEarned == 0:
+            return ((2, 2), (1, 5))
+        elif newPlayerTeamPtsEarned == 2 and oldPlayerTeamPtsEarned == 1:
+            return ((2, 2), (4, 5))
+        elif newPlayerTeamPtsEarned == 1 and oldPlayerTeamPtsEarned == 2:
+            return ((1, 2), (5, 5))
+        else:
+            return ((0, 2), (5, 5))
+    else:
+        if newPlayerTeamPtsEarned == 3 and oldPlayerTeamPtsEarned == 0:
+            return ((2, 2), (0, 6))
+        elif newPlayerTeamPtsEarned == 2 and oldPlayerTeamPtsEarned == 0:
+            return ((2, 2), (1, 6))
+        elif newPlayerTeamPtsEarned == 2 and oldPlayerTeamPtsEarned == 1:
+            return ((2, 2), (5, 6))
+        elif newPlayerTeamPtsEarned == 1 and oldPlayerTeamPtsEarned == 2:
+            return ((1, 2), (6, 6))
+        else:
+            return ((0, 2), (6, 6))
      
 
 def toReadableDateTimeString(date):

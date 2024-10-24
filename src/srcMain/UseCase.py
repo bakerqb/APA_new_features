@@ -24,7 +24,7 @@ class UseCase:
         player = self.converter.toPlayerWithSql(self.db.getPlayerBasedOnMemberId(memberId))
         return {
             "player": player,
-            "playerMatches": list(map(lambda playerMatch: self.converter.toPlayerMatchWithSql(playerMatch).properPlayerResultOrderWithPlayer(player), self.db.getPlayerMatches(None, None, memberId, "8-ball", 15, None, None)))
+            "playerMatches": list(map(lambda playerMatch: self.converter.toPlayerMatchWithSql(playerMatch).properPlayerResultOrderWithPlayer(player), self.db.getPlayerMatches(None, None, memberId, "8-ball", None, None, None)))
         }
 
     # ------------------------- Divisions -------------------------

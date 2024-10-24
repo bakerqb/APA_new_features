@@ -1,6 +1,7 @@
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
 import time
 import sys
 import os
@@ -162,6 +163,10 @@ class ApaWebScraperWorker:
 
         matchesHeader = self.driver.find_element(By.XPATH, "//h3 [contains( text(), 'MATCH BREAKOUT')]")
         matchesDiv = matchesHeader.find_element(By.XPATH, "..")
+        if not self.waitFor(15, self.areSkillLevelsLoaded, matchesDiv):
+            print("ERROR: skill levels never loaded")
+            exit(1)
+        
         individualMatches = matchesDiv.find_elements(By.XPATH, "./*")
         
         playerMatches = []
@@ -186,28 +191,47 @@ class ApaWebScraperWorker:
             textElements = removeElements(textElements, removableWordList)
             
             playerName1 = textElements[0].replace('"', "'")
+            playerName2 = textElements[6].replace('"', "'")
             skillLevel1 = textElements[1]
+            skillLevel2 = textElements[5]
+            if game == Game.EightBall.value and (int(skillLevel1) == 1 or int(skillLevel2) == 1):
+                print("ERROR: scraped skill level incorrectly")
+                exit(1)
             if game == Game.NineBall.value:
                 skillLevel1 = mapper.get(playerPtsNeeded1)
             teamPtsEarned1 = textElements[2]
+            teamPtsEarned2 = textElements[7]
 
             score = textElements[4]
             scoreElements = score.split(' - ')
             score1 = scoreElements[0].split('/')
-            if len(score1) == 1:
-                score1.insert(0, 0)
             score2 = scoreElements[1].split('/')
-            if len(score2) == 1:
-                score2.insert(0, 0)
+            if len(score1) == 1 or len(score2) == 1:
+                if game == Game.EightBall.value:
+                    isFirstResultOfNewPlayer = skillLevel1 == 0
+                    oldPlayerSkillLevel = skillLevel2 if isFirstResultOfNewPlayer else skillLevel1
+                    newPlayerTeamPtsEarned = teamPtsEarned1 if isFirstResultOfNewPlayer else teamPtsEarned2
+                    oldPlayerTeamPtsEarned = teamPtsEarned2 if isFirstResultOfNewPlayer else teamPtsEarned1
+                    newPlayerScore, oldPlayerScore = eightBallNewPlayerMapper(int(oldPlayerSkillLevel), int(newPlayerTeamPtsEarned), int(oldPlayerTeamPtsEarned))
+                    score1 = newPlayerScore if isFirstResultOfNewPlayer else oldPlayerScore
+                    score2 = oldPlayerScore if isFirstResultOfNewPlayer else newPlayerScore
+                else:
+                    score1.insert(0, 0)
+                    score2.insert(0, 0)
+            
+            if skillLevel1 == '0':
+                skillLevel1 = '3'
+            if skillLevel2 == '0':
+                skillLevel2 = '3'
 
             playerPtsEarned1, playerPtsNeeded1 = score1
             
             playerPtsEarned2, playerPtsNeeded2 = score2
-            skillLevel2 = textElements[5]
+            
             if game == Game.NineBall.value:
                 skillLevel2 = mapper.get(playerPtsNeeded2)
-            playerName2 = textElements[6].replace('"', "'")
-            teamPtsEarned2 = textElements[7]
+            
+            
 
             db = Database()
             
@@ -261,3 +285,29 @@ class ApaWebScraperWorker:
         # Add division/sesion to database
         division = self.converter.toDivisionWithDirectValues(sessionId, sessionSeason, sessionYear, divisionId, divisionName, dayOfWeek, game)
         self.db.addDivision(division)
+
+        
+    def areSkillLevelsLoaded(self, matchesDiv):
+        individualMatches = matchesDiv.find_elements(By.XPATH, "./*")
+        for individualMatch in individualMatches:
+            if 'LAG' not in individualMatch.text:
+                continue
+        
+            textElements = individualMatch.text.split('\n')
+
+            removableWordList = ['LAG', 'SL', 'Pts Earned']
+            removableWordList.append('GW/GMW')
+            textElements = removeElements(textElements, removableWordList)
+            skillLevel1 = textElements[1]
+            skillLevel2 = textElements[5]
+            return int(skillLevel1) != 1 and int(skillLevel2) != 1
+        return False
+    
+    def waitFor(self, seconds, function, param):
+        while seconds > 0:
+            if function(param):
+                return True
+            else:
+                time.sleep(0.5)
+                seconds -= 0.5
+        return False
