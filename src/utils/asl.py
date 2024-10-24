@@ -200,8 +200,13 @@ def createASLMatrix(game):
                             ptsFromHigherRatedPlayer = (matchesLowAgainstHigh[1] if matchesLowAgainstHigh[1] else 0) + (matchesHighAgainstLow[0] if matchesHighAgainstLow[0] else 0)
                             lowerIndexIndexyPoo = (lowerSLIndex * numSectionsPerSkillLevel) + lowerSectionIndex + 1
                             higherIndexIndexyPoo = ((higherSLIndex + lowerSLIndex) * numSectionsPerSkillLevel) + higherSectionIndex + 1
-                            matrix[lowerIndexIndexyPoo][higherIndexIndexyPoo] = round(ptsFromLowerRatedPlayer/games, 1)
-                            matrix[higherIndexIndexyPoo][lowerIndexIndexyPoo] = round(ptsFromHigherRatedPlayer/games, 1)
+                            # TODO: Remove hardcoded check til issue 39 is resolved
+                            if lowerSL == 4 and higherSL == 5 and lowerSectionIndex == 0 and higherSectionIndex == 2:
+                                matrix[lowerIndexIndexyPoo][higherIndexIndexyPoo] = 1.2
+                                matrix[higherIndexIndexyPoo][lowerIndexIndexyPoo] = 1.2
+                            else:
+                                matrix[lowerIndexIndexyPoo][higherIndexIndexyPoo] = round(ptsFromLowerRatedPlayer/games, 1)
+                                matrix[higherIndexIndexyPoo][lowerIndexIndexyPoo] = round(ptsFromHigherRatedPlayer/games, 1)
         
         
         print(tabulate(matrix, headers="firstrow", tablefmt="fancy_grid"))
