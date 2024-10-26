@@ -76,8 +76,12 @@ class ApaWebScraper:
         with concurrent.futures.ThreadPoolExecutor() as executor:
             executor.map(self.scrapeTeamInfoAndTeamMatches, argsList) 
         print("finished first mapping")
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            executor.map(self.transformScrapeMatchLinksAllTeams, self.db.getTeamMatches(divisionId))
+        if self.config.get('debugMode'):
+            for args in self.db.getTeamMatches(divisionId):
+                self.transformScrapeMatchLinksAllTeams(args)
+        else:
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                executor.map(self.transformScrapeMatchLinksAllTeams, self.db.getTeamMatches(divisionId))
 
         # Now set all the adjusted skills
         playerMatches = list(map(lambda playerMatch: self.converter.toPlayerMatchWithSql(playerMatch), self.db.getPlayerMatches(divisionId, None, None, None, None, None, None)))

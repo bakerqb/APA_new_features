@@ -56,7 +56,7 @@ def getAdjustedSkillLevel(memberId, currentSkillLevel, datePlayed, playerMatchId
                     *
                     abs(
                         didWin
-                        + (skillLevel1/EIGHT_BALL_NUM_SKILL_LEVELS) 
+                        + (skillLevel1/EIGHT_BALL_MAX_SKILL_LEVEL) 
                         - 1
                     )
             )*3
@@ -130,12 +130,11 @@ def createASLMatrix(game):
         matrix.append([])
         
         numSectionsPerSkillLevel = 3
-        sectionsPerSkillLevel = [(0, 0.42), (0.42, 0.58), (0.58, 1)]
         numSkillLevels = 0
         if game == Game.EightBall.value:
-            numSkillLevels = EIGHT_BALL_NUM_SKILL_LEVELS
+            numSkillLevels = EIGHT_BALL_MAX_SKILL_LEVEL
         elif game == Game.NineBall.value:
-            numSkillLevels = NINE_BALL_NUM_SKILL_LEVELS
+            numSkillLevels = NINE_BALL_MAX_SKILL_LEVEL
         
         rangeStart = 0
         if game == Game.EightBall.value:
@@ -144,16 +143,16 @@ def createASLMatrix(game):
             rangeStart = 1
         matrix[0].append(0)
         for i in range(rangeStart, numSkillLevels + 1):
-            for section in sectionsPerSkillLevel:
+            for section in SECTIONS_PER_SKILL_LEVEL:
                 matrix[0].append(i + section[0])
         
         for skillLevel in range(rangeStart, numSkillLevels + 1):
-            for section in sectionsPerSkillLevel:
+            for section in SECTIONS_PER_SKILL_LEVEL:
                 matrix.append([skillLevel + section[0]] + ([1.5] * (numSkillLevels - rangeStart + 1) * numSectionsPerSkillLevel))
         for lowerSLIndex, lowerSL in enumerate(range(rangeStart, numSkillLevels + 1)):
             for higherSLIndex, higherSL in enumerate(range(lowerSL, numSkillLevels + 1)):
-                for lowerSectionIndex, lowerSection in enumerate(sectionsPerSkillLevel):
-                    for higherSectionIndex, higherSection in enumerate(sectionsPerSkillLevel):
+                for lowerSectionIndex, lowerSection in enumerate(SECTIONS_PER_SKILL_LEVEL):
+                    for higherSectionIndex, higherSection in enumerate(SECTIONS_PER_SKILL_LEVEL):
                         if lowerSL == higherSL and lowerSectionIndex > higherSectionIndex:
                             continue
                         

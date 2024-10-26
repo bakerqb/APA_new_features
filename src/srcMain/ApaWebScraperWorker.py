@@ -92,6 +92,8 @@ class ApaWebScraperWorker:
             currentSkillLevel = data[2][0]
             if currentSkillLevel == "-":
                 currentSkillLevel = DEFAULT_SKILL_LEVEL
+            else:
+                currentSkillLevel = int(currentSkillLevel)
             roster.append(Player(memberId, playerName, currentSkillLevel))
         return roster
     
@@ -192,37 +194,37 @@ class ApaWebScraperWorker:
             
             playerName1 = textElements[0].replace('"', "'")
             playerName2 = textElements[6].replace('"', "'")
-            skillLevel1 = textElements[1]
-            skillLevel2 = textElements[5]
-            if game == Game.EightBall.value and (int(skillLevel1) == 1 or int(skillLevel2) == 1):
+            skillLevel1 = int(textElements[1])
+            skillLevel2 = int(textElements[5])
+            if game == Game.EightBall.value and EIGHT_BALL_INCORRECT_SKILL_LEVEL in [skillLevel1, skillLevel2]:
                 print("ERROR: scraped skill level incorrectly")
                 exit(1)
             if game == Game.NineBall.value:
                 skillLevel1 = mapper.get(playerPtsNeeded1)
-            teamPtsEarned1 = textElements[2]
-            teamPtsEarned2 = textElements[7]
+            teamPtsEarned1 = int(textElements[2])
+            teamPtsEarned2 = int(textElements[7])
 
             score = textElements[4]
             scoreElements = score.split(' - ')
-            score1 = scoreElements[0].split('/')
-            score2 = scoreElements[1].split('/')
+            score1 = list(map(lambda pointAmount: int(pointAmount), scoreElements[0].split('/')))
+            score2 = list(map(lambda pointAmount: int(pointAmount), scoreElements[1].split('/')))
             if len(score1) == 1 or len(score2) == 1:
                 if game == Game.EightBall.value:
-                    isFirstResultOfNewPlayer = skillLevel1 == 0
+                    isFirstResultOfNewPlayer = skillLevel1 == NEW_PLAYER_SCRAPED_SKILL_LEVEL
                     oldPlayerSkillLevel = skillLevel2 if isFirstResultOfNewPlayer else skillLevel1
                     newPlayerTeamPtsEarned = teamPtsEarned1 if isFirstResultOfNewPlayer else teamPtsEarned2
                     oldPlayerTeamPtsEarned = teamPtsEarned2 if isFirstResultOfNewPlayer else teamPtsEarned1
-                    newPlayerScore, oldPlayerScore = eightBallNewPlayerMapper(int(oldPlayerSkillLevel), int(newPlayerTeamPtsEarned), int(oldPlayerTeamPtsEarned))
+                    newPlayerScore, oldPlayerScore = eightBallNewPlayerMapper(oldPlayerSkillLevel, newPlayerTeamPtsEarned, oldPlayerTeamPtsEarned)
                     score1 = newPlayerScore if isFirstResultOfNewPlayer else oldPlayerScore
                     score2 = oldPlayerScore if isFirstResultOfNewPlayer else newPlayerScore
                 else:
                     score1.insert(0, 0)
                     score2.insert(0, 0)
             
-            if skillLevel1 == '0':
-                skillLevel1 = '3'
-            if skillLevel2 == '0':
-                skillLevel2 = '3'
+            if skillLevel1 == NEW_PLAYER_SCRAPED_SKILL_LEVEL:
+                skillLevel1 = DEFAULT_SKILL_LEVEL
+            if skillLevel2 == NEW_PLAYER_SCRAPED_SKILL_LEVEL:
+                skillLevel2 = DEFAULT_SKILL_LEVEL
 
             playerPtsEarned1, playerPtsNeeded1 = score1
             
@@ -259,7 +261,7 @@ class ApaWebScraperWorker:
             playerResults.append(PlayerResult(team2, player2, skillLevel2, score2, None))
             playerMatch = PlayerMatch(playerResults, playerMatchId, teamMatchId, datePlayed)
 
-            if playerMatch is not None and playerMatch.getPlayerResults()[0].getSkillLevel() != 0 and playerMatch.getPlayerResults()[1].getSkillLevel() != 0:
+            if playerMatch is not None:
                 playerMatches.append(playerMatch)   
         
         return playerMatches
@@ -298,9 +300,9 @@ class ApaWebScraperWorker:
             removableWordList = ['LAG', 'SL', 'Pts Earned']
             removableWordList.append('GW/GMW')
             textElements = removeElements(textElements, removableWordList)
-            skillLevel1 = textElements[1]
-            skillLevel2 = textElements[5]
-            return int(skillLevel1) != 1 and int(skillLevel2) != 1
+            skillLevel1 = int(textElements[1])
+            skillLevel2 = int(textElements[5])
+            return EIGHT_BALL_INCORRECT_SKILL_LEVEL not in [skillLevel1, skillLevel2]
         return False
     
     def waitFor(self, seconds, function, param):
