@@ -19,7 +19,7 @@ class PotentialTeamMatch:
         isMyTeam = 0 if isMyTeam else 1
         for potentialPlayerMatch in self.potentialPlayerMatches:
             sum += potentialPlayerMatch.getPotentialPlayerResults()[isMyTeam].getExpectedPts()
-        return sum
+        return round(sum, 1)
  
     def copy(self):
         tempPotentialPlayerMatches = self.potentialPlayerMatches.copy()
