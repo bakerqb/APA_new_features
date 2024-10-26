@@ -1,25 +1,37 @@
 from datetime import datetime
 from src.dataClasses.Game import Game
+from typeguard import typechecked
 
-def nineBallSkillLevelMapper():
+EIGHT_BALL_MAX_SKILL_LEVEL = 7
+NINE_BALL_MAX_SKILL_LEVEL = 9
+EIGHT_BALL_MIN_SKILL_LEVEL = 2
+NINE_BALL_MIN_SKILL_LEVEL = 1
+DEFAULT_SKILL_LEVEL = 3
+EIGHT_BALL_INCORRECT_SKILL_LEVEL = 1
+NEW_PLAYER_SCRAPED_SKILL_LEVEL = 0
+
+NUM_SECTIONS_PER_SKILL_LEVEL = 3
+SECTIONS_PER_SKILL_LEVEL = [(0, 0.42), (0.42, 0.58), (0.58, 1)]
+
+def nineBallSkillLevelMapper() -> dict:
         map = {}
-        map["14"] = "1"
-        map["19"] = "2"
-        map["25"] = "3"
-        map["31"] = "4"
-        map["38"] = "5"
-        map["46"] = "6"
-        map["55"] = "7"
-        map["65"] = "8"
-        map["75"] = "9"
+        map[14] = 1
+        map[19] = 2
+        map[25] = 3
+        map[31] = 4
+        map[38] = 5
+        map[46] = 6
+        map[55] = 7
+        map[65] = 8
+        map[75] = 9
         return map
 
-def removeElements(words, removableWordList):
+def removeElements(words: list, removableWordList: list) -> list:
         for removableWord in removableWordList:
             words = list(filter((removableWord).__ne__, words)) 
         return words
 
-def eightBallGamesNeededMapper():
+def eightBallGamesNeededMapper() -> dict:
     map = {}
     map[(2, 2)] = (2, 2)
     map[(2, 3)] = (2, 3)
@@ -56,7 +68,8 @@ def eightBallGamesNeededMapper():
     
     return map
 
-def eightBallTeamPtsEarnedMapper(playerPtsEarned1, playerPtsEarned2, playerPtsNeeded1, playerPtsNeeded2):
+@typechecked
+def eightBallTeamPtsEarnedMapper(playerPtsEarned1: int, playerPtsEarned2: int, playerPtsNeeded1: int, playerPtsNeeded2: int) -> tuple:
     if playerPtsEarned1 == playerPtsNeeded1:
         if playerPtsEarned2 == 0:
             return (3, 0)
@@ -72,7 +85,8 @@ def eightBallTeamPtsEarnedMapper(playerPtsEarned1, playerPtsEarned2, playerPtsNe
         else:
             return (0, 2)
         
-def eightBallNewPlayerMapper(oldPlayerSkillLevel, newPlayerTeamPtsEarned, oldPlayerTeamPtsEarned):
+@typechecked
+def eightBallNewPlayerMapper(oldPlayerSkillLevel: int, newPlayerTeamPtsEarned: int, oldPlayerTeamPtsEarned: int) -> tuple:
     if oldPlayerSkillLevel == 2:
         if newPlayerTeamPtsEarned == 3 and oldPlayerTeamPtsEarned == 0:
             return ((3, 3), (0, 2))
@@ -84,7 +98,7 @@ def eightBallNewPlayerMapper(oldPlayerSkillLevel, newPlayerTeamPtsEarned, oldPla
             return ((1, 3), (2, 2))
         else:
             return ((0, 3), (2, 2))
-    elif oldPlayerSkillLevel == 3 or oldPlayerSkillLevel == 0:
+    elif oldPlayerSkillLevel == 3 or oldPlayerSkillLevel == NEW_PLAYER_SCRAPED_SKILL_LEVEL:
         if newPlayerTeamPtsEarned == 3 and oldPlayerTeamPtsEarned == 0:
             return ((2, 2), (0, 2))
         elif newPlayerTeamPtsEarned == 2 and oldPlayerTeamPtsEarned == 1:
@@ -138,23 +152,15 @@ def eightBallNewPlayerMapper(oldPlayerSkillLevel, newPlayerTeamPtsEarned, oldPla
         else:
             return ((0, 2), (6, 6))
      
-
-def toReadableDateTimeString(date):
+def toReadableDateTimeString(date) -> datetime:
     try:
         readableDate = datetime.strptime(date, "%Y-%m-%d").strftime("%B %-d, %Y")
         return readableDate
     except Exception:
         return date
-    
-def getRangeStart(game):
-    if game == Game.EightBall.value:
-        return 2
-    elif game == Game.NineBall.value:
-        return 1
-    
-EIGHT_BALL_NUM_SKILL_LEVELS = 7
-NINE_BALL_NUM_SKILL_LEVELS = 9
-DEFAULT_SKILL_LEVEL = 3
 
-NUM_SECTIONS_PER_SKILL_LEVEL = 3
-SECTIONS_PER_SKILL_LEVEL = [(0, 0.42), (0.42, 0.58), (0.58, 1)]
+def getRangeStart(game) -> int:
+    if game == Game.EightBall.value:
+        return EIGHT_BALL_MIN_SKILL_LEVEL
+    elif game == Game.NineBall.value:
+        return NINE_BALL_MIN_SKILL_LEVEL
