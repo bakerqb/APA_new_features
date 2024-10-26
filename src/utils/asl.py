@@ -120,7 +120,7 @@ def getAdjustedSkillLevel(memberId, currentSkillLevel, datePlayed, playerMatchId
         
         adjustedScoreOffset = float(f'{adjustedScoreOffset:.2f}')
 
-        return str(int(currentSkillLevel) + ADJUSTED_SCORE_OFFSET_THRESHOLD + adjustedScoreOffset)
+        return round(int(currentSkillLevel) + ADJUSTED_SCORE_OFFSET_THRESHOLD + adjustedScoreOffset, 2)
 
 
 def createASLMatrix(game):
