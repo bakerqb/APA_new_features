@@ -44,6 +44,7 @@ td {
     font-size: 20px;
 }
 
+/*
 button {
     margin-left: 50%;
     margin-top: 5%;
@@ -64,6 +65,7 @@ button:hover {
     -moz-box-shadow: 5px 0px 18px 0px rgba(105, 105, 105, 0.8);
     box-shadow: 5px 0px 18px 0px rgba(105, 105, 105, 0.8);
 }
+*/
 
 a {
     color: rgb(32, 201, 210);

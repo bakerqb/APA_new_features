@@ -286,7 +286,7 @@ class Database:
         self.createTables()
         return self.cur.execute(f"SELECT game FROM Division WHERE divisionId = {divisionId}").fetchone()[0]
     
-    def getPlayers(self, criteria):
+    def getPlayers(self, searchCriteria):
         self.createTables()
         results = self.cur.execute(
             "SELECT * FROM (" +
@@ -307,11 +307,11 @@ class Database:
                     "LEFT JOIN TeamMatch tm2 ON pm2.teamMatchId = tm2.teamMatchId" +
                 ") players " +
             ") WHERE row_number = 1 " +
-            ("" if not criteria.getMemberId() else f"AND memberId = {criteria.getMemberId()} ") +
-            ("" if not criteria.getPlayerName() else f"AND playerName LIKE '%{criteria.getPlayerName()}%' ") +
-            ("" if not criteria.getMinSkillLevel() else f"AND currentSkillLevel >= {criteria.getMinSkillLevel()} ") +
-            ("" if not criteria.getMaxSkillLevel() else f"AND currentSkillLevel <= {criteria.getMaxSkillLevel()} ") +
-            ("" if not criteria.getDateLastPlayed() else f"AND CAST(datePlayed AS DATE) >= CAST({criteria.getDateLastPlayed()} AS DATE)") +
+            ("" if not searchCriteria.getMemberId() else f"AND memberId = {searchCriteria.getMemberId()} ") +
+            ("" if not searchCriteria.getPlayerName() else f"AND playerName LIKE '%{searchCriteria.getPlayerName()}%' ") +
+            ("" if not searchCriteria.getMinSkillLevel() else f"AND currentSkillLevel >= {searchCriteria.getMinSkillLevel()} ") +
+            ("" if not searchCriteria.getMaxSkillLevel() else f"AND currentSkillLevel <= {searchCriteria.getMaxSkillLevel()} ") +
+            ("" if not searchCriteria.getDateLastPlayed() else f"AND CAST(datePlayed AS DATE) >= CAST({searchCriteria.getDateLastPlayed()} AS DATE)") +
             "ORDER BY datePlayed DESC"
             
         ).fetchall()

@@ -9,6 +9,7 @@ NINE_BALL_MIN_SKILL_LEVEL = 1
 DEFAULT_SKILL_LEVEL = 3
 EIGHT_BALL_INCORRECT_SKILL_LEVEL = 1
 NEW_PLAYER_SCRAPED_SKILL_LEVEL = 0
+NUM_PLAYERMATCHES_IN_TEAMMATCH = 5
 
 NUM_SECTIONS_PER_SKILL_LEVEL = 3
 SECTIONS_PER_SKILL_LEVEL = [(0, 0.42), (0.42, 0.58), (0.58, 1)]
@@ -164,3 +165,7 @@ def getRangeStart(game) -> int:
         return EIGHT_BALL_MIN_SKILL_LEVEL
     elif game == Game.NineBall.value:
         return NINE_BALL_MIN_SKILL_LEVEL
+    
+def getReversedMatchNumber(matchNumber: int) -> int:
+    return NUM_PLAYERMATCHES_IN_TEAMMATCH - 1 - matchNumber
+    

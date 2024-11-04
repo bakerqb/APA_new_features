@@ -5,7 +5,10 @@ import math
 from src.dataClasses.PotentialPlayerResult import PotentialPlayerResult
 from src.dataClasses.PotentialTeamMatch import PotentialTeamMatch
 from src.dataClasses.Player import Player
+from src.dataClasses.TeamMatchCriteria import TeamMatchCriteria
 import sys
+from typing import Tuple
+from typing import List
 
 class TeamMatchup():
     def __init__(self, myTeam: Team, opponentTeam: Team, putupPlayer: Player):
@@ -27,7 +30,7 @@ class TeamMatchup():
         self.game = "8-ball"
         self.skillLevelMatrix = createASLMatrix(self.game)
 
-    def getExpectedPts(self, player1, player2):
+    def getExpectedPts(self, player1: Player, player2: Player) -> Tuple[int]:
         asl1 = float(player1.getAdjustedSkillLevel())
         asl2 = float(player2.getAdjustedSkillLevel())
 
@@ -53,102 +56,61 @@ class TeamMatchup():
         index2 = ((skillLevel2 - rangeStart) * NUM_SECTIONS_PER_SKILL_LEVEL) + asl2SectionIndex + 1 
         return (self.skillLevelMatrix[index1][index2], self.skillLevelMatrix[index2][index1])
     
-    def start(self):
-        potentialTeamMatch = PotentialTeamMatch([])
-        if self.doesMyTeamPutUp:
-            potentialTeamMatch = self.putupBlind(self.myTeam.getPlayers(), self.opponentTeam.getPlayers(), potentialTeamMatch)
-
-        else:
-            potentialTeamMatch = self.putupNonBlind(self.putupPlayer, self.myTeam.getPlayers(), self.opponentTeam.getPlayers(), potentialTeamMatch)
-        potentialTeamMatch.reversePotentialPlayerMatches()
-        return potentialTeamMatch
-
-    def putupBlind(self, myPlayers, theirPlayers, potentialTeamMatch):
-        # Assert len(myPlayers) - 1 == len(theirPlayers)
-        if len(myPlayers) == 1:
-            myPlayer = myPlayers[0]
-            theirPlayer = theirPlayers[0]
-            myExpectedPts, theirExpectedPts = self.getExpectedPts(myPlayer, theirPlayer)
-            if self.myTeam.isPlayerOnTeam(myPlayer):
-                potentialTeamMatch.addPotentialPlayerResult(PotentialPlayerResult(myPlayer, myExpectedPts))
-                potentialTeamMatch.addPotentialPlayerResult(PotentialPlayerResult(theirPlayer, theirExpectedPts))
-            else:
-                potentialTeamMatch.addPotentialPlayerResult(PotentialPlayerResult(theirPlayer, theirExpectedPts))
-                potentialTeamMatch.addPotentialPlayerResult(PotentialPlayerResult(myPlayer, myExpectedPts))
-            return potentialTeamMatch
-        
-        bestPotentialTeamMatch = None
-        worstExpectedPtsForOpponents = (-1 * sys.maxsize, sys.maxsize)
-        for player in myPlayers:
-            # tell the other team who your theoretical putup is
-            tempMyPlayers = myPlayers.copy()
-            tempMyPlayers.remove(player)
-
-            tempTheirPlayers = theirPlayers.copy()
-            tempPotentialTeamMatch = potentialTeamMatch.copy()
-            
-            # Assume they go through each of their players and decide the best one to putup against you
-            newPotentialTeamMatch = self.putupNonBlind(player, tempTheirPlayers, tempMyPlayers, tempPotentialTeamMatch)
-            amILookingAtMyTeam = self.myTeam.isPlayerOnTeam(player)
-            theirExpectedTotalPts = newPotentialTeamMatch.sumPoints(not amILookingAtMyTeam)
-            myExpectedTotalPts = newPotentialTeamMatch.sumPoints(amILookingAtMyTeam)
-
-            '''
-            if len(self.opponentTeam.getPlayers()) == len(newPotentialTeamMatch.getPotentialPlayerMatches()):
-                print(myExpectedTotalPts - theirExpectedTotalPts, "if we throw", player.getPlayerName())
-            '''
-
-            if theirExpectedTotalPts - myExpectedTotalPts < worstExpectedPtsForOpponents[1] - worstExpectedPtsForOpponents[0]:
-                worstExpectedPtsForOpponents = (myExpectedTotalPts, theirExpectedTotalPts)
-                bestPotentialTeamMatch = newPotentialTeamMatch
-        
-        # Pick player from your team where the opponent will get the lowest number of points
-        
-        return bestPotentialTeamMatch
-                
+    def start(self, teamMatchCriteria: TeamMatchCriteria, matchNumber: int) -> PotentialTeamMatch:
+        return self.putup(self.putupPlayer, self.myTeam.getPlayers(), self.opponentTeam.getPlayers(), PotentialTeamMatch([]), teamMatchCriteria, matchNumber)    
     
-    def putupNonBlind(self, chosenPlayer, myPlayers, theirPlayers, potentialTeamMatch):
-        # Assert len(myPlayers) - 1 == len(theirPlayers)
-        if len(myPlayers) == 1:
-            myPlayer = myPlayers[0]
-            theirPlayer = theirPlayers[0]
-            myExpectedPts, theirExpectedPts = self.getExpectedPts(myPlayer, chosenPlayer)
-            if self.myTeam.isPlayerOnTeam(myPlayer):
-                potentialTeamMatch.addPotentialPlayerResult(PotentialPlayerResult(myPlayer, myExpectedPts))
-                potentialTeamMatch.addPotentialPlayerResult(PotentialPlayerResult(theirPlayer, theirExpectedPts))
-            else:
-                potentialTeamMatch.addPotentialPlayerResult(PotentialPlayerResult(theirPlayer, theirExpectedPts))
-                potentialTeamMatch.addPotentialPlayerResult(PotentialPlayerResult(myPlayer, myExpectedPts))
-            return potentialTeamMatch
-        
+    def putup(self, chosenPlayer: Player, myPlayers: List[Player], theirPlayers: List[Player], potentialTeamMatch: PotentialTeamMatch, teamMatchCriteria: TeamMatchCriteria, matchNumber: int) -> PotentialTeamMatch:
+        amILookingAtMyOwnTeam = self.myTeam.isPlayerOnTeam(myPlayers[0])
+
         bestPotentialTeamMatch = None
-        bestPlayerExpectedPts = (-1 * sys.maxsize, sys.maxsize)
-        for player in myPlayers:
-            myPoints, theirPoints = self.getExpectedPts(player, chosenPlayer)
-            tempMyPlayers = myPlayers.copy()
-            tempMyPlayers.remove(player)
-            tempTheirPlayers = theirPlayers.copy()
-            tempPotentialTeamMatch = potentialTeamMatch.copy()
-            newPotentialTeamMatch = self.putupBlind(tempMyPlayers, tempTheirPlayers, tempPotentialTeamMatch)
-            amILookingAtMyOwnTeam = not self.myTeam.isPlayerOnTeam(chosenPlayer)
-            theirExpectedTotalPts = theirPoints + newPotentialTeamMatch.sumPoints(not amILookingAtMyOwnTeam)
-            myExpectedTotalPts = myPoints + newPotentialTeamMatch.sumPoints(amILookingAtMyOwnTeam)
-
-            '''
-            if chosenPlayer.getPlayerName() == "Patrick Barrett":
-                print(myExpectedTotalPts - theirExpectedTotalPts, "if we throwww", player.getPlayerName())
-            '''
-
-            if myExpectedTotalPts - theirExpectedTotalPts > bestPlayerExpectedPts[0] - bestPlayerExpectedPts[1]:
-                if self.myTeam.isPlayerOnTeam(player):
-                    newPotentialTeamMatch.addPotentialPlayerResult(PotentialPlayerResult(player, myPoints))
-                    newPotentialTeamMatch.addPotentialPlayerResult(PotentialPlayerResult(chosenPlayer, theirPoints))
-                else:
-                    newPotentialTeamMatch.addPotentialPlayerResult(PotentialPlayerResult(chosenPlayer, theirPoints))
-                    newPotentialTeamMatch.addPotentialPlayerResult(PotentialPlayerResult(player, myPoints))
-                
-                bestPotentialTeamMatch = newPotentialTeamMatch
-                bestPlayerExpectedPts = (myExpectedTotalPts, theirExpectedTotalPts)
+        for player in self.findEligiblePlayers(myPlayers, matchNumber, teamMatchCriteria):
+            # Make copies of myPlayers, theirPlayers, and potentialTeamMatch
+            tempMyPlayers, tempTheirPlayers, tempPotentialTeamMatch = self.makeCopies(player, myPlayers, theirPlayers, potentialTeamMatch)
             
+            # If you don't throw first for this PlayerMatch, add the potential matchup to the potentialTeamMatch
+            if chosenPlayer is not None:
+                self.addPlayerMatch(player, chosenPlayer, tempPotentialTeamMatch)
+
+            newPotentialTeamMatch = tempPotentialTeamMatch
+            if matchNumber < NUM_PLAYERMATCHES_IN_TEAMMATCH - 1 or chosenPlayer is None:
+                newPotentialTeamMatch = (
+                    self.putup(None, tempTheirPlayers, tempMyPlayers, tempPotentialTeamMatch, teamMatchCriteria, matchNumber + 1)
+                    if chosenPlayer is not None 
+                    else self.putup(player, tempTheirPlayers, tempMyPlayers, tempPotentialTeamMatch, teamMatchCriteria, matchNumber)
+                )
+            
+            theirExpectedTotalPts = newPotentialTeamMatch.sumPoints(not amILookingAtMyOwnTeam)
+            myExpectedTotalPts = newPotentialTeamMatch.sumPoints(amILookingAtMyOwnTeam)
+            if amILookingAtMyOwnTeam:
+                if bestPotentialTeamMatch is None or myExpectedTotalPts - theirExpectedTotalPts > bestPotentialTeamMatch.sumPoints(amILookingAtMyOwnTeam) - bestPotentialTeamMatch.sumPoints(not amILookingAtMyOwnTeam):
+                    bestPotentialTeamMatch = newPotentialTeamMatch
+            else:
+                if bestPotentialTeamMatch is None or theirExpectedTotalPts - myExpectedTotalPts > bestPotentialTeamMatch.sumPoints(not amILookingAtMyOwnTeam) - bestPotentialTeamMatch.sumPoints(amILookingAtMyOwnTeam):
+                    bestPotentialTeamMatch = newPotentialTeamMatch
         
         return bestPotentialTeamMatch
+
+    def addPlayerMatch(self, player: Player, chosenPlayer: Player, newPotentialTeamMatch: PotentialTeamMatch):
+        myPoints, theirPoints = self.getExpectedPts(player, chosenPlayer)
+        if self.myTeam.isPlayerOnTeam(player):
+            newPotentialTeamMatch.addPotentialPlayerResult(PotentialPlayerResult(player, myPoints))
+            newPotentialTeamMatch.addPotentialPlayerResult(PotentialPlayerResult(chosenPlayer, theirPoints))
+        else:
+            newPotentialTeamMatch.addPotentialPlayerResult(PotentialPlayerResult(chosenPlayer, theirPoints))
+            newPotentialTeamMatch.addPotentialPlayerResult(PotentialPlayerResult(player, myPoints))
+
+    def makeCopies(self, player: Player, myPlayers: List[Player], theirPlayers: List[Player], potentialTeamMatch: PotentialTeamMatch):
+        tempMyPlayers = myPlayers.copy()
+        tempMyPlayers.remove(player)
+        tempTheirPlayers = theirPlayers.copy()
+        tempPotentialTeamMatch = potentialTeamMatch.copy()
+        return (tempMyPlayers, tempTheirPlayers, tempPotentialTeamMatch)
+    
+    def findEligiblePlayers(self, players: List[Player], matchNumber: int, teamMatchCriteria: TeamMatchCriteria):
+        eligiblePlayers = []
+        for player in players:
+            if teamMatchCriteria.playerMustPlay(player, matchNumber):
+                return [player]
+            if player.getMemberId() not in teamMatchCriteria.getMemberIdsForGame(matchNumber):
+                eligiblePlayers.append(player)
+        return eligiblePlayers
