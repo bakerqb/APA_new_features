@@ -1,8 +1,9 @@
 from dataClasses.Player import Player
 from dataClasses.Division import Division
+from typing import List
 
 class Team:
-    def __init__(self, division: Division, teamId: str, teamNum: int, teamName: str, players: list):
+    def __init__(self, division: Division, teamId: str, teamNum: int, teamName: str, players: List[Player]):
         self.division = division
         self.teamId = teamId
         self.teamNum = teamNum
@@ -12,25 +13,25 @@ class Team:
     def addPlayer(self, player: Player):
         self.players.append(player)
 
-    def getDivision(self):
+    def getDivision(self) -> Division:
         return self.division
     
-    def getTeamId(self):
+    def getTeamId(self) -> int:
         return self.teamId
     
-    def getTeamNum(self):
+    def getTeamNum(self) -> int:
         return self.teamNum
     
-    def getTeamName(self):
+    def getTeamName(self) -> str:
         return self.teamName
     
-    def getPlayers(self):
+    def getPlayers(self) -> List[Player]:
         return self.players
     
-    def setPlayers(self, players):
+    def setPlayers(self, players: List[Player]):
         self.players = players
 
-    def isPlayerOnTeam(self, playerInQuestion: Player):
+    def isPlayerOnTeam(self, playerInQuestion: Player) -> bool:
         for player in self.players:
             if player == playerInQuestion:
                 return True

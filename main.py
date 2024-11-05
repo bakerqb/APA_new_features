@@ -5,14 +5,13 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from src.srcMain.UseCase import UseCase
 from src.srcMain.Database import Database
 from src.srcMain.ApaWebScraper import ApaWebScraper
-from src.srcMain.Config import Config
 from src.srcMain.TeamMatchup import TeamMatchup
 from src.converter.Converter import Converter
 from waitress import serve
 from flask import Flask, render_template, request, url_for, redirect
 import jinja2
-from src.dataClasses.Criteria import Criteria
-from src.dataClasses.PotentialTeamMatch import PotentialTeamMatch
+from src.dataClasses.SearchCriteria import SearchCriteria
+from src.dataClasses.TeamMatchCriteria import TeamMatchCriteria
 
 jinja_environment = jinja2.Environment(autoescape=True,
     loader=jinja2.FileSystemLoader(os.path.join(os.path.dirname(__file__), 'templates')))
@@ -85,6 +84,7 @@ def matchups():
     putupMemberId = request.args.get('putupMemberId')
     sessionId = request.args.get('sessionId')
     divisionId = request.args.get('divisionId')
+    matchNumber = int(request.args.get('matchNumber'))
 
     team1 = converter.toTeamWithSql(db.getTeamWithTeamId(teamId1))
     team2 = converter.toTeamWithSql(db.getTeamWithTeamId(teamId2))
@@ -99,14 +99,16 @@ def matchups():
     team2Roster = list(map(lambda memberId: converter.toPlayerWithSql(db.getPlayerBasedOnMemberId(memberId)), team2memberIds))
     team1.setPlayers(team1Roster)
     team2.setPlayers(team2Roster)
+    
 
     putupPlayer = None
     if putupMemberId is not None:
         putupPlayer = converter.toPlayerWithSql(db.getPlayerBasedOnMemberId(putupMemberId))
 
+    teamMatchCriteria = TeamMatchCriteria(request.args.getlist('teamMatchCriteria'), team1, team2, matchNumber, putupPlayer)
     
     teamMatchup = TeamMatchup(team1, team2, putupPlayer)
-    potentialTeamMatch = teamMatchup.start()
+    potentialTeamMatch = teamMatchup.start(teamMatchCriteria, matchNumber)
     data = {
         "potentialTeamMatch": potentialTeamMatch,
         "team1": team1,
@@ -169,8 +171,8 @@ def players():
     dateLastPlayed = request.args.get('dateLastPlayed')
 
     db = Database()
-    criteria = Criteria(memberId, playerName, minSkillLevel, maxSkillLevel, dateLastPlayed)
-    data = { "players": db.getPlayers(criteria) }
+    searchCriteria = SearchCriteria(memberId, playerName, minSkillLevel, maxSkillLevel, dateLastPlayed)
+    data = { "players": db.getPlayers(searchCriteria) }
     
     return render_template(
         jinja_environment.get_template('players.html'),

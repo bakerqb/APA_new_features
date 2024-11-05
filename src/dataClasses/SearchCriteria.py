@@ -1,4 +1,4 @@
-class Criteria:
+class SearchCriteria:
     def __init__(self, memberId: int, playerName: str, minSkillLevel: int, maxSkillLevel: int, dateLastPlayed):
         self.memberId = memberId
         self.playerName = playerName
