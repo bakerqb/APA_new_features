@@ -165,7 +165,3 @@ def getRangeStart(game) -> int:
         return EIGHT_BALL_MIN_SKILL_LEVEL
     elif game == Game.NineBall.value:
         return NINE_BALL_MIN_SKILL_LEVEL
-    
-def getReversedMatchNumber(matchNumber: int) -> int:
-    return NUM_PLAYERMATCHES_IN_TEAMMATCH - 1 - matchNumber
-    

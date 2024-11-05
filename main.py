@@ -84,7 +84,6 @@ def matchups():
     putupMemberId = request.args.get('putupMemberId')
     sessionId = request.args.get('sessionId')
     divisionId = request.args.get('divisionId')
-    teamMatchCriteria = TeamMatchCriteria(request.args.getlist('teamMatchCriteria'))
     matchNumber = int(request.args.get('matchNumber'))
 
     team1 = converter.toTeamWithSql(db.getTeamWithTeamId(teamId1))
@@ -100,11 +99,13 @@ def matchups():
     team2Roster = list(map(lambda memberId: converter.toPlayerWithSql(db.getPlayerBasedOnMemberId(memberId)), team2memberIds))
     team1.setPlayers(team1Roster)
     team2.setPlayers(team2Roster)
+    
 
     putupPlayer = None
     if putupMemberId is not None:
         putupPlayer = converter.toPlayerWithSql(db.getPlayerBasedOnMemberId(putupMemberId))
 
+    teamMatchCriteria = TeamMatchCriteria(request.args.getlist('teamMatchCriteria'), team1, team2, matchNumber, putupPlayer)
     
     teamMatchup = TeamMatchup(team1, team2, putupPlayer)
     potentialTeamMatch = teamMatchup.start(teamMatchCriteria, matchNumber)
