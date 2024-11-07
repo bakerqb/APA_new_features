@@ -94,7 +94,11 @@ def matchups():
         if "-" in key:
             teamPlayerPairings.append(key)
     
-    team1memberIds, team2memberIds = keysToTeams(teamPlayerPairings)
+    try:
+        team1memberIds, team2memberIds = keysToTeams(teamPlayerPairings)
+    except InvalidTeamMatchCriteria:
+        return redirect(f"/matchupTeams?teamId1={teamId1}&teamId2={teamId2}&sessionId={sessionId}&divisionId={divisionId}")
+    
     team1Roster = list(map(lambda memberId: converter.toPlayerWithSql(db.getPlayerBasedOnMemberId(memberId)), team1memberIds))
     team2Roster = list(map(lambda memberId: converter.toPlayerWithSql(db.getPlayerBasedOnMemberId(memberId)), team2memberIds))
     team1.setPlayers(team1Roster)
@@ -105,10 +109,10 @@ def matchups():
         putupPlayer = converter.toPlayerWithSql(db.getPlayerBasedOnMemberId(putupMemberId))
     try:
         teamMatchCriteria = TeamMatchCriteria(request.args.getlist('teamMatchCriteria'), team1, team2, matchNumber, putupPlayer)
+        teamMatchup = TeamMatchup(team1, team2, putupPlayer, matchNumber)
     except InvalidTeamMatchCriteria:
         return redirect(f"/matchupTeams?teamId1={teamId1}&teamId2={teamId2}&sessionId={sessionId}&divisionId={divisionId}")
-
-    teamMatchup = TeamMatchup(team1, team2, putupPlayer)
+    
     potentialTeamMatch = teamMatchup.start(teamMatchCriteria, matchNumber)
     data = {
         "potentialTeamMatch": potentialTeamMatch,
@@ -126,6 +130,8 @@ def matchups():
     )
 
 def keysToTeams(keys):
+    if len(keys) == 0:
+        raise InvalidTeamMatchCriteria("ERROR: No players selected")
     teamId1 = keys[0].split('-')[0]
     teamRoster1 = []
     teamRoster2 = []

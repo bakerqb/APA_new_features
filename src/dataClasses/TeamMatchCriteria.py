@@ -95,4 +95,4 @@ class TeamMatchCriteria:
                     someoneAvailableForMatch = True
                     break
             if not someoneAvailableForMatch:
-                raise InvalidTeamMatchCriteria(f"ERROR: no one available to play match {matchNumberInQuestion + 1}")
+                raise InvalidTeamMatchCriteria(f"ERROR: no one from {team.getTeamName()} available to play match {matchNumberInQuestion + 1}")

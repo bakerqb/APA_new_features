@@ -6,16 +6,19 @@ from src.dataClasses.PotentialPlayerResult import PotentialPlayerResult
 from src.dataClasses.PotentialTeamMatch import PotentialTeamMatch
 from src.dataClasses.Player import Player
 from src.dataClasses.TeamMatchCriteria import TeamMatchCriteria
-import sys
+from src.exceptions.InvalidTeamMatchCriteria import InvalidTeamMatchCriteria
 from typing import Tuple
 from typing import List
 
 class TeamMatchup():
-    def __init__(self, myTeam: Team, opponentTeam: Team, putupPlayer: Player):
+    def __init__(self, myTeam: Team, opponentTeam: Team, putupPlayer: Player, matchNumber: int):
         self.myTeam = myTeam
         self.opponentTeam = opponentTeam
         self.doesMyTeamPutUp = putupPlayer is None
         self.putupPlayer = putupPlayer
+        self.matchNumber = matchNumber
+        
+        self.validate()
 
         if self.putupPlayer is not None:
             self.putupPlayer.setAdjustedSkillLevel(getAdjustedSkillLevel(putupPlayer.getMemberId(), putupPlayer.getCurrentSkillLevel(), None, None))
@@ -114,3 +117,21 @@ class TeamMatchup():
             if player.getMemberId() not in teamMatchCriteria.getMemberIdsForGame(matchNumber):
                 eligiblePlayers.append(player)
         return eligiblePlayers
+    
+    def validate(self):
+        if self.putupPlayer in self.opponentTeam.getPlayers():
+            raise InvalidTeamMatchCriteria(f"ERROR: {self.putupPlayer.getPlayerName()} was just put up. They cannot also be selected from the list")
+
+        myTeamCorrectNumPlayers = NUM_PLAYERMATCHES_IN_TEAMMATCH - self.matchNumber
+        opponentTeamCorrectNumPlayers = NUM_PLAYERMATCHES_IN_TEAMMATCH - self.matchNumber if self.putupPlayer is None else NUM_PLAYERMATCHES_IN_TEAMMATCH - self.matchNumber - 1
+        if len(self.myTeam.getPlayers()) != myTeamCorrectNumPlayers:
+            raise InvalidTeamMatchCriteria(f"ERROR: Selected {len(self.myTeam.getPlayers())} players for {self.myTeam.getTeamName()}. Must select {myTeamCorrectNumPlayers} players")
+        if len(self.opponentTeam.getPlayers()) != opponentTeamCorrectNumPlayers:
+            raise InvalidTeamMatchCriteria(f"ERROR: Selected {len(self.opponentTeam.getPlayers())} players for {self.opponentTeam.getTeamName()}. Must select {opponentTeamCorrectNumPlayers} players")
+        
+        myTeamSkillLevelSum = sum(map(lambda player: player.getCurrentSkillLevel(), self.myTeam.getPlayers()))
+        opponentTeamSkillLevelSum = sum(map(lambda player: player.getCurrentSkillLevel(), self.opponentTeam.getPlayers()))
+        if myTeamSkillLevelSum > SKILL_LEVEL_CAP:
+            raise InvalidTeamMatchCriteria(f"ERROR: selected players for {self.myTeam.getTeamName()} are over skill level cap by {myTeamSkillLevelSum - SKILL_LEVEL_CAP}")
+        if opponentTeamSkillLevelSum > SKILL_LEVEL_CAP:
+            raise InvalidTeamMatchCriteria(f"ERROR: selected players for {self.opponentTeam.getTeamName()} are over skill level cap by {opponentTeamSkillLevelSum - SKILL_LEVEL_CAP}")
