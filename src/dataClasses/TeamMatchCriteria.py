@@ -16,7 +16,6 @@ class TeamMatchCriteria:
         
         self.validate(team1, team2, matchNumber, putupPlayer)
 
-
     def getMemberIdsForGame(self, gameIndex: int) -> List[int]:
         return self.idsForGames[gameIndex]
     
