@@ -12,10 +12,10 @@ from flask import Flask, render_template, request, url_for, redirect
 import jinja2
 from src.dataClasses.SearchCriteria import SearchCriteria
 from src.dataClasses.TeamMatchCriteria import TeamMatchCriteria
+from src.exceptions.InvalidTeamMatchCriteria import InvalidTeamMatchCriteria
 
 jinja_environment = jinja2.Environment(autoescape=True,
     loader=jinja2.FileSystemLoader(os.path.join(os.path.dirname(__file__), 'templates')))
-print(__name__)
 app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'static'))
 
 
@@ -99,14 +99,15 @@ def matchups():
     team2Roster = list(map(lambda memberId: converter.toPlayerWithSql(db.getPlayerBasedOnMemberId(memberId)), team2memberIds))
     team1.setPlayers(team1Roster)
     team2.setPlayers(team2Roster)
-    
 
     putupPlayer = None
     if putupMemberId is not None:
         putupPlayer = converter.toPlayerWithSql(db.getPlayerBasedOnMemberId(putupMemberId))
+    try:
+        teamMatchCriteria = TeamMatchCriteria(request.args.getlist('teamMatchCriteria'), team1, team2, matchNumber, putupPlayer)
+    except InvalidTeamMatchCriteria:
+        return redirect(f"/matchupTeams?teamId1={teamId1}&teamId2={teamId2}&sessionId={sessionId}&divisionId={divisionId}")
 
-    teamMatchCriteria = TeamMatchCriteria(request.args.getlist('teamMatchCriteria'), team1, team2, matchNumber, putupPlayer)
-    
     teamMatchup = TeamMatchup(team1, team2, putupPlayer)
     potentialTeamMatch = teamMatchup.start(teamMatchCriteria, matchNumber)
     data = {
