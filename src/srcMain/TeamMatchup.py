@@ -119,7 +119,7 @@ class TeamMatchup():
         return eligiblePlayers
     
     def validate(self):
-        if self.putupPlayer in self.opponentTeam.getPlayers():
+        if self.putupPlayer is not None and self.putupPlayer in self.opponentTeam.getPlayers():
             raise InvalidTeamMatchCriteria(f"ERROR: {self.putupPlayer.getPlayerName()} was just put up. They cannot also be selected from the list")
 
         myTeamCorrectNumPlayers = NUM_PLAYERMATCHES_IN_TEAMMATCH - self.matchNumber

@@ -79,11 +79,13 @@ class TeamMatchCriteria:
         newAvailableMatches = {}
         originalAvailableMatches.pop(restrictiveMatchSet)
         for matchSet, players in originalAvailableMatches.items():
+            newMatchSet = None
             for matchNumber in restrictiveMatchSet:
                 if matchNumber in matchSet:
                     newMatchSet = list(matchSet)
                     newMatchSet.remove(matchNumber)
-            newAvailableMatches[tuple(newMatchSet)] = players
+            if newMatchSet is not None:
+                newAvailableMatches[tuple(newMatchSet)] = players
         return newAvailableMatches
 
     def validateAnyPlayersAvailableForMatch(self, team: Team, matchNumber):
