@@ -36,3 +36,6 @@ class Team:
             if player == playerInQuestion:
                 return True
         return False
+    
+    def getMemberIds(self):
+        return list(map(lambda player: player.getMemberId(), self.players))

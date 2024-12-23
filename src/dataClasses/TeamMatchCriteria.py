@@ -6,7 +6,7 @@ from src.exceptions.InvalidTeamMatchCriteria import InvalidTeamMatchCriteria
 
 class TeamMatchCriteria:
     def __init__(self, teamMatchCriteriaRawInput: str, team1: Team, team2: Team, matchNumber: int, putupPlayer: Player):
-        # Formatted as a list of list of ids, where the first element signifies which players cannot play in game 1
+        # Formatted as a list of set of ids, where the first element signifies which players cannot play in game 1
         self.idsForGames = []
         for i in range(NUM_PLAYERMATCHES_IN_TEAMMATCH):
             self.idsForGames.append(set())
@@ -15,6 +15,54 @@ class TeamMatchCriteria:
             self.idsForGames[int(matchNumberTemp)].add(int(id))
         
         self.validate(team1, team2, matchNumber, putupPlayer)
+        
+        for team in [team1, team2]:
+            self.furtherCriteria(team)
+        print("here")
+
+    def furtherCriteria(self, team: Team):
+        changesMade = True
+        while changesMade:
+            changesMade = False
+            teamMemberIds = team.getMemberIds()
+            # See if there is a match where only one person can play
+            tempIdsForGames = self.idsForGames
+            for matchNumber, ids in enumerate(self.idsForGames):
+                teamMembersWhoCantPlayThisMatch = [id for id in teamMemberIds if id in ids]
+                if len(teamMembersWhoCantPlayThisMatch) == NUM_PLAYERMATCHES_IN_TEAMMATCH - 1:
+                    mustPlayMemberIdList = [id for id in teamMemberIds if id not in ids]
+                    assert(len(mustPlayMemberIdList) == 1)
+                    mustPlayMemberId = mustPlayMemberIdList[0]
+
+                    matchNumbers = [i for i in range(NUM_PLAYERMATCHES_IN_TEAMMATCH)]
+                    matchNumbers.remove(matchNumber)
+                    
+                    for i in matchNumbers:
+                        if mustPlayMemberId not in tempIdsForGames[i]:
+                            tempIdsForGames[i].add(mustPlayMemberId)
+                            changesMade = True
+                    
+            
+            self.idsForGames = tempIdsForGames
+
+
+            # See if there is a player who can only play in one match
+            for memberId in teamMemberIds:
+                matchesTheyCanPlay = []
+                for matchNumber, ids in enumerate(self.idsForGames):
+                    if memberId not in self.idsForGames[matchNumber]:
+                        matchesTheyCanPlay.append(matchNumber)
+                    if len(matchesTheyCanPlay) > 1:
+                        break
+                
+                assert(len(matchesTheyCanPlay) > 0)
+                if len(matchesTheyCanPlay) == 1:
+                    allOtherTeamMembers = teamMemberIds.copy()
+                    allOtherTeamMembers.remove(memberId)
+                    if not set(allOtherTeamMembers).issubset(tempIdsForGames[matchesTheyCanPlay[0]]):
+                        tempIdsForGames[matchesTheyCanPlay[0]].update(allOtherTeamMembers)
+                        changesMade = True
+            self.idsForGames = tempIdsForGames
 
     def getMemberIdsForGame(self, gameIndex: int) -> List[int]:
         return self.idsForGames[gameIndex]

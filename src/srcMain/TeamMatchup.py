@@ -81,6 +81,8 @@ class TeamMatchup():
                     if chosenPlayer is not None 
                     else self.putup(player, tempTheirPlayers, tempMyPlayers, tempPotentialTeamMatch, teamMatchCriteria, matchNumber)
                 )
+                if newPotentialTeamMatch is None:
+                    print("here")
             
             theirExpectedTotalPts = newPotentialTeamMatch.sumPoints(not amILookingAtMyOwnTeam)
             myExpectedTotalPts = newPotentialTeamMatch.sumPoints(amILookingAtMyOwnTeam)
