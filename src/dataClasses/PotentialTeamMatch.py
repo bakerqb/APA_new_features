@@ -25,8 +25,14 @@ class PotentialTeamMatch:
         tempPotentialPlayerMatches = self.potentialPlayerMatches.copy()
         return PotentialTeamMatch(tempPotentialPlayerMatches)
     
-    def reversePotentialPlayerMatches(self):
-        self.potentialPlayerMatches = list(reversed(self.potentialPlayerMatches))
+    def pointDifference(self, isMyTeam):
+        theirExpectedTotalPts = self.sumPoints(not isMyTeam)
+        myExpectedTotalPts = self.sumPoints(isMyTeam)
+        if isMyTeam:
+            return myExpectedTotalPts - theirExpectedTotalPts
+        else:
+            return theirExpectedTotalPts - myExpectedTotalPts
+        
 
     
     
