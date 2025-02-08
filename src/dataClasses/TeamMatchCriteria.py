@@ -110,8 +110,10 @@ class TeamMatchCriteria:
         while True:
             restrictiveMatchSet = None
             for matchSet, players in availableMatches.items():
+                '''
                 if len(matchSet) < len(players):
                     raise InvalidTeamMatchCriteria(f"ERROR: {list(map(lambda player: player.getPlayerName(), players))} all need to play in matches {list(matchSet)}, which is not possible")
+                '''
 
                 if len(matchSet) == 0:
                     raise InvalidTeamMatchCriteria(f"ERROR: {list(map(lambda player: player.getPlayerName(), players))} can't play any matches")

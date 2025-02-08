@@ -22,3 +22,15 @@ class Player:
     
     def __eq__(self, player):
         return self.memberId == player.getMemberId()
+    
+    def __lt__(self, player):
+        return self.currentSkillLevel < player.getCurrentSkillLevel()
+    
+    def __le__(self, player):
+        return self.currentSkillLevel <= player.getCurrentSkillLevel()
+    
+    def __gt__(self, player):
+        return self.currentSkillLevel > player.getCurrentSkillLevel()
+    
+    def __ge__(self, player):
+        return self.currentSkillLevel >= player.getCurrentSkillLevel()
