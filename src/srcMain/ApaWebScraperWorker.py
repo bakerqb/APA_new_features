@@ -269,7 +269,7 @@ class ApaWebScraperWorker:
     def scrapeDivisionForSession(self, divisionLink):
         self.createWebDriver()
         self.driver.get(divisionLink)
-        time.sleep(1)
+        time.sleep(5)
         # Check if division/session already exists in the database
         divisionName = ' '.join(self.driver.find_element(By.CLASS_NAME, 'page-title').text.split(' ')[:-1])
         divisionId = removeElements(self.driver.current_url.split('/'), ["standings"])[-1]

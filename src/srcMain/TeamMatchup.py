@@ -84,8 +84,10 @@ class TeamMatchup():
             tempSoFarMatch.addPotentialPlayerResult(playerResult2)
             myPlayer = playerResult1.getPlayer() if playerResult1.getPlayer() in tempMyPlayers else playerResult2.getPlayer()
             theirPlayer = playerResult1.getPlayer() if playerResult1.getPlayer() in tempTheirPlayers else playerResult2.getPlayer()
-            tempMyPlayers.remove(myPlayer)
-            tempTheirPlayers.remove(theirPlayer)
+            if myPlayer in tempMyPlayers:
+                tempMyPlayers.remove(myPlayer)
+            if theirPlayer in tempTheirPlayers:
+                tempTheirPlayers.remove(theirPlayer)
             bestMatch = self.asynchronousAlgorithm(None, teamMatchCriteria, matchNumber + 1, tempTheirPlayers, tempMyPlayers, tempSoFarMatch)
         
         return bestMatch
