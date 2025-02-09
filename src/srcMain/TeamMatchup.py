@@ -60,7 +60,7 @@ class TeamMatchup():
         return (self.skillLevelMatrix[index1][index2], self.skillLevelMatrix[index2][index1])
     
     def asynchronousAlgorithm(self, putupPlayer: Player, teamMatchCriteria: TeamMatchCriteria, matchNumber: int, myPlayers: List[Player], theirPlayers: List[Player], soFarMatch: PotentialTeamMatch) -> PotentialTeamMatch:
-        print("asynchronousAlgorithm matchNumber: ", matchNumber)
+        # print("asynchronousAlgorithm matchNumber: ", matchNumber)
         if matchNumber >= NUM_PLAYERMATCHES_IN_TEAMMATCH:
             return soFarMatch
         
@@ -87,10 +87,29 @@ class TeamMatchup():
             tempSoFarMatch.addPotentialPlayerResult(playerResult2)
             
             # TODO: FIX THIS SECTION. It doesn't know which player is on which team. Probably use an if statment involving a combination of self.myTeam.getPlayers() and amILookinngAtMyOwnTeam
-            myPlayer = playerResult1.getPlayer() if playerResult1.getPlayer() in tempMyPlayers else playerResult2.getPlayer()
-            theirPlayer = playerResult1.getPlayer() if playerResult1.getPlayer() in tempTheirPlayers else playerResult2.getPlayer()
-            tempMyPlayers.remove(myPlayer)
-            tempTheirPlayers.remove(theirPlayer)
+            myPlayer = None
+            theirPlayer = None
+            player1 = playerResult1.getPlayer() 
+            player2 = playerResult2.getPlayer()
+            if amILookingAtMyOwnTeam:
+                if player1 in self.myTeam.getPlayers():
+                    myPlayer = player1
+                    theirPlayer = player2
+                else:
+                    myPlayer = player2
+                    theirPlayer = player1
+            else:
+                if player1 in self.myTeam.getPlayers():
+                    myPlayer = player2
+                    theirPlayer = player1
+                else:
+                    myPlayer = player1
+                    theirPlayer = player2
+
+            if myPlayer in tempMyPlayers:  
+                tempMyPlayers.remove(myPlayer)
+            if theirPlayer in tempTheirPlayers:
+                tempTheirPlayers.remove(theirPlayer)
             bestMatch = self.asynchronousAlgorithm(None, teamMatchCriteria, matchNumber + 1, tempTheirPlayers, tempMyPlayers, tempSoFarMatch)
         
         return bestMatch
@@ -100,7 +119,7 @@ class TeamMatchup():
 
     
     def findBestNextMatchup(self, chosenPlayer: Player, myPlayers: List[Player], theirPlayers: List[Player], potentialTeamMatch: PotentialTeamMatch, teamMatchCriteria: TeamMatchCriteria, matchNumber: int, originalMatchNumber: int) -> PotentialTeamMatch:
-        print("findBestNextMatchup matchNumber: ", matchNumber)
+        # print("findBestNextMatchup matchNumber: ", matchNumber)
         # This function is used to find the matchup that would happen for match number <matchNumber>
         # The rest of the matchups that are generated from this function do not take into account teamMatchCriteria
         # because the opponent doesn't know the other team's order and only knows who can play that very match
