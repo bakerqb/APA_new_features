@@ -38,8 +38,8 @@ class PotentialTeamMatch:
         return PotentialTeamMatch(tempPotentialPlayerMatches)
     
     def pointDifference(self, isMyTeam):
-        theirExpectedTotalPts = self.sumPoints(not isMyTeam)
-        myExpectedTotalPts = self.sumPoints(isMyTeam)
+        theirExpectedTotalPts = self.sumPoints(False)
+        myExpectedTotalPts = self.sumPoints(True)
         if isMyTeam:
             return myExpectedTotalPts - theirExpectedTotalPts
         else:

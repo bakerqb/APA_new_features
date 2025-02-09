@@ -70,8 +70,6 @@ class TeamMatchCriteria:
     def playerMustPlay(self, player: Player, matchIndex: int) -> bool:
         if player.getMemberId() in self.idsForGames[matchIndex]:
             return False
-        if matchIndex == NUM_PLAYERMATCHES_IN_TEAMMATCH - 1:
-            return True
         for idsForGame in self.idsForGames[matchIndex + 1:]:
             if player.getMemberId() not in idsForGame:
                 return False

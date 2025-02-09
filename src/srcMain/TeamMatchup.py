@@ -227,8 +227,10 @@ class TeamMatchup():
             if (self.wouldThrowingPlayerExceedSkillLevelCap(player, players, matchNumber, soFarMatch, amILookingAtMyOwnTeam, numUniquePlayersFromStart)
                 or self.wouldThrowingPlayerBreakDuplicatePlayerConstraint(player, soFarMatch, amILookingAtMyOwnTeam, numUniquePlayersFromStart)):
                 continue
+            '''
             if teamMatchCriteria.playerMustPlay(player, matchNumber):
                 return [player]
+            '''
             if player.getMemberId() not in teamMatchCriteria.getMemberIdsForGame(matchNumber):
                 eligiblePlayers.append(player)
         return eligiblePlayers
