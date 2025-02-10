@@ -67,7 +67,6 @@ class TeamMatchup():
         amILookingAtMyOwnTeam = self.myTeam.isPlayerOnTeam(myPlayers[0])
         tempSoFarMatch = soFarMatch.copy()
         bestMatch = None
-        emptyPotentialTeamMatch = PotentialTeamMatch([])
         tempMyPlayers = myPlayers.copy()
         tempTheirPlayers = theirPlayers.copy()
 
@@ -80,8 +79,8 @@ class TeamMatchup():
                 if bestMatch is None or potentialTeamMatch.pointDifference(amILookingAtMyOwnTeam) > bestMatch.pointDifference(amILookingAtMyOwnTeam):
                     bestMatch = potentialTeamMatch
         else:
-            unrealisticTeamMatch = self.findBestNextMatchup(putupPlayer, tempMyPlayers, tempTheirPlayers, emptyPotentialTeamMatch, teamMatchCriteria, matchNumber, matchNumber)
-            firstPotentialPlayerMatch = unrealisticTeamMatch.getPotentialPlayerMatches()[0]
+            unrealisticTeamMatch = self.findBestNextMatchup(putupPlayer, tempMyPlayers, tempTheirPlayers, tempSoFarMatch, teamMatchCriteria, matchNumber, matchNumber)
+            firstPotentialPlayerMatch = unrealisticTeamMatch.getPotentialPlayerMatches()[len(tempSoFarMatch.getPotentialPlayerMatches())]
             playerResult1, playerResult2 = firstPotentialPlayerMatch.getPotentialPlayerResults()
             tempSoFarMatch.addPotentialPlayerResult(playerResult1)
             tempSoFarMatch.addPotentialPlayerResult(playerResult2)
@@ -111,7 +110,7 @@ class TeamMatchup():
             if theirPlayer in tempTheirPlayers:
                 tempTheirPlayers.remove(theirPlayer)
             bestMatch = self.asynchronousAlgorithm(None, teamMatchCriteria, matchNumber + 1, tempTheirPlayers, tempMyPlayers, tempSoFarMatch)
-        
+            bestMatch = bestMatch
         return bestMatch
 
     def start(self, teamMatchCriteria: TeamMatchCriteria, matchNumber: int) -> PotentialTeamMatch:
@@ -135,7 +134,7 @@ class TeamMatchup():
             if chosenPlayer is not None:
                 self.addPlayerMatch(player, chosenPlayer, tempPotentialTeamMatch)
 
-            newPotentialTeamMatch = tempPotentialTeamMatch
+            newPotentialTeamMatch = tempPotentialTeamMatch.copy()
             if matchNumber < NUM_PLAYERMATCHES_IN_TEAMMATCH - 1 or chosenPlayer is None:
                 newPotentialTeamMatch = (
                     self.findBestNextMatchup(None, tempTheirPlayers, tempMyPlayers, tempPotentialTeamMatch, teamMatchCriteria, matchNumber + 1, originalMatchNumber)
@@ -144,7 +143,7 @@ class TeamMatchup():
                 )
             
             if bestPotentialTeamMatch is None or newPotentialTeamMatch.pointDifference(amILookingAtMyOwnTeam) > bestPotentialTeamMatch.pointDifference(amILookingAtMyOwnTeam):
-                bestPotentialTeamMatch = newPotentialTeamMatch
+                bestPotentialTeamMatch = newPotentialTeamMatch.copy()
         
         return bestPotentialTeamMatch
 
