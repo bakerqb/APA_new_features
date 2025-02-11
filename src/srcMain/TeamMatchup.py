@@ -9,6 +9,7 @@ from src.dataClasses.TeamMatchCriteria import TeamMatchCriteria
 from src.exceptions.InvalidTeamMatchCriteria import InvalidTeamMatchCriteria
 from typing import Tuple
 from typing import List
+import time
 
 class TeamMatchup():
     def __init__(self, myTeam: Team, opponentTeam: Team, putupPlayer: Player, matchNumber: int):
@@ -17,6 +18,13 @@ class TeamMatchup():
         self.doesMyTeamPutUp = putupPlayer is None
         self.putupPlayer = putupPlayer
         self.matchNumber = matchNumber
+        self.timeCounter = {
+            self.start.__name__: 0,
+            'removeDuplicatePlayersExceptLowest': 0,
+            self.findEligiblePlayers.__name__: 0,
+            'skillLevelCap': 0,
+            'doublePlay': 0
+        }
         
         self.validate()
 
@@ -32,33 +40,16 @@ class TeamMatchup():
         # TODO: Remove hardcoded values
         self.game = "8-ball"
         self.skillLevelMatrix = createASLMatrix(self.game)
-
-    def getExpectedPts(self, player1: Player, player2: Player) -> Tuple[int]:
-        asl1 = float(player1.getAdjustedSkillLevel())
-        asl2 = float(player2.getAdjustedSkillLevel())
-
-        rangeStart = getRangeStart(self.game)
-        
-        skillLevel1 = math.floor(asl1)
-        asl1decimals = asl1 - skillLevel1
-        asl1SectionIndex = 0
-        for sectionIndex, section in enumerate(SECTIONS_PER_SKILL_LEVEL):
-            if asl1decimals >= section[0] and asl1decimals < section[1]:
-                asl1SectionIndex = sectionIndex
-                break
-
-        skillLevel2 = math.floor(asl2)
-        asl2decimals = asl2 - skillLevel2
-        asl2SectionIndex = 0
-        for sectionIndex, section in enumerate(SECTIONS_PER_SKILL_LEVEL):
-            if asl2decimals >= section[0] and asl2decimals < section[1]:
-                asl2SectionIndex = sectionIndex
-                break
-        
-        index1 = ((skillLevel1 - rangeStart) * NUM_SECTIONS_PER_SKILL_LEVEL) + asl1SectionIndex + 1 
-        index2 = ((skillLevel2 - rangeStart) * NUM_SECTIONS_PER_SKILL_LEVEL) + asl2SectionIndex + 1 
-        return (self.skillLevelMatrix[index1][index2], self.skillLevelMatrix[index2][index1])
     
+    def start(self, teamMatchCriteria: TeamMatchCriteria, matchNumber: int) -> PotentialTeamMatch:
+        startTime = time.perf_counter()
+        matchups = self.asynchronousAlgorithm(self.putupPlayer, teamMatchCriteria, matchNumber, self.myTeam.getPlayers(), self.opponentTeam.getPlayers(), PotentialTeamMatch([]))
+        endTime = time.perf_counter()
+        self.timeCounter[self.start.__name__] += endTime - startTime
+        print(self.timeCounter)
+        return matchups
+    
+
     def asynchronousAlgorithm(self, putupPlayer: Player, teamMatchCriteria: TeamMatchCriteria, matchNumber: int, myPlayers: List[Player], theirPlayers: List[Player], soFarMatch: PotentialTeamMatch) -> PotentialTeamMatch:
         # print("asynchronousAlgorithm matchNumber: ", matchNumber)
         if matchNumber >= NUM_PLAYERMATCHES_IN_TEAMMATCH:
@@ -113,9 +104,6 @@ class TeamMatchup():
             bestMatch = bestMatch
         return bestMatch
 
-    def start(self, teamMatchCriteria: TeamMatchCriteria, matchNumber: int) -> PotentialTeamMatch:
-        return self.asynchronousAlgorithm(self.putupPlayer, teamMatchCriteria, matchNumber, self.myTeam.getPlayers(), self.opponentTeam.getPlayers(), PotentialTeamMatch([]))
-
     
     def findBestNextMatchup(self, chosenPlayer: Player, myPlayers: List[Player], theirPlayers: List[Player], potentialTeamMatch: PotentialTeamMatch, teamMatchCriteria: TeamMatchCriteria, matchNumber: int, originalMatchNumber: int) -> PotentialTeamMatch:
         # print("findBestNextMatchup matchNumber: ", matchNumber)
@@ -147,6 +135,32 @@ class TeamMatchup():
         
         return bestPotentialTeamMatch
 
+    def getExpectedPts(self, player1: Player, player2: Player) -> Tuple[int]:
+        asl1 = float(player1.getAdjustedSkillLevel())
+        asl2 = float(player2.getAdjustedSkillLevel())
+
+        rangeStart = getRangeStart(self.game)
+        
+        skillLevel1 = math.floor(asl1)
+        asl1decimals = asl1 - skillLevel1
+        asl1SectionIndex = 0
+        for sectionIndex, section in enumerate(SECTIONS_PER_SKILL_LEVEL):
+            if asl1decimals >= section[0] and asl1decimals < section[1]:
+                asl1SectionIndex = sectionIndex
+                break
+
+        skillLevel2 = math.floor(asl2)
+        asl2decimals = asl2 - skillLevel2
+        asl2SectionIndex = 0
+        for sectionIndex, section in enumerate(SECTIONS_PER_SKILL_LEVEL):
+            if asl2decimals >= section[0] and asl2decimals < section[1]:
+                asl2SectionIndex = sectionIndex
+                break
+        
+        index1 = ((skillLevel1 - rangeStart) * NUM_SECTIONS_PER_SKILL_LEVEL) + asl1SectionIndex + 1 
+        index2 = ((skillLevel2 - rangeStart) * NUM_SECTIONS_PER_SKILL_LEVEL) + asl2SectionIndex + 1 
+        return (self.skillLevelMatrix[index1][index2], self.skillLevelMatrix[index2][index1])
+
     def addPlayerMatch(self, player: Player, chosenPlayer: Player, newPotentialTeamMatch: PotentialTeamMatch):
         myPoints, theirPoints = self.getExpectedPts(player, chosenPlayer)
         if self.myTeam.isPlayerOnTeam(player):
@@ -163,75 +177,76 @@ class TeamMatchup():
         tempPotentialTeamMatch = potentialTeamMatch.copy()
         return (tempMyPlayers, tempTheirPlayers, tempPotentialTeamMatch)
     
-    def wouldThrowingPlayerExceedSkillLevelCap(self, player: Player, players: List[Player], matchNumber: int, soFarMatch: PotentialTeamMatch, amILookingAtMyOwnTeam: bool, numUniquePlayersFromStart: int):
-        # Assuming you throw a player right now and then threw your weakest players for the rest of the match, this returns the sum of all their skill levels
-        playersCopy = players.copy()
-        # Make sure to remove any duplicate players when considering who else can play the rest of the match. For example, if you had 4 players to start the match, 2 players can't double play, only 1 can
-        remainingSkillLevels = self.removeDuplicatePlayersExceptLowest(player, playersCopy, soFarMatch, amILookingAtMyOwnTeam, numUniquePlayersFromStart)
-        numMatchesLeftAfterChoosingPlayer =  NUM_PLAYERMATCHES_IN_TEAMMATCH - matchNumber - 1
-        sumRemainingSkillLevels = sum(list(map(lambda currentPlayer: currentPlayer.getCurrentSkillLevel(), remainingSkillLevels[:numMatchesLeftAfterChoosingPlayer])))
-        sumSkillLevelsPlayedSoFar = soFarMatch.sumSkillLevels(amILookingAtMyOwnTeam)
-
-        return sumRemainingSkillLevels + player.getCurrentSkillLevel() + sumSkillLevelsPlayedSoFar > SKILL_LEVEL_CAP
-    
     def getNumUniquePlayers(self, players: List[Player], soFarMatch: PotentialTeamMatch, amILookingAtMyOwnTeam: bool):
         allPlayers = players + soFarMatch.getPlayers(amILookingAtMyOwnTeam)
         allMemberIds = list(map(lambda player: player.getMemberId(), allPlayers))
         return len(set(allMemberIds))
     
-    def wouldThrowingPlayerBreakDuplicatePlayerConstraint(self, player: Player, soFarMatch: PotentialTeamMatch, amILookingAtMyOwnTeam: bool, numUniquePlayersFromStart: int):
-        playersWhoHavePlayedSoFarIncludingThrowingPlayer = soFarMatch.getPlayers(amILookingAtMyOwnTeam) + [player]
-        numDuplicatePlaysSoFarIncludingThrowingPlayer = len(playersWhoHavePlayedSoFarIncludingThrowingPlayer) - len(set(list(map(lambda currentPlayer: currentPlayer.getMemberId(), playersWhoHavePlayedSoFarIncludingThrowingPlayer))))
-        numDuplicatePlaysAllowed = 0 if numUniquePlayersFromStart >= NUM_PLAYERMATCHES_IN_TEAMMATCH else NUM_PLAYERMATCHES_IN_TEAMMATCH - numUniquePlayersFromStart
-        return numDuplicatePlaysSoFarIncludingThrowingPlayer > numDuplicatePlaysAllowed
-            
-
-    
-    def removeDuplicatePlayersExceptLowest(self, player: Player, players: List[Player], soFarMatch: PotentialTeamMatch, amILookingAtMyOwnTeam: bool, numUniquePlayersFromStart: int):
-        # Find out how many duplicate plays you have left including selecting the consideredPlayer to play
-        # Sort players based on skill level first
-        # Iterate through each player. Whenever you come across a duplicate (same as previous player), increment the duplicateCount variable
-        # As soon as the duplicateCount variable hits the same number as the number of duplicated plays allowed, go through the rest of the players and remove the remaining duplicates
-        playersWhoHavePlayedSoFarIncludingThrowingPlayer = soFarMatch.getPlayers(amILookingAtMyOwnTeam) + [player]
-        numDuplicatePlaysSoFarIncludingThrowingPlayer = len(playersWhoHavePlayedSoFarIncludingThrowingPlayer) - len(set(list(map(lambda currentPlayer: currentPlayer.getMemberId(), playersWhoHavePlayedSoFarIncludingThrowingPlayer))))
-        numDuplicatePlaysAllowed = 0 if numUniquePlayersFromStart >= NUM_PLAYERMATCHES_IN_TEAMMATCH else NUM_PLAYERMATCHES_IN_TEAMMATCH - numUniquePlayersFromStart
-        playersCopy = players.copy()
-        playersCopy.remove(player)
-        playersCopy.sort()
-        returnedPlayers = []
-        if len(playersCopy) < 2:
-            return playersCopy
-        for index, player in enumerate(playersCopy):
-            if player == playersCopy[index - 1] or player in playersWhoHavePlayedSoFarIncludingThrowingPlayer:
-                if numDuplicatePlaysSoFarIncludingThrowingPlayer >= numDuplicatePlaysAllowed:
-                    continue
-                else:
-                    numDuplicatePlaysSoFarIncludingThrowingPlayer += 1
-            returnedPlayers.append(player)
-        print("removeDuplicatePlayersExceptLowest")
-        return returnedPlayers
-    
     def findEligiblePlayers(self, players: List[Player], matchNumber: int, teamMatchCriteria: TeamMatchCriteria, amILookingAtMyOwnTeam: bool, originalMatchNumber: int, soFarMatch: PotentialTeamMatch):
+        startTime = time.perf_counter()
         numUniquePlayersFromStart = self.getNumUniquePlayers(players, soFarMatch, amILookingAtMyOwnTeam)
-        if amILookingAtMyOwnTeam and matchNumber != originalMatchNumber:
-            eligiblePlayers = []
-            for player in players:
-                if (not self.wouldThrowingPlayerExceedSkillLevelCap(player, players, matchNumber, soFarMatch, amILookingAtMyOwnTeam, numUniquePlayersFromStart)
-                    and not self.wouldThrowingPlayerBreakDuplicatePlayerConstraint(player, soFarMatch, amILookingAtMyOwnTeam, numUniquePlayersFromStart)):
-                    eligiblePlayers.append(player)
-            return eligiblePlayers
+        
+        noNeedToCheckTeamMatchCriteria = amILookingAtMyOwnTeam and matchNumber != originalMatchNumber
         
         eligiblePlayers = []
         for player in players:
-            if (self.wouldThrowingPlayerExceedSkillLevelCap(player, players, matchNumber, soFarMatch, amILookingAtMyOwnTeam, numUniquePlayersFromStart)
-                or self.wouldThrowingPlayerBreakDuplicatePlayerConstraint(player, soFarMatch, amILookingAtMyOwnTeam, numUniquePlayersFromStart)):
-                continue
-            '''
-            if teamMatchCriteria.playerMustPlay(player, matchNumber):
-                return [player]
-            '''
-            if player.getMemberId() not in teamMatchCriteria.getMemberIdsForGame(matchNumber):
+            
+            # Determine whether throwing that player would violate (or lead to a violation of) the 23 skill level cap rule
+            skilLevelCapStartTime = time.perf_counter()
+            playersCopy = players.copy()
+            removeStartTime = time.perf_counter()
+            
+            # Find out how many duplicate plays you have left including selecting the consideredPlayer to play
+            # Sort players based on skill level first
+            # Iterate through each player. Whenever you come across a duplicate (same as previous player), increment the duplicateCount variable
+            # As soon as the duplicateCount variable hits the same number as the number of duplicated plays allowed, go through the rest of the players and remove the remaining duplicates
+            playersWhoHavePlayedSoFarIncludingThrowingPlayer = soFarMatch.getPlayers(amILookingAtMyOwnTeam) + [player]
+            numDuplicatePlaysSoFarIncludingThrowingPlayer = len(playersWhoHavePlayedSoFarIncludingThrowingPlayer) - len(set(list(map(lambda currentPlayer: currentPlayer.getMemberId(), playersWhoHavePlayedSoFarIncludingThrowingPlayer))))
+            numDuplicatePlaysAllowed = 0 if numUniquePlayersFromStart >= NUM_PLAYERMATCHES_IN_TEAMMATCH else NUM_PLAYERMATCHES_IN_TEAMMATCH - numUniquePlayersFromStart
+            playersCopy.remove(player)
+            playersCopy.sort()
+            remainingSkillLevels = []
+            if len(playersCopy) < 2:
+                remainingSkillLevels = playersCopy
+            for index, currentPlayer in enumerate(playersCopy):
+                if currentPlayer == playersCopy[index - 1] or currentPlayer in playersWhoHavePlayedSoFarIncludingThrowingPlayer:
+                    if numDuplicatePlaysSoFarIncludingThrowingPlayer >= numDuplicatePlaysAllowed:
+                        continue
+                    else:
+                        numDuplicatePlaysSoFarIncludingThrowingPlayer += 1
+                remainingSkillLevels.append(player)
+
+            removeEndTime = time.perf_counter()
+            self.timeCounter['removeDuplicatePlayersExceptLowest'] += removeEndTime - removeStartTime
+            numMatchesLeftAfterChoosingPlayer =  NUM_PLAYERMATCHES_IN_TEAMMATCH - matchNumber - 1
+            sumRemainingSkillLevels = sum(list(map(lambda currentPlayer: currentPlayer.getCurrentSkillLevel(), remainingSkillLevels[:numMatchesLeftAfterChoosingPlayer])))
+            sumSkillLevelsPlayedSoFar = soFarMatch.sumSkillLevels(amILookingAtMyOwnTeam)
+            wouldExceedSkillLevelCap = sumRemainingSkillLevels + player.getCurrentSkillLevel() + sumSkillLevelsPlayedSoFar > SKILL_LEVEL_CAP
+            skilLevelCapEndTime = time.perf_counter()
+            self.timeCounter['skillLevelCap'] += skilLevelCapEndTime - skilLevelCapStartTime
+
+            # Determine whether throwing that player would violate a double-play rule.
+            # For example, if you only have 4 players, only one of them can double play
+            doublePlayStartTime = time.perf_counter()
+            playersWhoHavePlayedSoFarIncludingThrowingPlayer = soFarMatch.getPlayers(amILookingAtMyOwnTeam) + [player]
+            numDuplicatePlaysSoFarIncludingThrowingPlayer = len(playersWhoHavePlayedSoFarIncludingThrowingPlayer) - len(set(list(map(lambda currentPlayer: currentPlayer.getMemberId(), playersWhoHavePlayedSoFarIncludingThrowingPlayer))))
+            numDuplicatePlaysAllowed = 0 if numUniquePlayersFromStart >= NUM_PLAYERMATCHES_IN_TEAMMATCH else NUM_PLAYERMATCHES_IN_TEAMMATCH - numUniquePlayersFromStart
+            wouldBreakDuplicateConstraint = numDuplicatePlaysSoFarIncludingThrowingPlayer > numDuplicatePlaysAllowed
+            doublePlayEndTime = time.perf_counter()
+            self.timeCounter['doublePlay'] += doublePlayEndTime - doublePlayStartTime
+
+            # If we're deciding a putup an immediate next putup for our team, we need to check if the player is available that match
+            # Otherwise, assume the opponent is making their decisions without knowledge of when our players are available
+            passesTeamMatchCriteriaCheck = player.getMemberId() not in teamMatchCriteria.getMemberIdsForGame(matchNumber)
+            if (
+                not wouldExceedSkillLevelCap and 
+                not wouldBreakDuplicateConstraint and
+                (noNeedToCheckTeamMatchCriteria or (not noNeedToCheckTeamMatchCriteria and passesTeamMatchCriteriaCheck))
+            ):
                 eligiblePlayers.append(player)
+        
+        endTime = time.perf_counter()
+        self.timeCounter[self.findEligiblePlayers.__name__] += endTime - startTime
         return eligiblePlayers
     
     def validate(self):
