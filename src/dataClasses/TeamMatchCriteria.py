@@ -70,8 +70,6 @@ class TeamMatchCriteria:
     def playerMustPlay(self, player: Player, matchIndex: int) -> bool:
         if player.getMemberId() in self.idsForGames[matchIndex]:
             return False
-        if matchIndex == NUM_PLAYERMATCHES_IN_TEAMMATCH - 1:
-            return True
         for idsForGame in self.idsForGames[matchIndex + 1:]:
             if player.getMemberId() not in idsForGame:
                 return False
@@ -110,8 +108,10 @@ class TeamMatchCriteria:
         while True:
             restrictiveMatchSet = None
             for matchSet, players in availableMatches.items():
+                '''
                 if len(matchSet) < len(players):
                     raise InvalidTeamMatchCriteria(f"ERROR: {list(map(lambda player: player.getPlayerName(), players))} all need to play in matches {list(matchSet)}, which is not possible")
+                '''
 
                 if len(matchSet) == 0:
                     raise InvalidTeamMatchCriteria(f"ERROR: {list(map(lambda player: player.getPlayerName(), players))} can't play any matches")
