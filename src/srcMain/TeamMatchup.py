@@ -100,9 +100,9 @@ class TeamMatchup():
                     myPlayer = player1
                     theirPlayer = player2
 
-            if myPlayer in tempMyPlayers:  
-                tempMyPlayers.remove(myPlayer)
-            if theirPlayer in tempTheirPlayers:
+            
+            tempMyPlayers.remove(myPlayer)
+            if putupPlayer is None:
                 tempTheirPlayers.remove(theirPlayer)
             bestMatch = self.asynchronousAlgorithm(None, teamMatchCriteria, matchNumber + 1, tempTheirPlayers, tempMyPlayers, tempSoFarMatch)
             bestMatch = bestMatch
