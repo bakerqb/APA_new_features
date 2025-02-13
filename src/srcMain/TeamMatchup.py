@@ -193,9 +193,13 @@ class TeamMatchup():
         
         eligiblePlayers = []
         for player in players:
-            
-            # Determine whether throwing that player would violate (or lead to a violation of) the 23 skill level cap rule
             skilLevelCapStartTime = time.perf_counter()
+            if teamMatchCriteria.playerMustPlay(player, matchNumber, numUniquePlayersFromStart):
+                return [player]
+
+            # Determine whether throwing that player would violate (or lead to a violation of) the 23 skill level cap rule
+            
+
             playersCopy = players.copy()
             removeStartTime = time.perf_counter()
             
