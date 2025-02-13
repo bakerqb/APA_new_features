@@ -136,6 +136,7 @@ def keysToTeams(keys):
     teamRoster1 = []
     teamRoster2 = []
     for key in keys:
+        key = key.replace('-double-play', '') 
         teamId, memberId = key.split('-')
         if teamId == teamId1:
             teamRoster1.append(memberId)

@@ -110,6 +110,9 @@
                 {% endfor %}
             </div>
         </div>
+        <input type="checkbox" id="{{team1.getTeamId()}}-{{player.getMemberId()}}-double-play"
+            name="{{team1.getTeamId()}}-{{player.getMemberId()}}-double-play" value="">
+        <label for="{{team1.getTeamId()}}-{{player.getMemberId()}}-double-play">Might double play?</label>
         <br>
         {% endfor %}
         <br>
@@ -130,6 +133,9 @@
                 {% endfor %}
             </div>
         </div>
+        <input type="checkbox" id="{{team2.getTeamId()}}-{{player.getMemberId()}}-double-play"
+            name="{{team2.getTeamId()}}-{{player.getMemberId()}}-double-play" value="">
+        <label for="{{team2.getTeamId()}}-{{player.getMemberId()}}-double-play">Might double play?</label>
 
         <br>
         {% endfor %}
