@@ -67,7 +67,10 @@ class TeamMatchCriteria:
     def getMemberIdsForGame(self, gameIndex: int) -> List[int]:
         return self.idsForGames[gameIndex]
     
-    def playerMustPlay(self, player: Player, matchIndex: int) -> bool:
+    def playerMustPlay(self, player: Player, matchIndex: int, numUniquePlayersFromStart: int) -> bool:
+        if numUniquePlayersFromStart > NUM_PLAYERMATCHES_IN_TEAMMATCH:
+            return False
+        
         if player.getMemberId() in self.idsForGames[matchIndex]:
             return False
         for idsForGame in self.idsForGames[matchIndex + 1:]:
