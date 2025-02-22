@@ -39,3 +39,6 @@ class Team:
     
     def getMemberIds(self):
         return list(map(lambda player: player.getMemberId(), self.players))
+
+    def __eq__(self, team):
+        return self.teamId == team.getTeamId()

@@ -44,3 +44,29 @@ class UseCase:
             "teams": list(map(lambda teamRow: self.converter.toTeamWithoutRosterWithSql(teamRow, division), self.db.getTeamsFromDivision(divisionId))),
             "division": division
         }
+    
+    # ------------------------- Teams -------------------------
+    def getPredictionAccuracy(self):
+        # Start a counter at 0
+        numCorrectlyPredictedMatches = 0
+
+        # Get a list of teamMatches in which each teamMatch has <=5 playerMatches
+        db = Database()
+        converter = Converter()
+        playerMatchesSql = db.getPlayerMatches(395028, None, None, "8-ball", None, None, None)
+        teamMatches = converter.toTeamMatchesWithPlayerMatchesSql(playerMatchesSql)
+        
+        # For each of the teamMatches:
+        #   Determine who actually won the match
+        #   Create PotentialTeamMatch with the actual matchups including the expected points value for each matchup
+        #   If the team expected to win actually won, increase the counter by 1
+        for teamMatch in teamMatches:
+            winningTeams = teamMatch.getWinningTeams()
+            if len(winningTeams) == 2:
+                continue
+
+            
+
+        
+        # Return counter/len(teamMatches)
+        return numCorrectlyPredictedMatches/len(teamMatches)
