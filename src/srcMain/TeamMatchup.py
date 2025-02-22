@@ -215,12 +215,15 @@ class TeamMatchup():
             if len(playersCopy) < 2:
                 remainingSkillLevels = playersCopy
             for index, currentPlayer in enumerate(playersCopy):
-                if currentPlayer == playersCopy[index - 1] or currentPlayer in playersWhoHavePlayedSoFarIncludingThrowingPlayer:
+                if ((index == 0 and currentPlayer in playersWhoHavePlayedSoFarIncludingThrowingPlayer) or
+                    currentPlayer == playersCopy[index - 1] or 
+                    currentPlayer in playersWhoHavePlayedSoFarIncludingThrowingPlayer
+                    ):
                     if numDuplicatePlaysSoFarIncludingThrowingPlayer >= numDuplicatePlaysAllowed:
                         continue
                     else:
                         numDuplicatePlaysSoFarIncludingThrowingPlayer += 1
-                remainingSkillLevels.append(player)
+                remainingSkillLevels.append(currentPlayer)
 
             removeEndTime = time.perf_counter()
             self.timeCounter['removeDuplicatePlayersExceptLowest'] += removeEndTime - removeStartTime
