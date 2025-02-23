@@ -1,7 +1,9 @@
 from dataClasses.PotentialPlayerMatch import PotentialPlayerMatch
+from dataClasses.Team import Team
+from typing import List
 
 class PotentialTeamMatch:
-    def __init__(self, potentialPlayerMatches: list):
+    def __init__(self, potentialPlayerMatches: List[PotentialPlayerMatch]):
         self.potentialPlayerMatches = potentialPlayerMatches
 
     def getPotentialPlayerMatches(self):
@@ -45,6 +47,14 @@ class PotentialTeamMatch:
         else:
             return theirExpectedTotalPts - myExpectedTotalPts
         
-
-    
-    
+    def getExpectedWinningTeams(self):
+        myTeamPts = self.sumPoints(True)
+        theirTeamPts = self.sumPoints(False)
+        myTeam = self.potentialPlayerMatches[0].getPotentialPlayerResults()[0].getTeam()
+        theirTeam = self.potentialPlayerMatches[0].getPotentialPlayerResults()[1].getTeam()
+        if myTeamPts > theirTeamPts:
+            return [myTeam]
+        elif myTeamPts == theirTeamPts:
+            return [myTeam, theirTeam]
+        else:
+            return [theirTeam]

@@ -3,7 +3,9 @@ from src.srcMain.Config import Config
 from src.srcMain.Database import Database
 from converter.Converter import Converter
 from dataClasses.TeamResults import TeamResults
+from converter.PotentialTeamMatchConverter import PotentialTeamMatchConverter
 from utils.utils import *
+from utils.asl import *
 
 class UseCase:
     def __init__(self):
@@ -11,6 +13,7 @@ class UseCase:
         self.config = Config()
         self.db = Database()
         self.converter = Converter()
+        self.potentialTeamMatchConverter = PotentialTeamMatchConverter()
 
     # ------------------------- Team Results -------------------------
     def getTeamResults(self, teamId, decorateWithASL) -> dict:
@@ -49,24 +52,40 @@ class UseCase:
     def getPredictionAccuracy(self):
         # Start a counter at 0
         numCorrectlyPredictedMatches = 0
+        
 
         # Get a list of teamMatches in which each teamMatch has <=5 playerMatches
         db = Database()
         converter = Converter()
         playerMatchesSql = db.getPlayerMatches(395028, None, None, "8-ball", None, None, None)
         teamMatches = converter.toTeamMatchesWithPlayerMatchesSql(playerMatchesSql)
-        
+        numTeamMatchesNotResultingInTie = len(teamMatches)
+        skillLevelMatrix = createASLMatrix("8-ball")
+
         # For each of the teamMatches:
         #   Determine who actually won the match
         #   Create PotentialTeamMatch with the actual matchups including the expected points value for each matchup
         #   If the team expected to win actually won, increase the counter by 1
         for teamMatch in teamMatches:
-            winningTeams = teamMatch.getWinningTeams()
-            if len(winningTeams) == 2:
+            actualWinningTeams = teamMatch.getWinningTeams()
+            if len(actualWinningTeams) == 2:
+                numTeamMatchesNotResultingInTie -= 1
                 continue
+            else:
+                actualWinningTeam = actualWinningTeams[0]
+                potentialTeamMatch = self.potentialTeamMatchConverter.toPotentialTeamMatchFromTeamMatch(teamMatch, skillLevelMatrix)
+                expectedWinningTeams = potentialTeamMatch.getExpectedWinningTeams()
+                if len(expectedWinningTeams) == 2:
+                    numTeamMatchesNotResultingInTie -= 1
+                    continue
+                else: 
+                    expectedWinningTeam = expectedWinningTeams[0]
+                    if actualWinningTeam == expectedWinningTeam:
+                        numCorrectlyPredictedMatches += 1
+
 
             
 
         
         # Return counter/len(teamMatches)
-        return numCorrectlyPredictedMatches/len(teamMatches)
+        return str(numCorrectlyPredictedMatches/numTeamMatchesNotResultingInTie)

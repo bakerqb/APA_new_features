@@ -1,7 +1,9 @@
 from dataClasses.Player import Player
+from dataClasses.PotentialPlayerResult import PotentialPlayerResult
+from typing import List
 
 class PotentialPlayerMatch:
-    def __init__(self, potentialPlayerResults: list):
+    def __init__(self, potentialPlayerResults: List[PotentialPlayerResult]):
         self.potentialPlayerResults = potentialPlayerResults
         
 

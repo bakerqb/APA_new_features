@@ -7,6 +7,12 @@ from src.dataClasses.PlayerMatch import PlayerMatch
 from dataClasses.TeamMatch import TeamMatch
 from dataClasses.Score import Score
 from dataClasses.PlayerResult import PlayerResult
+from dataClasses.PotentialTeamMatch import PotentialTeamMatch
+from dataClasses.PotentialPlayerMatch import PotentialPlayerMatch
+from utils.asl import *
+from utils.utils import *
+import math
+from dataClasses.PotentialPlayerResult import PotentialPlayerResult
 from typing import List
 
 class Converter:
@@ -95,10 +101,10 @@ class Converter:
         for sqlRow in sqlRows:
             playerMatch = self.toPlayerMatchWithSql(sqlRow)
             teamMatchId = playerMatch.getTeamMatchId()
-            if teamMatchId in teamMatches.keys():
-                teamMatches[teamMatchId].add(playerMatch)
+            if teamMatchId in teamMatchesMap.keys():
+                teamMatchesMap[teamMatchId].append(playerMatch)
             else:
-                teamMatches[teamMatchId] = [playerMatch]
+                teamMatchesMap[teamMatchId] = [playerMatch]
 
         teamMatches = []
         for teamMatchId, playerMatches in teamMatchesMap.items():

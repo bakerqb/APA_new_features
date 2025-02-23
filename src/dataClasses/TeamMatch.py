@@ -19,7 +19,7 @@ class TeamMatch:
         return self.datePlayed
     
     def getWinningTeams(self):
-        team1, team2 = list(map(lambda playerResult: playerResult.getTeam(), self.playerMatches[0]))
+        team1, team2 = list(map(lambda playerResult: playerResult.getTeam(), self.playerMatches[0].getPlayerResults()))
         team1Pts = 0
         team2Pts = 0
         for playerMatch in self.playerMatches:
