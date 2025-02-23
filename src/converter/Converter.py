@@ -4,8 +4,16 @@ from dataClasses.Session import Session
 from dataClasses.Team import Team
 from dataClasses.Player import Player
 from src.dataClasses.PlayerMatch import PlayerMatch
+from dataClasses.TeamMatch import TeamMatch
 from dataClasses.Score import Score
 from dataClasses.PlayerResult import PlayerResult
+from dataClasses.PotentialTeamMatch import PotentialTeamMatch
+from dataClasses.PotentialPlayerMatch import PotentialPlayerMatch
+from utils.asl import *
+from utils.utils import *
+import math
+from dataClasses.PotentialPlayerResult import PotentialPlayerResult
+from typing import List
 
 class Converter:
     def __init__(self):
@@ -87,3 +95,21 @@ class Converter:
         # Data comes in the format of: memberId, playerName, currentSkillLevel
         memberId, playerName, currentSkillLevel = sqlRow
         return Player(memberId, playerName, currentSkillLevel)
+    
+    def toTeamMatchesWithPlayerMatchesSql(self, sqlRows) -> List[TeamMatch]:
+        teamMatchesMap = {}
+        for sqlRow in sqlRows:
+            playerMatch = self.toPlayerMatchWithSql(sqlRow)
+            teamMatchId = playerMatch.getTeamMatchId()
+            if teamMatchId in teamMatchesMap.keys():
+                teamMatchesMap[teamMatchId].append(playerMatch)
+            else:
+                teamMatchesMap[teamMatchId] = [playerMatch]
+
+        teamMatches = []
+        for teamMatchId, playerMatches in teamMatchesMap.items():
+            datePlayed = playerMatches[0].getDatePlayed()
+            teamMatch = TeamMatch(playerMatches, teamMatchId, datePlayed)
+            teamMatches.append(teamMatch)
+
+        return teamMatches

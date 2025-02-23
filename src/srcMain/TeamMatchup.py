@@ -167,11 +167,11 @@ class TeamMatchup():
     def addPlayerMatch(self, player: Player, chosenPlayer: Player, newPotentialTeamMatch: PotentialTeamMatch):
         myPoints, theirPoints = self.getExpectedPts(player, chosenPlayer)
         if self.myTeam.isPlayerOnTeam(player):
-            newPotentialTeamMatch.addPotentialPlayerResult(PotentialPlayerResult(player, myPoints))
-            newPotentialTeamMatch.addPotentialPlayerResult(PotentialPlayerResult(chosenPlayer, theirPoints))
+            newPotentialTeamMatch.addPotentialPlayerResult(PotentialPlayerResult(player, self.myTeam, myPoints))
+            newPotentialTeamMatch.addPotentialPlayerResult(PotentialPlayerResult(chosenPlayer, self.opponentTeam, theirPoints))
         else:
-            newPotentialTeamMatch.addPotentialPlayerResult(PotentialPlayerResult(chosenPlayer, theirPoints))
-            newPotentialTeamMatch.addPotentialPlayerResult(PotentialPlayerResult(player, myPoints))
+            newPotentialTeamMatch.addPotentialPlayerResult(PotentialPlayerResult(chosenPlayer, self.myTeam, theirPoints))
+            newPotentialTeamMatch.addPotentialPlayerResult(PotentialPlayerResult(player, self.opponentTeam, myPoints))
 
     def makeCopies(self, player: Player, myPlayers: List[Player], theirPlayers: List[Player], potentialTeamMatch: PotentialTeamMatch):
         tempMyPlayers = myPlayers.copy()

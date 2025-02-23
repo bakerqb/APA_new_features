@@ -1,8 +1,10 @@
 from dataClasses.Player import Player
 from utils.utils import *
+from typing import List
+from dataClasses.PlayerResult import PlayerResult
 
 class PlayerMatch:
-    def __init__(self, playerResults: list, playerMatchId: int, teamMatchId: int, datePlayed: str):
+    def __init__(self, playerResults: List[PlayerResult], playerMatchId: int, teamMatchId: int, datePlayed: str):
         self.playerResults = playerResults
         self.playerMatchId = playerMatchId
         self.teamMatchId = teamMatchId
