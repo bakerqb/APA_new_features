@@ -8,7 +8,7 @@ from dataClasses.Game import Game
 class Database:
     # ------------------------- Setup -------------------------
     def __init__(self):
-        self.con = sqlite3.connect("results.db")
+        self.con = sqlite3.connect("results.db", check_same_thread=False)
         self.cur = self.con.cursor()
         self.config = Config().getConfig()
 
@@ -147,7 +147,7 @@ class Database:
         self.con.commit()
 
     # ------------------------- Getting -------------------------
-    def getPlayerMatches(self, divisionId, teamId, memberId, game, limit, datePlayed, playerMatchId):
+    def getPlayerMatches(self, sessionId, divisionId, teamId, memberId, game, limit, datePlayed, playerMatchId):
         return self.cur.execute(
             "SELECT s.sessionId, s.sessionSeason, s.sessionYear, d.divisionId, d.divisionName, d.dayOfWeek, d.game, " +
             "tm.teamMatchId, tm.datePlayed, pm.playerMatchId, t1.teamId, t1.teamNum, t1.teamName, " +
@@ -164,6 +164,7 @@ class Database:
             "LEFT JOIN Score s1 ON s1.scoreId = pm.scoreId1 " +
             "LEFT JOIN Score s2 ON s2.scoreId = pm.scoreId2 " +
             "WHERE pm.playerMatchId IS NOT NULL " +
+            (f"AND s.sessionId = {sessionId} " if sessionId is not None else "") +
             (f"AND d.divisionId = {divisionId} " if divisionId is not None else "") +
             (f"AND t1.teamId = {teamId} OR t2.teamId = {teamId} " if teamId is not None else "") +
             (f"""AND d.game = "{game}" """ if game is not None else "") +

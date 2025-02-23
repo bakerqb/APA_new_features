@@ -17,11 +17,18 @@ class UseCase:
 
     # ------------------------- Team Results -------------------------
     def getTeamResults(self, teamId, decorateWithASL) -> dict:
-        teamResultsDb = self.db.getPlayerMatches(None, teamId, None, None, None, None, None)
+        teamResultsDb = self.db.getPlayerMatches(None, None, teamId, None, None, None, None, None)
         teamResultsPlayerMatches = list(map(lambda playerMatch: self.converter.toPlayerMatchWithSql(playerMatch), teamResultsDb))
         team = self.converter.toTeamWithSql(self.db.getTeamWithTeamId(teamId))
         results = TeamResults(team, teamResultsPlayerMatches, list(map(lambda player: self.converter.toPlayerWithSql(player), self.db.getTeamRoster(teamId))), decorateWithASL)
         return results
+    
+    def getPlayerMatchesForPlayer(self, memberId) -> dict:
+        player = self.converter.toPlayerWithSql(self.db.getPlayerBasedOnMemberId(memberId))
+        return {
+            "player": player,
+            "playerMatches": list(map(lambda playerMatch: self.converter.toPlayerMatchWithSql(playerMatch).properPlayerResultOrderWithPlayer(player), self.db.getPlayerMatches(None, None, None, memberId, "8-ball", None, None, None)))
+        }
     
     def getPlayerMatchesForPlayer(self, memberId) -> dict:
         player = self.converter.toPlayerWithSql(self.db.getPlayerBasedOnMemberId(memberId))
@@ -57,7 +64,9 @@ class UseCase:
         # Get a list of teamMatches in which each teamMatch has <=5 playerMatches
         db = Database()
         converter = Converter()
-        playerMatchesSql = db.getPlayerMatches(395028, None, None, "8-ball", None, None, None)
+        playerMatchesSql = []
+        for sessionId in self.config.getConfig().get("predictionAccuracy").get("sessionIds"):
+            playerMatchesSql += db.getPlayerMatches(sessionId, None, None, None, "8-ball", None, None, None)
         teamMatches = converter.toTeamMatchesWithPlayerMatchesSql(playerMatchesSql)
         numTeamMatchesNotResultingInTie = len(teamMatches)
         skillLevelMatrix = createASLMatrix("8-ball")
