@@ -64,9 +64,7 @@ class UseCase:
         # Get a list of teamMatches in which each teamMatch has <=5 playerMatches
         db = Database()
         converter = Converter()
-        playerMatchesSql = []
-        for sessionId in self.config.getConfig().get("predictionAccuracy").get("sessionIds"):
-            playerMatchesSql += db.getPlayerMatches(sessionId, None, None, None, "8-ball", None, None, None)
+        playerMatchesSql = db.getPlayerMatches(None, None, None, None, "8-ball", None, None, None)
         teamMatches = converter.toTeamMatchesWithPlayerMatchesSql(playerMatchesSql)
         numTeamMatchesNotResultingInTie = len(teamMatches)
         skillLevelMatrix = createASLMatrix("8-ball")

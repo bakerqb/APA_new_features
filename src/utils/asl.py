@@ -210,7 +210,7 @@ def createASLMatrix(game):
         
         
         print(tabulate(matrix, headers="firstrow", tablefmt="fancy_grid"))
-        getPointSpread(game)
+
         return matrix
 
 def getPointSpread(game):

@@ -32,6 +32,3 @@ refreshTeams: false
 myInfo:
   memberId: 60903003
   teamIds: [12531019, 12536150]
-    
-predictionAccuracy:
-  sessionIds: [133, 134]

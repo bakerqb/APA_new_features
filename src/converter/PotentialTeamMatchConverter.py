@@ -3,7 +3,6 @@ from src.dataClasses.PlayerMatch import PlayerMatch
 from dataClasses.TeamMatch import TeamMatch
 from dataClasses.PotentialTeamMatch import PotentialTeamMatch
 from dataClasses.PotentialPlayerMatch import PotentialPlayerMatch
-from utils.asl import *
 from utils.utils import *
 import math
 from dataClasses.PotentialPlayerResult import PotentialPlayerResult
@@ -27,11 +26,8 @@ class PotentialTeamMatchConverter:
         player2 = playerResults[1].getPlayer()
         team1 = playerResults[0].getTeam()
         team2 = playerResults[1].getTeam()
-
-        player1.setAdjustedSkillLevel(getAdjustedSkillLevel(player1.getMemberId(), player1.getCurrentSkillLevel(), None, None))
-        player2.setAdjustedSkillLevel(getAdjustedSkillLevel(player2.getMemberId(), player2.getCurrentSkillLevel(), None, None))
-        asl1 = float(player1.getAdjustedSkillLevel())
-        asl2 = float(player2.getAdjustedSkillLevel())
+        asl1 = playerResults[0].getAdjustedSkillLevel()
+        asl2 = playerResults[1].getAdjustedSkillLevel()
 
         # TODO: Refactor to be able to use the getExpectedPts method. This is all duplicated code #######
         rangeStart = getRangeStart("8-ball")
