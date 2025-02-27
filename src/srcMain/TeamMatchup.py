@@ -10,6 +10,7 @@ from src.exceptions.InvalidTeamMatchCriteria import InvalidTeamMatchCriteria
 from typing import Tuple
 from typing import List
 import time
+from srcMain.Config import Config
 
 class TeamMatchup():
     def __init__(self, myTeam: Team, opponentTeam: Team, putupPlayer: Player, matchNumber: int):
@@ -25,6 +26,7 @@ class TeamMatchup():
             'skillLevelCap': 0,
             'doublePlay': 0
         }
+        self.config = Config().getConfig()
         
         self.validate()
 
@@ -39,7 +41,7 @@ class TeamMatchup():
 
         # TODO: Remove hardcoded values
         self.game = "8-ball"
-        self.skillLevelMatrix = createASLMatrix(self.game, "average")
+        self.skillLevelMatrix = createASLMatrix(self.game, self.config.get("predictionAccuracy").get("expectedPtsMethod"))
     
     def start(self, teamMatchCriteria: TeamMatchCriteria, matchNumber: int) -> PotentialTeamMatch:
         startTime = time.perf_counter()

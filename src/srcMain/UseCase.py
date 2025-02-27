@@ -55,56 +55,38 @@ class UseCase:
             "division": division
         }
     
-    # ------------------------- Teams -------------------------
+    # ------------------------- Prediction Accuracy Tester -------------------------
     def getPredictionAccuracy(self):
-        # Start a counter at 0
-        
-        
-
-        # Get a list of teamMatches in which each teamMatch has <=5 playerMatches
         db = Database()
         converter = Converter()
-        playerMatchesSql = db.getPlayerMatches(134, None, None, None, "8-ball", None, None, None, None, None)
+        config = Config().getConfig()
+        playerMatchesSql = db.getPlayerMatches(None, None, None, None, "8-ball", None, None, None, None, None)
         teamMatches = converter.toTeamMatchesWithPlayerMatchesSql(playerMatchesSql)
-        
 
-        bestCorrectlyPredictedPercentage = 0
-        bestMixAmt = -1
-        for mixAmt in range(500):
-            numCorrectlyPredictedMatches = 0
-            numTeamMatchesNotResultingInTie = len(teamMatches)
-            skillLevelMatrix = createASLMatrix("8-ball", f"mix{mixAmt}")
+        numCorrectlyPredictedMatches = 0
+        numTeamMatchesNotResultingInTie = len(teamMatches)
+        skillLevelMatrix = createASLMatrix("8-ball", config.get("predictionAccuracy").get("expectedPtsMethod"))
 
-            # For each of the teamMatches:
-            #   Determine who actually won the match
-            #   Create PotentialTeamMatch with the actual matchups including the expected points value for each matchup
-            #   If the team expected to win actually won, increase the counter by 1
-            for teamMatch in teamMatches:
-                actualWinningTeams = teamMatch.getWinningTeams()
-                if len(actualWinningTeams) == 2:
+        # For each of the teamMatches:
+        #   Determine who actually won the match
+        #   Create PotentialTeamMatch with the actual matchups including the expected points value for each matchup
+        #   If the team expected to win actually won, increase the counter by 1
+        for teamMatch in teamMatches:
+            actualWinningTeams = teamMatch.getWinningTeams()
+            if len(actualWinningTeams) == 2:
+                numTeamMatchesNotResultingInTie -= 1
+                continue
+            else:
+                actualWinningTeam = actualWinningTeams[0]
+                potentialTeamMatch = self.potentialTeamMatchConverter.toPotentialTeamMatchFromTeamMatch(teamMatch, skillLevelMatrix)
+                expectedWinningTeams = potentialTeamMatch.getExpectedWinningTeams()
+                if len(expectedWinningTeams) == 2:
                     numTeamMatchesNotResultingInTie -= 1
                     continue
-                else:
-                    actualWinningTeam = actualWinningTeams[0]
-                    potentialTeamMatch = self.potentialTeamMatchConverter.toPotentialTeamMatchFromTeamMatch(teamMatch, skillLevelMatrix)
-                    expectedWinningTeams = potentialTeamMatch.getExpectedWinningTeams()
-                    if len(expectedWinningTeams) == 2:
-                        numTeamMatchesNotResultingInTie -= 1
-                        continue
-                    else: 
-                        expectedWinningTeam = expectedWinningTeams[0]
-                        if actualWinningTeam == expectedWinningTeam:
-                            numCorrectlyPredictedMatches += 1
-
-
-                
-
-                
-            # Return counter/len(teamMatches)
-            correctlyPredictedPercentage = numCorrectlyPredictedMatches/numTeamMatchesNotResultingInTie
-
-            if correctlyPredictedPercentage >= bestCorrectlyPredictedPercentage:
-                bestCorrectlyPredictedPercentage = correctlyPredictedPercentage
-                bestMixAmt = mixAmt
-                print(f"bestCorrectlyPredictedPercentage = {bestCorrectlyPredictedPercentage}, bestMixAmt = {bestMixAmt}")
-        return str(bestMixAmt)
+                else: 
+                    expectedWinningTeam = expectedWinningTeams[0]
+                    if actualWinningTeam == expectedWinningTeam:
+                        numCorrectlyPredictedMatches += 1
+            
+        correctlyPredictedPercentage = numCorrectlyPredictedMatches/numTeamMatchesNotResultingInTie
+        return str(correctlyPredictedPercentage)
