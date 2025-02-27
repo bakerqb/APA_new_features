@@ -39,7 +39,7 @@ class TeamMatchup():
 
         # TODO: Remove hardcoded values
         self.game = "8-ball"
-        self.skillLevelMatrix = createASLMatrix(self.game)
+        self.skillLevelMatrix = createASLMatrix(self.game, "average")
     
     def start(self, teamMatchCriteria: TeamMatchCriteria, matchNumber: int) -> PotentialTeamMatch:
         startTime = time.perf_counter()

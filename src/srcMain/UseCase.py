@@ -17,7 +17,7 @@ class UseCase:
 
     # ------------------------- Team Results -------------------------
     def getTeamResults(self, teamId, decorateWithASL) -> dict:
-        teamResultsDb = self.db.getPlayerMatches(None, None, teamId, None, None, None, None, None)
+        teamResultsDb = self.db.getPlayerMatches(None, None, teamId, None, None, None, None, None, None, None)
         teamResultsPlayerMatches = list(map(lambda playerMatch: self.converter.toPlayerMatchWithSql(playerMatch), teamResultsDb))
         team = self.converter.toTeamWithSql(self.db.getTeamWithTeamId(teamId))
         results = TeamResults(team, teamResultsPlayerMatches, list(map(lambda player: self.converter.toPlayerWithSql(player), self.db.getTeamRoster(teamId))), decorateWithASL)
@@ -27,14 +27,14 @@ class UseCase:
         player = self.converter.toPlayerWithSql(self.db.getPlayerBasedOnMemberId(memberId))
         return {
             "player": player,
-            "playerMatches": list(map(lambda playerMatch: self.converter.toPlayerMatchWithSql(playerMatch).properPlayerResultOrderWithPlayer(player), self.db.getPlayerMatches(None, None, None, memberId, "8-ball", None, None, None)))
+            "playerMatches": list(map(lambda playerMatch: self.converter.toPlayerMatchWithSql(playerMatch).properPlayerResultOrderWithPlayer(player), self.db.getPlayerMatches(None, None, None, memberId, "8-ball", None, None, None, None, None)))
         }
     
     def getPlayerMatchesForPlayer(self, memberId) -> dict:
         player = self.converter.toPlayerWithSql(self.db.getPlayerBasedOnMemberId(memberId))
         return {
             "player": player,
-            "playerMatches": list(map(lambda playerMatch: self.converter.toPlayerMatchWithSql(playerMatch).properPlayerResultOrderWithPlayer(player), self.db.getPlayerMatches(None, None, memberId, "8-ball", None, None, None)))
+            "playerMatches": list(map(lambda playerMatch: self.converter.toPlayerMatchWithSql(playerMatch).properPlayerResultOrderWithPlayer(player), self.db.getPlayerMatches(None, None, None, memberId, "8-ball", None, None, None, None, None)))
         }
 
     # ------------------------- Divisions -------------------------
@@ -58,41 +58,53 @@ class UseCase:
     # ------------------------- Teams -------------------------
     def getPredictionAccuracy(self):
         # Start a counter at 0
-        numCorrectlyPredictedMatches = 0
+        
         
 
         # Get a list of teamMatches in which each teamMatch has <=5 playerMatches
         db = Database()
         converter = Converter()
-        playerMatchesSql = db.getPlayerMatches(None, None, None, None, "8-ball", None, None, None)
+        playerMatchesSql = db.getPlayerMatches(134, None, None, None, "8-ball", None, None, None, None, None)
         teamMatches = converter.toTeamMatchesWithPlayerMatchesSql(playerMatchesSql)
-        numTeamMatchesNotResultingInTie = len(teamMatches)
-        skillLevelMatrix = createASLMatrix("8-ball")
+        
 
-        # For each of the teamMatches:
-        #   Determine who actually won the match
-        #   Create PotentialTeamMatch with the actual matchups including the expected points value for each matchup
-        #   If the team expected to win actually won, increase the counter by 1
-        for teamMatch in teamMatches:
-            actualWinningTeams = teamMatch.getWinningTeams()
-            if len(actualWinningTeams) == 2:
-                numTeamMatchesNotResultingInTie -= 1
-                continue
-            else:
-                actualWinningTeam = actualWinningTeams[0]
-                potentialTeamMatch = self.potentialTeamMatchConverter.toPotentialTeamMatchFromTeamMatch(teamMatch, skillLevelMatrix)
-                expectedWinningTeams = potentialTeamMatch.getExpectedWinningTeams()
-                if len(expectedWinningTeams) == 2:
+        bestCorrectlyPredictedPercentage = 0
+        bestMixAmt = -1
+        for mixAmt in range(500):
+            numCorrectlyPredictedMatches = 0
+            numTeamMatchesNotResultingInTie = len(teamMatches)
+            skillLevelMatrix = createASLMatrix("8-ball", f"mix{mixAmt}")
+
+            # For each of the teamMatches:
+            #   Determine who actually won the match
+            #   Create PotentialTeamMatch with the actual matchups including the expected points value for each matchup
+            #   If the team expected to win actually won, increase the counter by 1
+            for teamMatch in teamMatches:
+                actualWinningTeams = teamMatch.getWinningTeams()
+                if len(actualWinningTeams) == 2:
                     numTeamMatchesNotResultingInTie -= 1
                     continue
-                else: 
-                    expectedWinningTeam = expectedWinningTeams[0]
-                    if actualWinningTeam == expectedWinningTeam:
-                        numCorrectlyPredictedMatches += 1
+                else:
+                    actualWinningTeam = actualWinningTeams[0]
+                    potentialTeamMatch = self.potentialTeamMatchConverter.toPotentialTeamMatchFromTeamMatch(teamMatch, skillLevelMatrix)
+                    expectedWinningTeams = potentialTeamMatch.getExpectedWinningTeams()
+                    if len(expectedWinningTeams) == 2:
+                        numTeamMatchesNotResultingInTie -= 1
+                        continue
+                    else: 
+                        expectedWinningTeam = expectedWinningTeams[0]
+                        if actualWinningTeam == expectedWinningTeam:
+                            numCorrectlyPredictedMatches += 1
 
 
-            
+                
 
-        
-        # Return counter/len(teamMatches)
-        return str(numCorrectlyPredictedMatches/numTeamMatchesNotResultingInTie)
+                
+            # Return counter/len(teamMatches)
+            correctlyPredictedPercentage = numCorrectlyPredictedMatches/numTeamMatchesNotResultingInTie
+
+            if correctlyPredictedPercentage >= bestCorrectlyPredictedPercentage:
+                bestCorrectlyPredictedPercentage = correctlyPredictedPercentage
+                bestMixAmt = mixAmt
+                print(f"bestCorrectlyPredictedPercentage = {bestCorrectlyPredictedPercentage}, bestMixAmt = {bestMixAmt}")
+        return str(bestMixAmt)

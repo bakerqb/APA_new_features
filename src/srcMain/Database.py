@@ -147,7 +147,7 @@ class Database:
         self.con.commit()
 
     # ------------------------- Getting -------------------------
-    def getPlayerMatches(self, sessionId, divisionId, teamId, memberId, game, limit, datePlayed, playerMatchId):
+    def getPlayerMatches(self, sessionId, divisionId, teamId, memberId, game, limit, datePlayed, playerMatchId, adjustedSkillLevel1range, adjustedSkillLevel2range):
         return self.cur.execute(
             "SELECT s.sessionId, s.sessionSeason, s.sessionYear, d.divisionId, d.divisionName, d.dayOfWeek, d.game, " +
             "tm.teamMatchId, tm.datePlayed, pm.playerMatchId, t1.teamId, t1.teamNum, t1.teamName, " +
@@ -169,7 +169,10 @@ class Database:
             (f"AND t1.teamId = {teamId} OR t2.teamId = {teamId} " if teamId is not None else "") +
             (f"""AND d.game = "{game}" """ if game is not None else "") +
             (f"AND (p1.memberId = {memberId} OR p2.memberId = {memberId}) " if memberId is not None else "") +
-            (f"""AND (tm.datePlayed < "{datePlayed}" OR (tm.datePlayed = "{datePlayed}" AND pm.playerMatchId < {playerMatchId})) """ if datePlayed is not None else "") +
+            (f"""AND (tm.datePlayed >= "{datePlayed}") """ if datePlayed is not None else "") +
+            (f"AND (pm.playerMatchId >= {playerMatchId}) " if playerMatchId is not None else "") +
+            (f"AND (pm.adjustedSkillLevel1 >= {adjustedSkillLevel1range[0]} AND pm.adjustedSkillLevel1 < {adjustedSkillLevel1range[1]}) " if adjustedSkillLevel1range is not None else "") +
+            (f"AND (pm.adjustedSkillLevel2 >= {adjustedSkillLevel2range[0]} AND pm.adjustedSkillLevel2 < {adjustedSkillLevel2range[1]}) " if adjustedSkillLevel2range is not None else "") +
             "ORDER BY tm.datePlayed DESC " +
             (f"LIMIT {limit}" if limit is not None else "")
         ).fetchall()
