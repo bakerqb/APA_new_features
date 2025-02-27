@@ -3,12 +3,16 @@ from src.converter.Converter import Converter
 from utils.utils import *
 from src.dataClasses.Game import Game
 from tabulate import tabulate
+from typing import List
+from src.dataClasses.PlayerMatch import PlayerMatch
+from statistics import median
 
+db = Database()
+converter = Converter()
 
 def getAdjustedSkillLevel(memberId, currentSkillLevel, datePlayed, playerMatchId):
         currentSkillLevel = int(currentSkillLevel)
-        db = Database()
-        converter = Converter()
+        
 
         NUM_RELEVANT_PLAYERMATCHES = 15
         GAME = Game.EightBall.value
@@ -17,7 +21,7 @@ def getAdjustedSkillLevel(memberId, currentSkillLevel, datePlayed, playerMatchId
         MAX_ADJUSTED_SCORE_OFFSET = .49
         ADJUSTED_SCORE_OFFSET_THRESHOLD = .5
 
-        playerResultsDb = db.getPlayerMatches(None, None, memberId, GAME, NUM_RELEVANT_PLAYERMATCHES, datePlayed, playerMatchId)
+        playerResultsDb = db.getPlayerMatches(None, None, None, memberId, GAME, NUM_RELEVANT_PLAYERMATCHES, datePlayed, playerMatchId)
         playerMatches = list(map(lambda playerMatch: converter.toPlayerMatchWithSql(playerMatch), playerResultsDb))
 
         adjustedScoreOffsetTotal = 0
@@ -123,7 +127,7 @@ def getAdjustedSkillLevel(memberId, currentSkillLevel, datePlayed, playerMatchId
         return round(int(currentSkillLevel) + ADJUSTED_SCORE_OFFSET_THRESHOLD + adjustedScoreOffset, 2)
 
 
-def createASLMatrix(game):
+def createASLMatrix(game, expectedPtsMethod):
         db = Database()
         
         matrix = []
@@ -156,47 +160,38 @@ def createASLMatrix(game):
                         if lowerSL == higherSL and lowerSectionIndex > higherSectionIndex:
                             continue
                         
-                        matchesLowAgainstHigh = db.cur.execute(
-                            "SELECT SUM(s1.teamPtsEarned), SUM(s2.teamPtsEarned), COUNT(*) " + 
-                            "FROM Division d " +
-                            "LEFT JOIN TeamMatch tm ON d.divisionId = tm.divisionId " +
-                            "LEFT JOIN PlayerMatch pm ON pm.teamMatchId = tm.teamMatchId " +
-                            "LEFT JOIN Score s1 ON s1.scoreId = pm.scoreId1 " +
-                            "LEFT JOIN Score s2 ON s2.scoreId = pm.scoreId2 " +
-                            f"WHERE pm.adjustedSkillLevel1 >= {lowerSL + lowerSection[0]} " +
-                            f"AND pm.adjustedSkillLevel1 < {lowerSL + lowerSection[1]} " +
-                            f"AND pm.adjustedSkillLevel2 >= {higherSL + higherSection[0]} " +
-                            f"AND pm.adjustedSkillLevel2 < {higherSL + higherSection[1]} " +
-                            f"AND d.game = '{game}'"
-                        ).fetchone()
+                        asl1range = [lowerSL + lowerSection[0], lowerSL + lowerSection[1]]
+                        asl2range = [higherSL + higherSection[0], higherSL + higherSection[1]]
+                        matchesLowAgainstHighSql = db.getPlayerMatches(None, None, None, None, game, None, None, None, asl1range, asl2range)
+                        playerMatchesLowAgainstHigh = list(map(lambda playerMatchSql: converter.toPlayerMatchWithSql(playerMatchSql), matchesLowAgainstHighSql))
+                        ptsEarnedByLowerPlayerRound1 = getPointsScoredByASLPlayers(0, playerMatchesLowAgainstHigh)
+                        ptsEarnedByHigherPlayerRound1 = getPointsScoredByASLPlayers(1, playerMatchesLowAgainstHigh)
+
 
                         if lowerSL == higherSL and lowerSectionIndex == higherSectionIndex:
-                            games = matchesLowAgainstHigh[2]
-                            if games > 0:
-                                pts = ((matchesLowAgainstHigh[0] if matchesLowAgainstHigh[0] else 0)  + (matchesLowAgainstHigh[1] if matchesLowAgainstHigh[1] else 0)) / 2
+                            # Always use average when comparing players of the same adjusted skill level
+                            numGames = len(playerMatchesLowAgainstHigh)
+                            if numGames > 0:
+                                sumPts = sum(ptsEarnedByLowerPlayerRound1 + ptsEarnedByHigherPlayerRound1) / 2
                                 matrixIndex = (lowerSLIndex * numSectionsPerSkillLevel) + lowerSectionIndex + 1
-                                matrix[matrixIndex][matrixIndex] = round(pts/games, 1)
+                                matrix[matrixIndex][matrixIndex] = round(sumPts/numGames, 1)
                                 
                             continue
 
-                        matchesHighAgainstLow = db.cur.execute(
-                            "SELECT SUM(s1.teamPtsEarned), SUM(s2.teamPtsEarned), COUNT(*) " + 
-                            "FROM Division d " +
-                            "LEFT JOIN TeamMatch tm ON d.divisionId = tm.divisionId " +
-                            "LEFT JOIN PlayerMatch pm ON pm.teamMatchId = tm.teamMatchId " +
-                            "LEFT JOIN Score s1 ON s1.scoreId = pm.scoreId1 " +
-                            "LEFT JOIN Score s2 ON s2.scoreId = pm.scoreId2 " +
-                            f"WHERE pm.adjustedSkillLevel1 >= {higherSL + higherSection[0]} " +
-                            f"AND pm.adjustedSkillLevel1 < {higherSL + higherSection[1]} " +
-                            f"AND pm.adjustedSkillLevel2 >= {lowerSL + lowerSection[0]} " +
-                            f"AND pm.adjustedSkillLevel2 < {lowerSL + lowerSection[1]} " +
-                            f"AND d.game = '{game}'"
-                        ).fetchone()
 
-                        games = matchesLowAgainstHigh[2] + matchesHighAgainstLow[2]
-                        if games > 0:
-                            ptsFromLowerRatedPlayer = (matchesLowAgainstHigh[0] if matchesLowAgainstHigh[0] else 0)  + (matchesHighAgainstLow[1] if matchesHighAgainstLow[1] else 0)
-                            ptsFromHigherRatedPlayer = (matchesLowAgainstHigh[1] if matchesLowAgainstHigh[1] else 0) + (matchesHighAgainstLow[0] if matchesHighAgainstLow[0] else 0)
+
+                        asl1range = [higherSL + higherSection[0], higherSL + higherSection[1]]
+                        asl2range = [lowerSL + lowerSection[0], lowerSL + lowerSection[1]]
+                        matchesHighAgainstLowSql = db.getPlayerMatches(None, None, None, None, game, None, None, None, asl1range, asl2range)
+                        playerMatchesHighAgainstLow = list(map(lambda playerMatchSql: converter.toPlayerMatchWithSql(playerMatchSql), matchesHighAgainstLowSql))
+                        ptsEarnedByHigherPlayerRound2 = getPointsScoredByASLPlayers(0, playerMatchesHighAgainstLow)
+                        ptsEarnedByLowerPlayerRound2 = getPointsScoredByASLPlayers(1, playerMatchesHighAgainstLow)
+
+
+                        numGames = len(playerMatchesLowAgainstHigh) + len(playerMatchesHighAgainstLow)
+                        if numGames > 0:
+                            totalPtsEarnedByLowerPlayer = ptsEarnedByLowerPlayerRound1 + ptsEarnedByLowerPlayerRound2
+                            totalPtsEarnedByHigherPlayer = ptsEarnedByHigherPlayerRound1 + ptsEarnedByHigherPlayerRound2
                             lowerIndexIndexyPoo = (lowerSLIndex * numSectionsPerSkillLevel) + lowerSectionIndex + 1
                             higherIndexIndexyPoo = ((higherSLIndex + lowerSLIndex) * numSectionsPerSkillLevel) + higherSectionIndex + 1
                             # TODO: Remove hardcoded check til issue 39 is resolved
@@ -204,12 +199,23 @@ def createASLMatrix(game):
                                 matrix[lowerIndexIndexyPoo][higherIndexIndexyPoo] = 1.2
                                 matrix[higherIndexIndexyPoo][lowerIndexIndexyPoo] = 1.2
                             else:
-                                matrix[lowerIndexIndexyPoo][higherIndexIndexyPoo] = round(ptsFromLowerRatedPlayer/games, 1)
-                                matrix[higherIndexIndexyPoo][lowerIndexIndexyPoo] = round(ptsFromHigherRatedPlayer/games, 1)
-        
-        
+                                if expectedPtsMethod == "average":
+                                    matrix[lowerIndexIndexyPoo][higherIndexIndexyPoo] = round(sum(totalPtsEarnedByLowerPlayer)/numGames, 1)
+                                    matrix[higherIndexIndexyPoo][lowerIndexIndexyPoo] = round(sum(totalPtsEarnedByHigherPlayer)/numGames, 1)
+                                elif expectedPtsMethod == "median":
+                                    matrix[lowerIndexIndexyPoo][higherIndexIndexyPoo] = round(median(totalPtsEarnedByLowerPlayer), 1)
+                                    matrix[higherIndexIndexyPoo][lowerIndexIndexyPoo] = round(median(totalPtsEarnedByHigherPlayer), 1)
+                                elif expectedPtsMethod.startswith("mix"):
+                                    numGamesBaseline = int(expectedPtsMethod.replace("mix", ""))
+                                    if numGames > numGamesBaseline:
+                                        matrix[lowerIndexIndexyPoo][higherIndexIndexyPoo] = round(sum(totalPtsEarnedByLowerPlayer)/numGames, 1)
+                                        matrix[higherIndexIndexyPoo][lowerIndexIndexyPoo] = round(sum(totalPtsEarnedByHigherPlayer)/numGames, 1)
+                                    else:
+                                        matrix[lowerIndexIndexyPoo][higherIndexIndexyPoo] = round(median(totalPtsEarnedByLowerPlayer), 1)
+                                        matrix[higherIndexIndexyPoo][lowerIndexIndexyPoo] = round(median(totalPtsEarnedByHigherPlayer), 1)
+                        
         print(tabulate(matrix, headers="firstrow", tablefmt="fancy_grid"))
-        getPointSpread(game)
+
         return matrix
 
 def getPointSpread(game):
@@ -302,3 +308,7 @@ def getPointSpread(game):
                         ).fetchone()
     
     print("2-1's: " + str(matchesHighAgainstLow[0] + matchesLowAgainstHigh[0]) + " " + str(float((matchesHighAgainstLow[0] + matchesLowAgainstHigh[0])/totalMatches*100)) + "%")
+
+
+def getPointsScoredByASLPlayers(index, playerMatches: List[PlayerMatch]):
+    return list(map(lambda playerMatch: playerMatch.getPlayerResults()[index].getScore().getTeamPtsEarned(), playerMatches))

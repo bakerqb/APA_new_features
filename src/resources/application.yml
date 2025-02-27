@@ -32,5 +32,8 @@ refreshTeams: false
 myInfo:
   memberId: 60903003
   teamIds: [12531019, 12536150]
-    
-  
+
+predictionAccuracy:
+  # When calculating expected points, if two skill level types have over 326 games between them, use the average of all their points scored
+  # If 326 games or less are played between the two skill level types, use medians
+  expectedPtsMethod: mix326

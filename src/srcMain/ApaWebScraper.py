@@ -84,7 +84,7 @@ class ApaWebScraper:
                 executor.map(self.transformScrapeMatchLinksAllTeams, self.db.getTeamMatches(divisionId))
 
         # Now set all the adjusted skills
-        playerMatches = list(map(lambda playerMatch: self.converter.toPlayerMatchWithSql(playerMatch), self.db.getPlayerMatches(divisionId, None, None, None, None, None, None)))
+        playerMatches = list(map(lambda playerMatch: self.converter.toPlayerMatchWithSql(playerMatch), self.db.getPlayerMatches(None, divisionId, None, None, None, None, None, None, None, None)))
        
         for playerMatch in playerMatches:
             for index, playerResult in enumerate(playerMatch.getPlayerResults()):
