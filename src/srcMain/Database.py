@@ -325,6 +325,17 @@ class Database:
             if result[4] == 1:
                 new_results.append(result)
         return new_results
+    
+    def getLastSessionIdPlayedByPlayer(self, memberId):
+        self.createTables()
+        results = self.cur.execute(
+            "SELECT MAX(s.sessionId) FROM Session s " +
+            "LEFT JOIN Division d ON s.sessionId = d.sessionId " +
+            "LEFT JOIN TeamMatch tm ON tm.divisionId = d.divisionId " +
+            "LEFT JOIN PlayerMatch pm ON pm.teamMatchId = tm.teamMatchId " +
+            f"WHERE pm.memberId1 = {memberId} OR pm.memberId2 = {memberId}"
+        ).fetchone()
+        return int(results[0])
 
     
 
@@ -364,6 +375,7 @@ class Database:
     
     def addTeamInfo(self, team: Team):
         divisionId = team.getDivision().getDivisionId()
+        sessionId = team.getDivision().getSession().getSessionId()
         teamId = team.getTeamId()
         teamNum = team.getTeamNum()
         teamName = team.getTeamName()
@@ -378,7 +390,7 @@ class Database:
             currentSkillLevel = player.getCurrentSkillLevel()
 
             self.addCurrentTeamPlayer(teamId, memberId)
-            self.addPlayer(memberId, playerName, currentSkillLevel)
+            self.addPlayer(memberId, playerName, currentSkillLevel, sessionId)
 
     def addTeam(self, divisionId: int, teamId: int, teamNum: int, teamName: str):
         self.createTables()
@@ -401,16 +413,17 @@ class Database:
             pass
         self.con.commit()
 
-    def addPlayer(self, memberId: int, playerName: str, currentSkillLevel: int):
+    def addPlayer(self, memberId: int, playerName: str, currentSkillLevel: int, sessionId: int):
         self.createTables()
         try:
             self.cur.execute(
                 f"""INSERT INTO Player VALUES ({memberId}, "{playerName}", {currentSkillLevel})"""
             )
         except Exception:
-            self.cur.execute(
-                f"""UPDATE Player SET currentSkillLevel = {currentSkillLevel}, playerName = "{playerName}" WHERE memberId = {memberId}"""
-            )
+            if sessionId >= self.getLastSessionIdPlayedByPlayer(memberId):
+                self.cur.execute(
+                    f"""UPDATE Player SET currentSkillLevel = {currentSkillLevel}, playerName = "{playerName}" WHERE memberId = {memberId}"""
+                )
         self.con.commit() 
 
     def addSession(self, session):
