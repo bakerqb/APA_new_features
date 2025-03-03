@@ -41,6 +41,7 @@
         <button type="submit" class="btn btn-primary">Delete Division</button>
     </form>
     <div>
+        {% if displayTeamMatchupFeature %}
         <h4>Matchup teams</h4>
         <form action="/matchupTeams">
             <input type="hidden" name="divisionId" id="divisionId" value="{{division.getDivisionId()}}" />
@@ -64,6 +65,7 @@
             </select>
             <input type="submit" value="Submit">
         </form>
+        {% endif %}
     </div>
 </body>
 

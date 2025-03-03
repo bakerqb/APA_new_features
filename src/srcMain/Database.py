@@ -286,6 +286,11 @@ class Database:
         self.createTables()
         return self.cur.execute(f"SELECT * FROM Session WHERE sessionId = {sessionId}").fetchall()
     
+    def getMostRecentSessionId(self):
+        self.createTables()
+        sqlRows = self.getPlayerMatches(None, None, None, None, "8-ball", None, None, None, None, None)
+        return sqlRows[0][0]
+    
     def getGame(self, divisionId):
         self.createTables()
         return self.cur.execute(f"SELECT game FROM Division WHERE divisionId = {divisionId}").fetchone()[0]
