@@ -21,7 +21,7 @@ def getAdjustedSkillLevel(memberId, currentSkillLevel, datePlayed, playerMatchId
         MAX_ADJUSTED_SCORE_OFFSET = .49
         ADJUSTED_SCORE_OFFSET_THRESHOLD = .5
 
-        playerResultsDb = db.getPlayerMatches(None, None, None, memberId, GAME, NUM_RELEVANT_PLAYERMATCHES, datePlayed, playerMatchId)
+        playerResultsDb = db.getPlayerMatches(None, None, None, memberId, GAME, NUM_RELEVANT_PLAYERMATCHES, datePlayed, playerMatchId, None, None)
         playerMatches = list(map(lambda playerMatch: converter.toPlayerMatchWithSql(playerMatch), playerResultsDb))
 
         adjustedScoreOffsetTotal = 0

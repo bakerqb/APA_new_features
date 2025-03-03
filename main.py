@@ -228,11 +228,18 @@ def playerMatches():
 @app.route("/division")
 def division():
     useCase = UseCase()
+    db = Database()
+    converter = Converter()
     divisionId = request.args.get('divisionId')
+    sessionInQuestion = converter.toDivisionWithSql(db.getDivision(divisionId)).getSession()
+    mostRecentSession = converter.toSessionWithSql(db.getSession(db.getMostRecentSessionId())[0])
+    previousSession = mostRecentSession.getPreviousSession()
+    displayTeamMatchupFeature = sessionInQuestion == mostRecentSession or sessionInQuestion == previousSession
 
     return render_template(
         jinja_environment.get_template('division.html'),
         url_for=url_for,
+        displayTeamMatchupFeature=displayTeamMatchupFeature,
         **useCase.getTeams(divisionId)
     )
 

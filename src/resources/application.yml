@@ -27,7 +27,7 @@ sessionSeasonInQuestion: SPRING
 sessionYearInQuestion: 2024
 # VVVVVV  Either "8-ball" or "9-ball"  VVVVVV
 game: 8-ball
-debugMode: false
+debugMode: true
 refreshTeams: false
 myInfo:
   memberId: 60903003
