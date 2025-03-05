@@ -11,15 +11,15 @@ class PotentialTeamMatchConverter:
     def __init__(self):
         pass
     
-    def toPotentialTeamMatchFromTeamMatch(self, teamMatch: TeamMatch, skillLevelMatrix):
+    def toPotentialTeamMatchFromTeamMatch(self, teamMatch: TeamMatch, skillLevelMatrix, format: Format):
         potentialPlayerMatches = []
         for playerMatch in teamMatch.getPlayerMatches():
-            potentialPlayerMatch = self.toPotentialPlayerMatchFromPlayerMatch(playerMatch, skillLevelMatrix)
+            potentialPlayerMatch = self.toPotentialPlayerMatchFromPlayerMatch(playerMatch, skillLevelMatrix, format)
             potentialPlayerMatches.append(potentialPlayerMatch)
 
         return PotentialTeamMatch(potentialPlayerMatches)
     
-    def toPotentialPlayerMatchFromPlayerMatch(self, playerMatch: PlayerMatch, skillLevelMatrix):
+    def toPotentialPlayerMatchFromPlayerMatch(self, playerMatch: PlayerMatch, skillLevelMatrix, format: Format):
         potentialPlayerResults = []
         playerResults = playerMatch.getPlayerResults()
         player1 = playerResults[0].getPlayer()
@@ -30,7 +30,7 @@ class PotentialTeamMatchConverter:
         asl2 = playerResults[1].getAdjustedSkillLevel()
 
         # TODO: Refactor to be able to use the getExpectedPts method. This is all duplicated code #######
-        rangeStart = getRangeStart("8-ball")
+        skillLevelRange = getSkillLevelRangeForFormat(format)
         
         skillLevel1 = math.floor(asl1)
         asl1decimals = asl1 - skillLevel1
@@ -48,8 +48,8 @@ class PotentialTeamMatchConverter:
                 asl2SectionIndex = sectionIndex
                 break
         
-        index1 = ((skillLevel1 - rangeStart) * NUM_SECTIONS_PER_SKILL_LEVEL) + asl1SectionIndex + 1 
-        index2 = ((skillLevel2 - rangeStart) * NUM_SECTIONS_PER_SKILL_LEVEL) + asl2SectionIndex + 1 
+        index1 = ((skillLevel1 - skillLevelRange[0]) * NUM_SECTIONS_PER_SKILL_LEVEL) + asl1SectionIndex + 1 
+        index2 = ((skillLevel2 - skillLevelRange[0]) * NUM_SECTIONS_PER_SKILL_LEVEL) + asl2SectionIndex + 1 
         expectedPts = (skillLevelMatrix[index1][index2], skillLevelMatrix[index2][index1])
         #################################################################################################
 

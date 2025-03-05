@@ -25,8 +25,9 @@ teamInQuestion: Miniclip
 # VVVVVV  MUST BE IN ALL CAPS  VVVVVV
 sessionSeasonInQuestion: SPRING
 sessionYearInQuestion: 2024
-# VVVVVV  Either "8-ball" or "9-ball"  VVVVVV
-game: 8-ball
+
+# 8-ball, 9-ball, or masters
+format: 8-ball
 debugMode: true
 refreshTeams: false
 myInfo:

@@ -12,6 +12,7 @@ from flask import Flask, render_template, request, url_for, redirect
 import jinja2
 from src.dataClasses.SearchCriteria import SearchCriteria
 from src.dataClasses.TeamMatchCriteria import TeamMatchCriteria
+from src.dataClasses.Format import Format
 from src.exceptions.InvalidTeamMatchCriteria import InvalidTeamMatchCriteria
 
 jinja_environment = jinja2.Environment(autoescape=True,
@@ -85,6 +86,7 @@ def matchups():
     sessionId = request.args.get('sessionId')
     divisionId = request.args.get('divisionId')
     matchNumber = int(request.args.get('matchNumber'))
+    format = db.getFormat(divisionId)
 
     team1 = converter.toTeamWithSql(db.getTeamWithTeamId(teamId1))
     team2 = converter.toTeamWithSql(db.getTeamWithTeamId(teamId2))
@@ -109,7 +111,7 @@ def matchups():
         putupPlayer = converter.toPlayerWithSql(db.getPlayerBasedOnMemberId(putupMemberId))
     try:
         teamMatchCriteria = TeamMatchCriteria(request.args.getlist('teamMatchCriteria'), team1, team2, matchNumber, putupPlayer)
-        teamMatchup = TeamMatchup(team1, team2, putupPlayer, matchNumber)
+        teamMatchup = TeamMatchup(team1, team2, putupPlayer, matchNumber, format)
     except InvalidTeamMatchCriteria:
         return redirect(f"/matchupTeams?teamId1={teamId1}&teamId2={teamId2}&sessionId={sessionId}&divisionId={divisionId}")
     
@@ -231,8 +233,9 @@ def division():
     db = Database()
     converter = Converter()
     divisionId = request.args.get('divisionId')
+    format = db.getFormat(divisionId)
     sessionInQuestion = converter.toDivisionWithSql(db.getDivision(divisionId)).getSession()
-    mostRecentSession = converter.toSessionWithSql(db.getSession(db.getMostRecentSessionId())[0])
+    mostRecentSession = converter.toSessionWithSql(db.getSession(db.getMostRecentSessionId(format))[0])
     previousSession = mostRecentSession.getPreviousSession()
     displayTeamMatchupFeature = sessionInQuestion == mostRecentSession or sessionInQuestion == previousSession
 

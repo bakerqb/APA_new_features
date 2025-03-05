@@ -14,7 +14,7 @@ class TeamResults:
             playerName = player.getPlayerName()
             playerMatchesPerPlayer[playerName] = {
                 "player": player,
-                "ASL": getAdjustedSkillLevel(player.getMemberId(), player.getCurrentSkillLevel(), None, None),
+                "ASL": getAdjustedSkillLevel(player.getMemberId(), player.getCurrentSkillLevel(), None),
                 "playerMatches": []
             }
 
