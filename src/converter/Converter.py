@@ -63,20 +63,4 @@ class Converter:
         memberId, playerName, currentSkillLevel = sqlRow
         return Player(memberId, playerName, currentSkillLevel)
     
-    def toTeamMatchesWithPlayerMatchesSql(self, sqlRows) -> List[TeamMatch]:
-        teamMatchesMap = {}
-        for sqlRow in sqlRows:
-            playerMatch = self.toPlayerMatchWithSql(sqlRow)
-            teamMatchId = playerMatch.getTeamMatchId()
-            if teamMatchId in teamMatchesMap.keys():
-                teamMatchesMap[teamMatchId].append(playerMatch)
-            else:
-                teamMatchesMap[teamMatchId] = [playerMatch]
-
-        teamMatches = []
-        for teamMatchId, playerMatches in teamMatchesMap.items():
-            datePlayed = playerMatches[0].getDatePlayed()
-            teamMatch = TeamMatch(playerMatches, teamMatchId, datePlayed)
-            teamMatches.append(teamMatch)
-
-        return teamMatches
+    

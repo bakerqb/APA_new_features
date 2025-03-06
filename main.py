@@ -12,7 +12,6 @@ from flask import Flask, render_template, request, url_for, redirect
 import jinja2
 from src.dataClasses.SearchCriteria import SearchCriteria
 from src.dataClasses.TeamMatchCriteria import TeamMatchCriteria
-from src.dataClasses.Format import Format
 from src.exceptions.InvalidTeamMatchCriteria import InvalidTeamMatchCriteria
 
 jinja_environment = jinja2.Environment(autoescape=True,

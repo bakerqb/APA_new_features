@@ -3,11 +3,13 @@ from src.dataClasses.PlayerMatch import PlayerMatch
 from src.dataClasses.Session import Session
 from src.dataClasses.Division import Division
 from src.dataClasses.Team import Team
+from src.dataClasses.TeamMatch import TeamMatch
 from src.dataClasses.Player import Player
 from src.dataClasses.Score import Score
 from src.dataClasses.PlayerResult import PlayerResult
 from utils.utils import *
 from utils.asl import *
+from typing import List
 
 
 class PlayerMatchConverter:
@@ -41,3 +43,21 @@ class PlayerMatchConverter:
         playerResult2 = PlayerResult(team2, player2, skillLevel2, score2, adjustedSkillLevel2)
         playerResults = [playerResult1, playerResult2]
         return PlayerMatch(playerResults, playerMatchId, teamMatchId, datePlayed)
+    
+    def toTeamMatchesWithPlayerMatchesSql(self, sqlRows) -> List[TeamMatch]:
+        teamMatchesMap = {}
+        for sqlRow in sqlRows:
+            playerMatch = self.toPlayerMatchWithSql(sqlRow)
+            teamMatchId = playerMatch.getTeamMatchId()
+            if teamMatchId in teamMatchesMap.keys():
+                teamMatchesMap[teamMatchId].append(playerMatch)
+            else:
+                teamMatchesMap[teamMatchId] = [playerMatch]
+
+        teamMatches = []
+        for teamMatchId, playerMatches in teamMatchesMap.items():
+            datePlayed = playerMatches[0].getDatePlayed()
+            teamMatch = TeamMatch(playerMatches, teamMatchId, datePlayed)
+            teamMatches.append(teamMatch)
+
+        return teamMatches

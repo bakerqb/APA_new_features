@@ -9,6 +9,7 @@ from dataClasses.Format import Format
 from converter.PotentialTeamMatchConverter import PotentialTeamMatchConverter
 from utils.utils import *
 from utils.asl import *
+from utils.aslMatrix import *
 
 class UseCase:
     def __init__(self):
@@ -57,7 +58,7 @@ class UseCase:
     # ------------------------- Prediction Accuracy Tester -------------------------
     def getPredictionAccuracy(self):
         db = Database()
-        converter = Converter()
+        converter = PlayerMatchConverter()
         format = Format(self.config.getConfig().get("format"))
         playerMatchesSql = db.getPlayerMatches(None, None, None, None, format, None, None, None, None, None)
         teamMatches = converter.toTeamMatchesWithPlayerMatchesSql(playerMatchesSql)
