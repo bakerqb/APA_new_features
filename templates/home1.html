@@ -14,7 +14,7 @@
         <label for="sessionId">Select a Session:</label>
         <select name="sessionId" id="sessionId">
             {% for session in sessions %}
-            <option value="{{session.getSessionId()}}">{{session.getSessionSeason()}} {{session.getSessionYear()}}
+            <option value="{{session.getSessionId()}}">{{session.getSessionSeason().value}} {{session.getSessionYear()}}
             </option>
             {% endfor %}
         </select>

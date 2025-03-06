@@ -1,7 +1,6 @@
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
-from selenium.common.exceptions import NoSuchElementException
 import time
 import sys
 import os
@@ -15,7 +14,7 @@ import re
 import concurrent.futures
 from utils.utils import *
 from utils.asl import *
-from src.dataClasses.PlayerResult import PlayerResult
+from src.dataClasses.SessionSeason import SessionSeason
 
 
 class ApaWebScraper:
@@ -145,7 +144,7 @@ class ApaWebScraper:
         dayOfWeek = time.strptime(day, "%A").tm_wday
 
         # Add division/sesion to database
-        division = self.converter.toDivisionWithDirectValues(sessionId, sessionSeason, sessionYear, divisionId, divisionName, dayOfWeek, game)
+        division = self.converter.toDivisionWithDirectValues(sessionId, SessionSeason[sessionSeason], sessionYear, divisionId, divisionName, dayOfWeek, game)
         self.db.addDivision(division)
         return division
     

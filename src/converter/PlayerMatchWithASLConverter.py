@@ -1,6 +1,7 @@
 from dataClasses.PlayerMatch import PlayerMatch
 from src.dataClasses.PlayerMatch import PlayerMatch
 from src.dataClasses.Session import Session
+from src.dataClasses.SessionSeason import SessionSeason
 from src.dataClasses.Division import Division
 from src.dataClasses.Team import Team
 from src.dataClasses.Player import Player
@@ -25,7 +26,7 @@ class PlayerMatchWithASLConverter:
         adjustedSkillLevel1 = getAdjustedSkillLevel(memberId1, skillLevel1, datePlayed)
         adjustedSkillLevel2 = getAdjustedSkillLevel(memberId2, skillLevel2, datePlayed)
         
-        session = Session(sessionId, sessionSeason, sessionYear)
+        session = Session(sessionId, SessionSeason[sessionSeason], sessionYear)
         division = Division(session, divisionId, divisionName, dayOfWeek, Format(format))
         
         # TODO: figure out how to get the players here. Do we really wanna do another join on the table where you get all the players in the roster?
