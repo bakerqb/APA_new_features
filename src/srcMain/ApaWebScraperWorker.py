@@ -24,7 +24,7 @@ from dataClasses.PlayerMatch import PlayerMatch
 from utils.utils import *
 from utils.asl import *
 from dataClasses.Team import Team
-from dataClasses.Game import Game
+from src.dataClasses.Format import Format
 
 
 class ApaWebScraperWorker:
@@ -144,12 +144,12 @@ class ApaWebScraperWorker:
         print("Total player matches in database = {}".format(str(self.db.countPlayerMatches())))
 
     def getPlayerMatchesFromTeamMatch(self, link, divisionId):
-        game = self.db.getGame(divisionId)
+        format = self.db.getFormat(divisionId)
         
         self.createWebDriver()
         self.driver.get(link)
 
-        if game == Game.EightBall.value:
+        if format == Format.EIGHT_BALL:
             time.sleep(9)
 
         teamsInfoHeader = self.driver.find_elements(By.CLASS_NAME, "teamName")
@@ -180,15 +180,15 @@ class ApaWebScraperWorker:
                 continue
             playerMatchId += 1
             mapper = None
-            if game == Game.NineBall.value:
+            if format == Format.NINE_BALL:
                 mapper = nineBallSkillLevelMapper()
             
             textElements = individualMatch.text.split('\n')
 
             removableWordList = ['LAG', 'SL', 'Pts Earned']
-            if game == Game.EightBall.value:
+            if format == Format.EIGHT_BALL:
                 removableWordList.append('GW/GMW')
-            elif game == Game.NineBall.value:
+            elif format == Format.NINE_BALL:
                 removableWordList.append('PE/PN')
             textElements = removeElements(textElements, removableWordList)
             
@@ -196,10 +196,10 @@ class ApaWebScraperWorker:
             playerName2 = textElements[6].replace('"', "'")
             skillLevel1 = int(textElements[1])
             skillLevel2 = int(textElements[5])
-            if game == Game.EightBall.value and EIGHT_BALL_INCORRECT_SKILL_LEVEL in [skillLevel1, skillLevel2]:
+            if format == Format.EIGHT_BALL and EIGHT_BALL_INCORRECT_SKILL_LEVEL in [skillLevel1, skillLevel2]:
                 print("ERROR: scraped skill level incorrectly")
                 exit(1)
-            if game == Game.NineBall.value:
+            if format == Format.NINE_BALL.value:
                 skillLevel1 = mapper.get(playerPtsNeeded1)
             teamPtsEarned1 = int(textElements[2])
             teamPtsEarned2 = int(textElements[7])
@@ -209,7 +209,7 @@ class ApaWebScraperWorker:
             score1 = list(map(lambda pointAmount: int(pointAmount), scoreElements[0].split('/')))
             score2 = list(map(lambda pointAmount: int(pointAmount), scoreElements[1].split('/')))
             if len(score1) == 1 or len(score2) == 1:
-                if game == Game.EightBall.value:
+                if format == Format.EIGHT_BALL:
                     isFirstResultOfNewPlayer = skillLevel1 == NEW_PLAYER_SCRAPED_SKILL_LEVEL
                     oldPlayerSkillLevel = skillLevel2 if isFirstResultOfNewPlayer else skillLevel1
                     newPlayerTeamPtsEarned = teamPtsEarned1 if isFirstResultOfNewPlayer else teamPtsEarned2
@@ -230,7 +230,7 @@ class ApaWebScraperWorker:
             
             playerPtsEarned2, playerPtsNeeded2 = score2
             
-            if game == Game.NineBall.value:
+            if format == Format.NINE_BALL:
                 skillLevel2 = mapper.get(playerPtsNeeded2)
             
             
@@ -279,13 +279,13 @@ class ApaWebScraperWorker:
         
         # Division/session doesn't exist in the database, so scrape all necessary values
         formatElement = self.driver.find_elements(By.XPATH, "//*[contains(text(), 'Format:')]")[0]
-        game = formatElement.find_elements(By.XPATH, "..")[0].text.split(' ')[1].lower()
+        format = formatElement.find_elements(By.XPATH, "..")[0].text.split(' ')[1].lower()
         dayTimeElement = self.driver.find_elements(By.XPATH, "//*[contains(text(), 'Day/Time:')]")[0]
         day = dayTimeElement.find_elements(By.XPATH, "..")[0].text.split(' ')[1].lower()
         dayOfWeek = time.strptime(day, "%A").tm_wday
 
         # Add division/sesion to database
-        division = self.converter.toDivisionWithDirectValues(sessionId, sessionSeason, sessionYear, divisionId, divisionName, dayOfWeek, game)
+        division = self.converter.toDivisionWithDirectValues(sessionId, sessionSeason, sessionYear, divisionId, divisionName, dayOfWeek, Format(format))
         self.db.addDivision(division)
 
         

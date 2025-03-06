@@ -1,13 +1,13 @@
-from dataClasses.Game import Game
+from src.dataClasses.Format import Format
 from dataClasses.Session import Session
 
 class Division:
-    def __init__(self, session: Session, divisionId: int, divisionName: str, dayOfWeek: int, game: Game):
+    def __init__(self, session: Session, divisionId: int, divisionName: str, dayOfWeek: int, format: Format):
         self.session = session
         self.divisionId = divisionId
         self.divisionName = divisionName
         self.dayOfWeek = dayOfWeek
-        self.game = game
+        self.format = format
     
     def getSession(self):
         return self.session
@@ -21,5 +21,5 @@ class Division:
     def getDayOfWeek(self):
         return self.dayOfWeek
     
-    def getGame(self):
-        return self.game
+    def getFormat(self):
+        return self.format

@@ -2,8 +2,9 @@ import sqlite3
 from tabulate import tabulate
 from src.srcMain.Config import Config
 from src.dataClasses.Team import Team
+from src.dataClasses.Division import Division
 from utils.utils import *
-from dataClasses.Game import Game
+from src.dataClasses.Format import Format
 
 class Database:
     # ------------------------- Setup -------------------------
@@ -147,7 +148,7 @@ class Database:
         self.con.commit()
 
     # ------------------------- Getting -------------------------
-    def getPlayerMatches(self, sessionId, divisionId, teamId, memberId, game, limit, datePlayed, playerMatchId, adjustedSkillLevel1range, adjustedSkillLevel2range):
+    def getPlayerMatches(self, sessionId, divisionId, teamId, memberId, format: Format, limit, datePlayed, playerMatchId, adjustedSkillLevel1range, adjustedSkillLevel2range):
         return self.cur.execute(
             "SELECT s.sessionId, s.sessionSeason, s.sessionYear, d.divisionId, d.divisionName, d.dayOfWeek, d.game, " +
             "tm.teamMatchId, tm.datePlayed, pm.playerMatchId, t1.teamId, t1.teamNum, t1.teamName, " +
@@ -167,9 +168,9 @@ class Database:
             (f"AND s.sessionId = {sessionId} " if sessionId is not None else "") +
             (f"AND d.divisionId = {divisionId} " if divisionId is not None else "") +
             (f"AND t1.teamId = {teamId} OR t2.teamId = {teamId} " if teamId is not None else "") +
-            (f"""AND d.game = "{game}" """ if game is not None else "") +
+            (f"""AND d.game = "{format.value}" """ if format is not None else "") +
             (f"AND (p1.memberId = {memberId} OR p2.memberId = {memberId}) " if memberId is not None else "") +
-            (f"""AND (tm.datePlayed >= "{datePlayed}") """ if datePlayed is not None else "") +
+            (f"""AND (tm.datePlayed < "{datePlayed}") """ if datePlayed is not None else "") +
             (f"AND (pm.playerMatchId >= {playerMatchId}) " if playerMatchId is not None else "") +
             (f"AND (pm.adjustedSkillLevel1 >= {adjustedSkillLevel1range[0]} AND pm.adjustedSkillLevel1 < {adjustedSkillLevel1range[1]}) " if adjustedSkillLevel1range is not None else "") +
             (f"AND (pm.adjustedSkillLevel2 >= {adjustedSkillLevel2range[0]} AND pm.adjustedSkillLevel2 < {adjustedSkillLevel2range[1]}) " if adjustedSkillLevel2range is not None else "") +
@@ -286,14 +287,14 @@ class Database:
         self.createTables()
         return self.cur.execute(f"SELECT * FROM Session WHERE sessionId = {sessionId}").fetchall()
     
-    def getMostRecentSessionId(self):
+    def getMostRecentSessionId(self, format: Format):
         self.createTables()
-        sqlRows = self.getPlayerMatches(None, None, None, None, "8-ball", None, None, None, None, None)
+        sqlRows = self.getPlayerMatches(None, None, None, None, format, None, None, None, None, None)
         return sqlRows[0][0]
     
-    def getGame(self, divisionId):
+    def getFormat(self, divisionId):
         self.createTables()
-        return self.cur.execute(f"SELECT game FROM Division WHERE divisionId = {divisionId}").fetchone()[0]
+        return Format(self.cur.execute(f"SELECT game FROM Division WHERE divisionId = {divisionId}").fetchone()[0])
     
     def getPlayers(self, searchCriteria):
         self.createTables()
@@ -312,7 +313,7 @@ class Database:
                     "UNION " +
                     "SELECT p2.memberId, p2.playerName, p2.currentSkillLevel, tm2.datePlayed " +
                     "FROM Player p2 " +
-                    "LEFT JOIN PlayerMatch pm2 ON p2.memberId = pm2.memberId1 " +
+                    "LEFT JOIN PlayerMatch pm2 ON p2.memberId = pm2.memberId2 " +
                     "LEFT JOIN TeamMatch tm2 ON pm2.teamMatchId = tm2.teamMatchId" +
                 ") players " +
             ") WHERE row_number = 1 " +
@@ -321,7 +322,7 @@ class Database:
             ("" if not searchCriteria.getMinSkillLevel() else f"AND currentSkillLevel >= {searchCriteria.getMinSkillLevel()} ") +
             ("" if not searchCriteria.getMaxSkillLevel() else f"AND currentSkillLevel <= {searchCriteria.getMaxSkillLevel()} ") +
             ("" if not searchCriteria.getDateLastPlayed() else f"AND CAST(datePlayed AS DATE) >= CAST({searchCriteria.getDateLastPlayed()} AS DATE)") +
-            "ORDER BY datePlayed DESC"
+            "ORDER BY datePlayed DESC, playerName ASC"
             
         ).fetchall()
 
@@ -340,7 +341,10 @@ class Database:
             "LEFT JOIN PlayerMatch pm ON pm.teamMatchId = tm.teamMatchId " +
             f"WHERE pm.memberId1 = {memberId} OR pm.memberId2 = {memberId}"
         ).fetchone()
-        return int(results[0])
+        if results[0] is None:
+            return None
+        else:
+            return int(results[0])
 
     
 
@@ -425,7 +429,8 @@ class Database:
                 f"""INSERT INTO Player VALUES ({memberId}, "{playerName}", {currentSkillLevel})"""
             )
         except Exception:
-            if sessionId >= self.getLastSessionIdPlayedByPlayer(memberId):
+            mostRecentlyPlayedSessionByPlayer = self.getLastSessionIdPlayedByPlayer(memberId)
+            if mostRecentlyPlayedSessionByPlayer is None or sessionId >= mostRecentlyPlayedSessionByPlayer:
                 self.cur.execute(
                     f"""UPDATE Player SET currentSkillLevel = {currentSkillLevel}, playerName = "{playerName}" WHERE memberId = {memberId}"""
                 )
@@ -440,7 +445,7 @@ class Database:
             pass
         self.con.commit()
     
-    def addDivision(self, division):
+    def addDivision(self, division: Division):
         self.createTables()
         session = division.getSession()
         self.addSession(session)
@@ -452,7 +457,7 @@ class Database:
                 f"{division.getDivisionId()}, " +
                 f"'{division.getDivisionName()}', " + 
                 f"{division.getDayOfWeek()}, " +
-                f"'{division.getGame()}')"
+                f"'{division.getFormat()}')"
             )
             self.con.commit()  
 

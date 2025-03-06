@@ -1,27 +1,24 @@
 from src.srcMain.Database import Database
 from src.converter.Converter import Converter
 from utils.utils import *
-from src.dataClasses.Game import Game
-from tabulate import tabulate
-from typing import List
-from src.dataClasses.PlayerMatch import PlayerMatch
-from statistics import median
+from src.dataClasses.Format import Format
 
 db = Database()
 converter = Converter()
 
-def getAdjustedSkillLevel(memberId, currentSkillLevel, datePlayed, playerMatchId):
+def getAdjustedSkillLevel(memberId, currentSkillLevel, datePlayed):
+        # NOTE: this calculation is only for the 8-ball format currently
+        
         currentSkillLevel = int(currentSkillLevel)
         
-
+        FORMAT = Format.EIGHT_BALL
         NUM_RELEVANT_PLAYERMATCHES = 15
-        GAME = Game.EightBall.value
-        NUM_GAMES_CONSIDERED_RECENT = 3
+        NUM_GAMES_CONSIDERED_RECENT = 5
         SKILL_LEVEL_CHANGE_ADJUSTMENT = .25
         MAX_ADJUSTED_SCORE_OFFSET = .49
         ADJUSTED_SCORE_OFFSET_THRESHOLD = .5
 
-        playerResultsDb = db.getPlayerMatches(None, None, None, memberId, GAME, NUM_RELEVANT_PLAYERMATCHES, datePlayed, playerMatchId, None, None)
+        playerResultsDb = db.getPlayerMatches(None, None, None, memberId, FORMAT, NUM_RELEVANT_PLAYERMATCHES, datePlayed, None, None, None)
         playerMatches = list(map(lambda playerMatch: converter.toPlayerMatchWithSql(playerMatch), playerResultsDb))
 
         adjustedScoreOffsetTotal = 0
@@ -60,7 +57,7 @@ def getAdjustedSkillLevel(memberId, currentSkillLevel, datePlayed, playerMatchId
                     *
                     abs(
                         didWin
-                        + (skillLevel1/EIGHT_BALL_MAX_SKILL_LEVEL) 
+                        + (skillLevel1/getSkillLevelRangeForFormat(FORMAT)[-1]) 
                         - 1
                     )
             )*3
@@ -101,16 +98,30 @@ def getAdjustedSkillLevel(memberId, currentSkillLevel, datePlayed, playerMatchId
 
         # Refine adjusted skill level if player has changed recently
         wasLowerSkillLevelRecently = False
+        dateWhereWasLowerSkillLevel = None
         wasHigherSkillLevelRecently = False
-        for playerMatch in playerMatches[0:NUM_GAMES_CONSIDERED_RECENT]:
+        for playerMatch in playerMatches[:NUM_GAMES_CONSIDERED_RECENT]:
             playerResults = playerMatch.getPlayerResults()
             skillLevel = playerResults[0].getSkillLevel() if playerResults[0].getPlayer().getMemberId() == memberId else playerResults[1].getSkillLevel()
             if skillLevel < currentSkillLevel:
                 wasLowerSkillLevelRecently = True
+                dateWhereWasLowerSkillLevel = playerMatch.getDatePlayed()
+                break
             elif skillLevel > currentSkillLevel:
                 wasHigherSkillLevelRecently = True
+                break
         
+        wasCurrentSkillLevelBefore = False
         if wasLowerSkillLevelRecently:
+            playerMatchesBeforeDateSql = db.getPlayerMatches(None, None, None, memberId, FORMAT, None, dateWhereWasLowerSkillLevel, None, None, None)
+            playerMatchesBeforeDate = list(map(lambda playerMatch: converter.toPlayerMatchWithSql(playerMatch).properPlayerResultOrderWithPlayer(player), playerMatchesBeforeDateSql))
+            for playerMatchBeforeDate in playerMatchesBeforeDate:
+                if playerMatchBeforeDate.getPlayerResults()[0].getSkillLevel() >= currentSkillLevel:
+                    wasCurrentSkillLevelBefore = True
+                    break
+
+        
+        if wasLowerSkillLevelRecently and not wasCurrentSkillLevelBefore:
             adjustedScoreOffset -= SKILL_LEVEL_CHANGE_ADJUSTMENT
         if wasHigherSkillLevelRecently:
             adjustedScoreOffset += SKILL_LEVEL_CHANGE_ADJUSTMENT
@@ -127,97 +138,7 @@ def getAdjustedSkillLevel(memberId, currentSkillLevel, datePlayed, playerMatchId
         return round(int(currentSkillLevel) + ADJUSTED_SCORE_OFFSET_THRESHOLD + adjustedScoreOffset, 2)
 
 
-def createASLMatrix(game, expectedPtsMethod):
-        db = Database()
-        
-        matrix = []
-        matrix.append([])
-        
-        numSectionsPerSkillLevel = 3
-        numSkillLevels = 0
-        if game == Game.EightBall.value:
-            numSkillLevels = EIGHT_BALL_MAX_SKILL_LEVEL
-        elif game == Game.NineBall.value:
-            numSkillLevels = NINE_BALL_MAX_SKILL_LEVEL
-        
-        rangeStart = 0
-        if game == Game.EightBall.value:
-            rangeStart = 2
-        elif game == Game.NineBall.value:
-            rangeStart = 1
-        matrix[0].append(0)
-        for i in range(rangeStart, numSkillLevels + 1):
-            for section in SECTIONS_PER_SKILL_LEVEL:
-                matrix[0].append(i + section[0])
-        
-        for skillLevel in range(rangeStart, numSkillLevels + 1):
-            for section in SECTIONS_PER_SKILL_LEVEL:
-                matrix.append([skillLevel + section[0]] + ([1.5] * (numSkillLevels - rangeStart + 1) * numSectionsPerSkillLevel))
-        for lowerSLIndex, lowerSL in enumerate(range(rangeStart, numSkillLevels + 1)):
-            for higherSLIndex, higherSL in enumerate(range(lowerSL, numSkillLevels + 1)):
-                for lowerSectionIndex, lowerSection in enumerate(SECTIONS_PER_SKILL_LEVEL):
-                    for higherSectionIndex, higherSection in enumerate(SECTIONS_PER_SKILL_LEVEL):
-                        if lowerSL == higherSL and lowerSectionIndex > higherSectionIndex:
-                            continue
-                        
-                        asl1range = [lowerSL + lowerSection[0], lowerSL + lowerSection[1]]
-                        asl2range = [higherSL + higherSection[0], higherSL + higherSection[1]]
-                        matchesLowAgainstHighSql = db.getPlayerMatches(None, None, None, None, game, None, None, None, asl1range, asl2range)
-                        playerMatchesLowAgainstHigh = list(map(lambda playerMatchSql: converter.toPlayerMatchWithSql(playerMatchSql), matchesLowAgainstHighSql))
-                        ptsEarnedByLowerPlayerRound1 = getPointsScoredByASLPlayers(0, playerMatchesLowAgainstHigh)
-                        ptsEarnedByHigherPlayerRound1 = getPointsScoredByASLPlayers(1, playerMatchesLowAgainstHigh)
-
-
-                        if lowerSL == higherSL and lowerSectionIndex == higherSectionIndex:
-                            # Always use average when comparing players of the same adjusted skill level
-                            numGames = len(playerMatchesLowAgainstHigh)
-                            if numGames > 0:
-                                sumPts = sum(ptsEarnedByLowerPlayerRound1 + ptsEarnedByHigherPlayerRound1) / 2
-                                matrixIndex = (lowerSLIndex * numSectionsPerSkillLevel) + lowerSectionIndex + 1
-                                matrix[matrixIndex][matrixIndex] = round(sumPts/numGames, 1)
-                                
-                            continue
-
-
-
-                        asl1range = [higherSL + higherSection[0], higherSL + higherSection[1]]
-                        asl2range = [lowerSL + lowerSection[0], lowerSL + lowerSection[1]]
-                        matchesHighAgainstLowSql = db.getPlayerMatches(None, None, None, None, game, None, None, None, asl1range, asl2range)
-                        playerMatchesHighAgainstLow = list(map(lambda playerMatchSql: converter.toPlayerMatchWithSql(playerMatchSql), matchesHighAgainstLowSql))
-                        ptsEarnedByHigherPlayerRound2 = getPointsScoredByASLPlayers(0, playerMatchesHighAgainstLow)
-                        ptsEarnedByLowerPlayerRound2 = getPointsScoredByASLPlayers(1, playerMatchesHighAgainstLow)
-
-
-                        numGames = len(playerMatchesLowAgainstHigh) + len(playerMatchesHighAgainstLow)
-                        if numGames > 0:
-                            totalPtsEarnedByLowerPlayer = ptsEarnedByLowerPlayerRound1 + ptsEarnedByLowerPlayerRound2
-                            totalPtsEarnedByHigherPlayer = ptsEarnedByHigherPlayerRound1 + ptsEarnedByHigherPlayerRound2
-                            lowerIndexIndexyPoo = (lowerSLIndex * numSectionsPerSkillLevel) + lowerSectionIndex + 1
-                            higherIndexIndexyPoo = ((higherSLIndex + lowerSLIndex) * numSectionsPerSkillLevel) + higherSectionIndex + 1
-                            # TODO: Remove hardcoded check til issue 39 is resolved
-                            if lowerSL == 4 and higherSL == 5 and lowerSectionIndex == 0 and higherSectionIndex == 2:
-                                matrix[lowerIndexIndexyPoo][higherIndexIndexyPoo] = 1.2
-                                matrix[higherIndexIndexyPoo][lowerIndexIndexyPoo] = 1.2
-                            else:
-                                if expectedPtsMethod == "average":
-                                    matrix[lowerIndexIndexyPoo][higherIndexIndexyPoo] = round(sum(totalPtsEarnedByLowerPlayer)/numGames, 1)
-                                    matrix[higherIndexIndexyPoo][lowerIndexIndexyPoo] = round(sum(totalPtsEarnedByHigherPlayer)/numGames, 1)
-                                elif expectedPtsMethod == "median":
-                                    matrix[lowerIndexIndexyPoo][higherIndexIndexyPoo] = round(median(totalPtsEarnedByLowerPlayer), 1)
-                                    matrix[higherIndexIndexyPoo][lowerIndexIndexyPoo] = round(median(totalPtsEarnedByHigherPlayer), 1)
-                                elif expectedPtsMethod.startswith("mix"):
-                                    numGamesBaseline = int(expectedPtsMethod.replace("mix", ""))
-                                    if numGames > numGamesBaseline:
-                                        matrix[lowerIndexIndexyPoo][higherIndexIndexyPoo] = round(sum(totalPtsEarnedByLowerPlayer)/numGames, 1)
-                                        matrix[higherIndexIndexyPoo][lowerIndexIndexyPoo] = round(sum(totalPtsEarnedByHigherPlayer)/numGames, 1)
-                                    else:
-                                        matrix[lowerIndexIndexyPoo][higherIndexIndexyPoo] = round(median(totalPtsEarnedByLowerPlayer), 1)
-                                        matrix[higherIndexIndexyPoo][lowerIndexIndexyPoo] = round(median(totalPtsEarnedByHigherPlayer), 1)
-                        
-        print(tabulate(matrix, headers="firstrow", tablefmt="fancy_grid"))
-
-        return matrix
-
+############ Currently unused methods ############
 def getPointSpread(game):
     db = Database()
 
@@ -308,7 +229,3 @@ def getPointSpread(game):
                         ).fetchone()
     
     print("2-1's: " + str(matchesHighAgainstLow[0] + matchesLowAgainstHigh[0]) + " " + str(float((matchesHighAgainstLow[0] + matchesLowAgainstHigh[0])/totalMatches*100)) + "%")
-
-
-def getPointsScoredByASLPlayers(index, playerMatches: List[PlayerMatch]):
-    return list(map(lambda playerMatch: playerMatch.getPlayerResults()[index].getScore().getTeamPtsEarned(), playerMatches))

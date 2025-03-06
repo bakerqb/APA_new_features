@@ -1,11 +1,9 @@
 from datetime import datetime
-from src.dataClasses.Game import Game
+from src.dataClasses.Format import Format
 from typeguard import typechecked
 
-EIGHT_BALL_MAX_SKILL_LEVEL = 7
-NINE_BALL_MAX_SKILL_LEVEL = 9
-EIGHT_BALL_MIN_SKILL_LEVEL = 2
-NINE_BALL_MIN_SKILL_LEVEL = 1
+EIGHT_BALL_SKILL_LEVEL_RANGE = range(2, 8)
+NINE_BALL_SKILL_LEVEL_RANGE = range(1, 10)
 DEFAULT_SKILL_LEVEL = 3
 EIGHT_BALL_INCORRECT_SKILL_LEVEL = 1
 NEW_PLAYER_SCRAPED_SKILL_LEVEL = 0
@@ -161,8 +159,8 @@ def toReadableDateTimeString(date) -> datetime:
     except Exception:
         return date
 
-def getRangeStart(game) -> int:
-    if game == Game.EightBall.value:
-        return EIGHT_BALL_MIN_SKILL_LEVEL
-    elif game == Game.NineBall.value:
-        return NINE_BALL_MIN_SKILL_LEVEL
+def getSkillLevelRangeForFormat(format: Format) -> int:
+    if format == Format.EIGHT_BALL:
+        return EIGHT_BALL_SKILL_LEVEL_RANGE
+    elif format == Format.NINE_BALL:
+        return NINE_BALL_SKILL_LEVEL_RANGE

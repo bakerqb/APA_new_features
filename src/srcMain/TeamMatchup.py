@@ -1,5 +1,6 @@
 from src.dataClasses.Team import Team
 from utils.asl import *
+from utils.aslMatrix import *
 from utils.utils import *
 import math
 from src.dataClasses.PotentialPlayerResult import PotentialPlayerResult
@@ -13,12 +14,13 @@ import time
 from srcMain.Config import Config
 
 class TeamMatchup():
-    def __init__(self, myTeam: Team, opponentTeam: Team, putupPlayer: Player, matchNumber: int):
+    def __init__(self, myTeam: Team, opponentTeam: Team, putupPlayer: Player, matchNumber: int, format: Format):
         self.myTeam = myTeam
         self.opponentTeam = opponentTeam
         self.doesMyTeamPutUp = putupPlayer is None
         self.putupPlayer = putupPlayer
         self.matchNumber = matchNumber
+        self.format = format
         self.timeCounter = {
             self.start.__name__: 0,
             'removeDuplicatePlayersExceptLowest': 0,
@@ -30,18 +32,17 @@ class TeamMatchup():
         
         self.validate()
 
-        if self.putupPlayer is not None:
-            self.putupPlayer.setAdjustedSkillLevel(getAdjustedSkillLevel(putupPlayer.getMemberId(), putupPlayer.getCurrentSkillLevel(), None, None))
+        if self.format == Format.EIGHT_BALL:
+            if self.putupPlayer is not None:
+                self.putupPlayer.setAdjustedSkillLevel(getAdjustedSkillLevel(putupPlayer.getMemberId(), putupPlayer.getCurrentSkillLevel(), None, None))
 
-        for player in self.myTeam.getPlayers():
-            player.setAdjustedSkillLevel(getAdjustedSkillLevel(player.getMemberId(), player.getCurrentSkillLevel(), None, None))
+            for player in self.myTeam.getPlayers():
+                player.setAdjustedSkillLevel(getAdjustedSkillLevel(player.getMemberId(), player.getCurrentSkillLevel(), None))
 
-        for player in self.opponentTeam.getPlayers():
-            player.setAdjustedSkillLevel(getAdjustedSkillLevel(player.getMemberId(), player.getCurrentSkillLevel(), None, None))
-
-        # TODO: Remove hardcoded values
-        self.game = "8-ball"
-        self.skillLevelMatrix = createASLMatrix(self.game, self.config.get("predictionAccuracy").get("expectedPtsMethod"))
+            for player in self.opponentTeam.getPlayers():
+                player.setAdjustedSkillLevel(getAdjustedSkillLevel(player.getMemberId(), player.getCurrentSkillLevel(), None))
+            
+        self.skillLevelMatrix = createASLMatrix(self.format, self.config.get("predictionAccuracy").get("expectedPtsMethod"))
     
     def start(self, teamMatchCriteria: TeamMatchCriteria, matchNumber: int) -> PotentialTeamMatch:
         startTime = time.perf_counter()
@@ -144,7 +145,7 @@ class TeamMatchup():
         asl1 = float(player1.getAdjustedSkillLevel())
         asl2 = float(player2.getAdjustedSkillLevel())
 
-        rangeStart = getRangeStart(self.game)
+        skillLevelRange = getSkillLevelRangeForFormat(self.format)
         
         skillLevel1 = math.floor(asl1)
         asl1decimals = asl1 - skillLevel1
@@ -162,8 +163,8 @@ class TeamMatchup():
                 asl2SectionIndex = sectionIndex
                 break
         
-        index1 = ((skillLevel1 - rangeStart) * NUM_SECTIONS_PER_SKILL_LEVEL) + asl1SectionIndex + 1 
-        index2 = ((skillLevel2 - rangeStart) * NUM_SECTIONS_PER_SKILL_LEVEL) + asl2SectionIndex + 1 
+        index1 = ((skillLevel1 - skillLevelRange[0]) * NUM_SECTIONS_PER_SKILL_LEVEL) + asl1SectionIndex + 1 
+        index2 = ((skillLevel2 - skillLevelRange[0]) * NUM_SECTIONS_PER_SKILL_LEVEL) + asl2SectionIndex + 1 
         return (self.skillLevelMatrix[index1][index2], self.skillLevelMatrix[index2][index1])
 
     def addPlayerMatch(self, player: Player, chosenPlayer: Player, newPotentialTeamMatch: PotentialTeamMatch):
