@@ -1,10 +1,10 @@
 from src.srcMain.Database import Database
-from src.converter.PlayerMatchConverter import PlayerMatchConverter
+from src.converter.Converter import Converter
 from utils.utils import *
 from src.dataClasses.Format import Format
 
 db = Database()
-playerMatchConverter = PlayerMatchConverter()
+converter = Converter()
 
 def getAdjustedSkillLevel(memberId, currentSkillLevel, datePlayed):
         # NOTE: this calculation is only for the 8-ball format currently
@@ -19,7 +19,7 @@ def getAdjustedSkillLevel(memberId, currentSkillLevel, datePlayed):
         ADJUSTED_SCORE_OFFSET_THRESHOLD = .5
 
         playerResultsDb = db.getPlayerMatches(None, None, None, memberId, FORMAT, NUM_RELEVANT_PLAYERMATCHES, datePlayed, None, None, None)
-        playerMatches = list(map(lambda playerMatch: playerMatchConverter.toPlayerMatchWithSql(playerMatch), playerResultsDb))
+        playerMatches = list(map(lambda playerMatch: converter.toPlayerMatchWithSql(playerMatch), playerResultsDb))
 
         adjustedScoreOffsetTotal = 0
         numWins = 0
@@ -114,7 +114,7 @@ def getAdjustedSkillLevel(memberId, currentSkillLevel, datePlayed):
         wasCurrentSkillLevelBefore = False
         if wasLowerSkillLevelRecently:
             playerMatchesBeforeDateSql = db.getPlayerMatches(None, None, None, memberId, FORMAT, None, dateWhereWasLowerSkillLevel, None, None, None)
-            playerMatchesBeforeDate = list(map(lambda playerMatch: playerMatchConverter.toPlayerMatchWithSql(playerMatch).properPlayerResultOrderWithPlayer(player), playerMatchesBeforeDateSql))
+            playerMatchesBeforeDate = list(map(lambda playerMatch: converter.toPlayerMatchWithSql(playerMatch).properPlayerResultOrderWithPlayer(player), playerMatchesBeforeDateSql))
             for playerMatchBeforeDate in playerMatchesBeforeDate:
                 if playerMatchBeforeDate.getPlayerResults()[0].getSkillLevel() >= currentSkillLevel:
                     wasCurrentSkillLevelBefore = True

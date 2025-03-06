@@ -2,7 +2,6 @@ from src.srcMain.ApaWebScraper import ApaWebScraper
 from src.srcMain.Config import Config
 from src.srcMain.Database import Database
 from converter.Converter import Converter
-from converter.PlayerMatchConverter import PlayerMatchConverter
 from converter.PlayerMatchWithASLConverter import PlayerMatchWithASLConverter
 from dataClasses.TeamResults import TeamResults
 from dataClasses.Format import Format
@@ -17,7 +16,6 @@ class UseCase:
         self.config = Config()
         self.db = Database()
         self.converter = Converter()
-        self.playerMatchConverter = PlayerMatchConverter()
         self.playerMatchWithASLConverter = PlayerMatchWithASLConverter()
         self.potentialTeamMatchConverter = PotentialTeamMatchConverter()
 
@@ -48,9 +46,7 @@ class UseCase:
     
     # ------------------------- Teams -------------------------
     def getTeams(self, divisionId):
-        db = Database()
-        converter = Converter()
-        division = converter.toDivisionWithSql(db.getDivision(divisionId))
+        division = self.converter.toDivisionWithSql(self.db.getDivision(divisionId))
         return {
             "teams": list(map(lambda teamRow: self.converter.toTeamWithoutRosterWithSql(teamRow, division), self.db.getTeamsFromDivision(divisionId))),
             "division": division
@@ -58,11 +54,9 @@ class UseCase:
     
     # ------------------------- Prediction Accuracy Tester -------------------------
     def getPredictionAccuracy(self):
-        db = Database()
-        converter = PlayerMatchConverter()
         format = Format(self.config.getConfig().get("format"))
-        playerMatchesSql = db.getPlayerMatches(None, None, None, None, format, None, None, None, None, None)
-        teamMatches = converter.toTeamMatchesWithPlayerMatchesSql(playerMatchesSql)
+        playerMatchesSql = self.db.getPlayerMatches(None, None, None, None, format, None, None, None, None, None)
+        teamMatches = self.converter.toTeamMatchesWithPlayerMatchesSql(playerMatchesSql)
 
         numCorrectlyPredictedMatches = 0
         numTeamMatchesNotResultingInTie = len(teamMatches)
