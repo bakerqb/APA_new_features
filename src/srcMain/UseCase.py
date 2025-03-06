@@ -32,6 +32,7 @@ class UseCase:
     def getPlayerMatchesForPlayer(self, memberId) -> dict:
         player = self.converter.toPlayerWithSql(self.db.getPlayerBasedOnMemberId(memberId))
         format = Format(self.config.getConfig().get("format"))
+        player.setAdjustedSkillLevel(getAdjustedSkillLevel(player.getMemberId(), player.getCurrentSkillLevel(), None))
         return {
             "player": player,
             "playerMatches": list(map(lambda playerMatch: self.playerMatchWithASLConverter.toPlayerMatchWithSql(playerMatch).properPlayerResultOrderWithPlayer(player), self.db.getPlayerMatches(None, None, None, memberId, format, None, None, None, None, None)))

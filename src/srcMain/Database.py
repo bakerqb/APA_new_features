@@ -313,7 +313,7 @@ class Database:
                     "UNION " +
                     "SELECT p2.memberId, p2.playerName, p2.currentSkillLevel, tm2.datePlayed " +
                     "FROM Player p2 " +
-                    "LEFT JOIN PlayerMatch pm2 ON p2.memberId = pm2.memberId1 " +
+                    "LEFT JOIN PlayerMatch pm2 ON p2.memberId = pm2.memberId2 " +
                     "LEFT JOIN TeamMatch tm2 ON pm2.teamMatchId = tm2.teamMatchId" +
                 ") players " +
             ") WHERE row_number = 1 " +
@@ -322,7 +322,7 @@ class Database:
             ("" if not searchCriteria.getMinSkillLevel() else f"AND currentSkillLevel >= {searchCriteria.getMinSkillLevel()} ") +
             ("" if not searchCriteria.getMaxSkillLevel() else f"AND currentSkillLevel <= {searchCriteria.getMaxSkillLevel()} ") +
             ("" if not searchCriteria.getDateLastPlayed() else f"AND CAST(datePlayed AS DATE) >= CAST({searchCriteria.getDateLastPlayed()} AS DATE)") +
-            "ORDER BY datePlayed DESC"
+            "ORDER BY datePlayed DESC, playerName ASC"
             
         ).fetchall()
 
