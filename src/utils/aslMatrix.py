@@ -6,6 +6,8 @@ from tabulate import tabulate
 from typing import List
 from src.dataClasses.PlayerMatch import PlayerMatch
 from statistics import median
+import os
+import json
 
 db = Database()
 playerMatchWithASLConverter = PlayerMatchWithASLConverter()
@@ -15,6 +17,13 @@ def createASLMatrix(format: Format, expectedPtsMethod):
         db = Database()
 
         playerMatchesSql = db.getPlayerMatches(None, None, None, None, format, None, None, None, None, None)
+
+        numPlayerMatches = len(playerMatchesSql)
+        aslMatrixFilePath = os.path.abspath(__file__ + f"/../../resources/aslMatrix-{format.value}.json")
+        existingASLMatrixData = parseExistingASLMatrix(aslMatrixFilePath)
+        if numPlayerMatches <= existingASLMatrixData.get("numPlayerMatches") and expectedPtsMethod == existingASLMatrixData.get("expectedPtsMethod"):
+            return existingASLMatrixData.get("aslMatrix")
+
         playerMatches = list(map(lambda playerMatchSql: playerMatchWithASLConverter.toPlayerMatchWithSql(playerMatchSql), playerMatchesSql))
         
         matrix = []
@@ -90,6 +99,16 @@ def createASLMatrix(format: Format, expectedPtsMethod):
                         
         print(tabulate(matrix, headers="firstrow", tablefmt="fancy_grid"))
 
+
+        data = {
+            "aslMatrix": matrix,
+            "numPlayerMatches": numPlayerMatches,
+            "expectedPtsMethod": expectedPtsMethod
+        }
+        file = open(aslMatrixFilePath, "w")
+        json.dump(data, file)
+        file.close()
+
         return matrix
 
 def roundNumber(ptsList: List[int], numGames: int, isAverage: bool):
@@ -106,4 +125,19 @@ def roundNumber(ptsList: List[int], numGames: int, isAverage: bool):
 
 def getPointsScoredByASLPlayers(index, playerMatches: List[PlayerMatch]):
     return list(map(lambda playerMatch: playerMatch.getPlayerResults()[index].getScore().getTeamPtsEarned(), playerMatches))
+
+def parseExistingASLMatrix(aslMatrixFilePath: str):
+    if os.path.exists(aslMatrixFilePath):
+        file = open(aslMatrixFilePath, "r")
+        contents = json.load(file)
+        file.close()
+        return contents
+    else:
+        data = {
+            "aslMatrix": [],
+            "numPlayerMatches": 0,
+            "expectedPtsMethod": "average"
+        }
+        return data
+        
 
