@@ -25,6 +25,7 @@ from utils.utils import *
 from utils.asl import *
 from dataClasses.Team import Team
 from src.dataClasses.Format import Format
+from src.dataClasses.SessionSeason import SessionSeason
 
 
 class ApaWebScraperWorker:
@@ -285,7 +286,7 @@ class ApaWebScraperWorker:
         dayOfWeek = time.strptime(day, "%A").tm_wday
 
         # Add division/sesion to database
-        division = self.converter.toDivisionWithDirectValues(sessionId, sessionSeason, sessionYear, divisionId, divisionName, dayOfWeek, Format(format))
+        division = self.converter.toDivisionWithDirectValues(sessionId, SessionSeason[sessionSeason], sessionYear, divisionId, divisionName, dayOfWeek, Format(format))
         self.db.addDivision(division)
 
         

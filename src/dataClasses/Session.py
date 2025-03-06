@@ -1,5 +1,7 @@
+from dataClasses.SessionSeason import SessionSeason
+
 class Session:
-    def __init__(self, sessionId: int, sessionSeason: str, sessionYear: int):
+    def __init__(self, sessionId: int, sessionSeason: SessionSeason, sessionYear: int):
         self.sessionId = sessionId
         self.sessionSeason = sessionSeason
         self.sessionYear = sessionYear
@@ -14,12 +16,12 @@ class Session:
         return self.sessionYear
     
     def getPreviousSession(self):
-        if self.sessionSeason == "SPRING":
-            return Session(None, "FALL", self.sessionYear - 1)
-        elif self.sessionSeason == "SUMMER":
-            return Session(None, "SPRING", self.sessionYear)
-        elif self.sessionSeason == "FALL":
-            return Session(None, "SUMMER", self.sessionYear)
+        if self.sessionSeason == SessionSeason.SPRING:
+            return Session(None, SessionSeason.FALL, self.sessionYear - 1)
+        elif self.sessionSeason == SessionSeason.SUMMER:
+            return Session(None, SessionSeason.SPRING, self.sessionYear)
+        elif self.sessionSeason == SessionSeason.FALL:
+            return Session(None, SessionSeason.SUMMER, self.sessionYear)
         
     def __eq__(self, session):
         return (

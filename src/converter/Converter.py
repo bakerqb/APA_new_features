@@ -1,5 +1,6 @@
 from dataClasses.Division import Division
 from dataClasses.Session import Session
+from dataClasses.SessionSeason import SessionSeason
 from dataClasses.Team import Team
 from dataClasses.Player import Player
 from dataClasses.TeamMatch import TeamMatch
@@ -22,9 +23,9 @@ class Converter:
         
         sessionId, sessionSeason, sessionYear, divisionId, divisionName, dayOfWeek, format = sqlRow
 
-        return self.toDivisionWithDirectValues(sessionId, sessionSeason, sessionYear, divisionId, divisionName, dayOfWeek, Format(format))
+        return self.toDivisionWithDirectValues(sessionId, SessionSeason[sessionSeason], sessionYear, divisionId, divisionName, dayOfWeek, Format(format))
     
-    def toDivisionWithDirectValues(self, sessionId, sessionSeason, sessionYear, divisionId, divisionName, dayOfWeek, format: Format):
+    def toDivisionWithDirectValues(self, sessionId, sessionSeason: SessionSeason, sessionYear, divisionId, divisionName, dayOfWeek, format: Format):
         session = Session(sessionId, sessionSeason, sessionYear)
         division = Division(session, divisionId, divisionName, dayOfWeek, format)
         return division
@@ -35,7 +36,7 @@ class Converter:
             return None
 
         sessionId, sessionSeason, sessionYear = sqlRow
-        return Session(sessionId, sessionSeason, sessionYear)
+        return Session(sessionId, SessionSeason[sessionSeason], sessionYear)
     
     def toTeamWithSql(self, sqlRows):
         # Data comes in the format of list(sessionId, sessionSeason, sessionYear, 
@@ -47,7 +48,7 @@ class Converter:
             if team is None:
                 team = Team(
                     self.toDivisionWithDirectValues(
-                        sessionId, sessionSeason, sessionYear, divisionId, divisionName, dayOfWeek, Format(format)
+                        sessionId, SessionSeason[sessionSeason], sessionYear, divisionId, divisionName, dayOfWeek, Format(format)
                     ),
                     teamId,
                     teamNum,
@@ -77,7 +78,7 @@ class Converter:
         # adjustedSkillLevel1 = getAdjustedSkillLevel(memberId1, currentSkillLevel1, datePlayed)
         # adjustedSkillLevel2 = getAdjustedSkillLevel(memberId2, currentSkillLevel2, datePlayed)
         
-        session = Session(sessionId, sessionSeason, sessionYear)
+        session = Session(sessionId, SessionSeason[sessionSeason], sessionYear)
         division = Division(session, divisionId, divisionName, dayOfWeek, Format(format))
         
         # TODO: figure out how to get the players here. Do we really wanna do another join on the table where you get all the players in the roster?
