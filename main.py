@@ -27,7 +27,7 @@ def results():
     sessionId = int(request.args.get('sessionId'))
 
     data = { 
-        "teamResults": useCase.getTeamResults(teamId, True),
+        "teamResults": useCase.getTeamResults(teamId),
         "divisionId": divisionId,
         "sessionId": sessionId
     }

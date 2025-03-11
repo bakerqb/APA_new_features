@@ -6,12 +6,12 @@ from converter.PlayerMatchWithASLConverter import PlayerMatchWithASLConverter
 from dataClasses.TeamResults import TeamResults
 from dataClasses.Format import Format
 from dataClasses.Division import Division
-from dataClasses.Session import Session
 from converter.PotentialTeamMatchConverter import PotentialTeamMatchConverter
 from utils.utils import *
 from utils.asl import *
 from utils.aslMatrix import *
 from srcMain.Typechecked import Typechecked
+from typing import Dict
 
 class UseCase(Typechecked):
     def __init__(self):
@@ -23,16 +23,16 @@ class UseCase(Typechecked):
         self.potentialTeamMatchConverter = PotentialTeamMatchConverter()
 
     # ------------------------- Team Results -------------------------
-    def getTeamResults(self, teamId: int, decorateWithASL: bool) -> TeamResults:
+    def getTeamResults(self, teamId: int) -> TeamResults:
         
         format = Format(self.config.getConfig().get("format"))
         teamResultsDb = self.db.getPlayerMatches(None, None, teamId, None, format, None, None, None, None, None)
         teamResultsPlayerMatches = list(map(lambda playerMatch: self.playerMatchWithASLConverter.toPlayerMatchWithSql(playerMatch), teamResultsDb))
         team = self.converter.toTeamWithSql(self.db.getTeam(None, None, teamId))
-        results = TeamResults(team, teamResultsPlayerMatches, list(map(lambda player: self.converter.toPlayerWithSql(player), self.db.getTeamRoster(teamId))), decorateWithASL)
+        results = TeamResults(team, teamResultsPlayerMatches, list(map(lambda player: self.converter.toPlayerWithSql(player), self.db.getTeamRoster(teamId))))
         return results
     
-    def getPlayerMatchesForPlayer(self, memberId: int) -> dict:
+    def getPlayerMatchesForPlayer(self, memberId: int) -> Dict:
         player = self.converter.toPlayerWithSql(self.db.getPlayer(None, None, memberId))
         format = Format(self.config.getConfig().get("format"))
         player.setAdjustedSkillLevel(getAdjustedSkillLevel(player.getMemberId(), player.getCurrentSkillLevel(), None))
@@ -46,11 +46,11 @@ class UseCase(Typechecked):
         return list(map(lambda division: self.converter.toDivisionWithSql(division), self.db.getDivisions(sessionId)))
 
     # ------------------------- Sessions -------------------------
-    def getSessions(self) -> dict:
+    def getSessions(self) -> Dict:
         return { "sessions": list(map(lambda session: self.converter.toSessionWithSql(session), self.db.getSessions())) }
     
     # ------------------------- Teams -------------------------
-    def getTeams(self, divisionId: int) -> dict:
+    def getTeams(self, divisionId: int) -> Dict:
         division = self.converter.toDivisionWithSql(self.db.getDivision(divisionId))
         return {
             "teams": list(map(lambda teamRow: self.converter.toTeamWithoutRosterWithSql(teamRow, division), self.db.getTeamsFromDivision(divisionId))),

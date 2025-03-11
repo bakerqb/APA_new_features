@@ -1,13 +1,14 @@
 import yaml
 import os
 from srcMain.Typechecked import Typechecked
+from typing import Dict
 
 class Config(Typechecked):
     def __init__(self):
         with open(self.findConfigFile(), 'r') as config_file:
             self.config = yaml.safe_load(config_file)
     
-    def getConfig(self) -> dict:
+    def getConfig(self) -> Dict:
         return self.config
 
     def findConfigFile(self)-> str:

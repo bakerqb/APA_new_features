@@ -10,6 +10,7 @@ from src.dataClasses.PlayerMatch import PlayerMatch
 from src.dataClasses.Session import Session
 from typing import Tuple
 from srcMain.Typechecked import Typechecked
+from src.srcMain.DatabaseTypes import DatabaseTypes
 
 class Database(Typechecked):
     # ------------------------- Setup -------------------------
@@ -156,11 +157,7 @@ class Database(Typechecked):
     def getPlayerMatches(self, sessionId: int | None, divisionId: int | None, teamId: int | None,
                          memberId: int | None, format: Format, limit: int | None, datePlayed: str | None,
                          playerMatchId: int | None, adjustedSkillLevel1range: Tuple[int] | None,
-                         adjustedSkillLevel2range: Tuple[int] | None) -> List[Tuple[int, str, int, int, str, int, str,
-                                                                                    int, str, int, int, int, str,
-                                                                                    int, str, int, int, float, int, int, int,
-                                                                                    int, int, str, int, str, int, int, float,
-                                                                                    int, int, int]]:
+                         adjustedSkillLevel2range: Tuple[int] | None) -> List[DatabaseTypes.PlayerMatch]:
         return self.cur.execute(
             "SELECT s.sessionId, s.sessionSeason, s.sessionYear, d.divisionId, d.divisionName, d.dayOfWeek, d.game, " +
             "tm.teamMatchId, tm.datePlayed, pm.playerMatchId, t1.teamId, t1.teamNum, t1.teamName, " +
@@ -190,7 +187,7 @@ class Database(Typechecked):
             (f"LIMIT {limit}" if limit is not None else "")
         ).fetchall()
     
-    def getTeamRoster(self, teamId: int) -> List[Tuple[int, str, int]]:
+    def getTeamRoster(self, teamId: int) -> List[DatabaseTypes.Player]:
         return self.cur.execute(
             "SELECT p.memberId, p.playerName, p.currentSkillLevel " +
             "FROM Player p LEFT JOIN CurrentTeamPlayer c ON p.memberId = c.memberId " +
@@ -198,14 +195,14 @@ class Database(Typechecked):
             f"WHERE t.teamId = {teamId}"
         ).fetchall()
     
-    def getDivisions(self, sessionId: int) -> List[Tuple[int, str, int, int, str, int, str]]:
+    def getDivisions(self, sessionId: int) -> List[DatabaseTypes.Division]:
         return self.cur.execute(
             f"SELECT s.sessionId, s.sessionSeason, s.sessionYear, d.divisionId, d.divisionName, d.dayOfWeek, d.game " +
             "FROM Session s LEFT JOIN Division d ON s.sessionId = d.sessionId " +
             f"WHERE s.sessionId = {sessionId} ORDER BY d.dayOfWeek"
         ).fetchall()
     
-    def getSessions(self) -> List[Tuple[int, str, int]]:
+    def getSessions(self) -> List[DatabaseTypes.Session]:
         return self.cur.execute("SELECT * FROM Session s ORDER BY sessionId DESC").fetchall()
     
     def getDatePlayed(self, teamMatchId: int) -> str:
@@ -213,7 +210,7 @@ class Database(Typechecked):
             f"SELECT datePlayed FROM TeamMatch WHERE teamMatchId = {teamMatchId}"
         ).fetchone()[0]
 
-    def getTeamMatches(self, divisionId: int) -> List[Tuple[int, int]]:
+    def getTeamMatches(self, divisionId: int) -> List[DatabaseTypes.TeamMatch]:
         return self.cur.execute(
             "SELECT tm.teamMatchId, d.divisionId " +
             "FROM Division d " +
@@ -227,10 +224,10 @@ class Database(Typechecked):
             ") AND tm.teamMatchId IS NOT NULL"
         ).fetchall()
     
-    def getTeamsFromDivision(self, divisionId: int) -> List[Tuple[int, int, int, str]]:
+    def getTeamsFromDivision(self, divisionId: int) -> List[DatabaseTypes.TeamWithoutRoster]:
         return self.cur.execute(f"SELECT * FROM Team WHERE divisionId = {divisionId}").fetchall()
     
-    def getTeam(self, teamNum: int | None, divisionId: int | None, teamId: int | None) -> List[Tuple[int, str, int, int, str, int, str, int, int, str, int, str, int]]:
+    def getTeam(self, teamNum: int | None, divisionId: int | None, teamId: int | None) -> DatabaseTypes.TeamWithRoster:
         # Data comes in the format of list(divisionId, teamId, teamNum, teamName, memberId, playerName, currentSkillLevel)
         return self.cur.execute(
             "SELECT s.sessionId, s.sessionSeason, s.sessionYear, " +
@@ -257,7 +254,7 @@ class Database(Typechecked):
             f"SELECT divisionId FROM Team WHERE teamId = {teamId}"
         ).fetchone()[0]
     
-    def getPlayer(self, teamId: int | None, playerName: str | None, memberId: int | None) -> Tuple[int, str, int]:
+    def getPlayer(self, teamId: int | None, playerName: str | None, memberId: int | None) -> DatabaseTypes.Player:
         # Makes an assumption that no team will have two players with the exact same name
         return self.cur.execute(
             "SELECT p.memberId, p.playerName, p.currentSkillLevel " +
@@ -268,7 +265,7 @@ class Database(Typechecked):
             (f"AND p.memberId = {memberId} " if memberId is not None else "")
         ).fetchone()
     
-    def getDivision(self, divisionId: int) -> Tuple[int, str, int, int, str, int, str]:
+    def getDivision(self, divisionId: int) -> DatabaseTypes.Division:
         self.createTables()
         division = self.cur.execute(
             "SELECT s.sessionId, s.sessionSeason, s.sessionYear, d.divisionId, d.divisionName, d.dayOfWeek, d.game " + 
@@ -278,7 +275,7 @@ class Database(Typechecked):
         ).fetchone()
         return division
     
-    def getSession(self, sessionId: int) -> List[Tuple[int, str, int]]:
+    def getSession(self, sessionId: int) -> List[DatabaseTypes.Session]:
         self.createTables()
         return self.cur.execute(f"SELECT * FROM Session WHERE sessionId = {sessionId}").fetchall()
     
@@ -291,7 +288,7 @@ class Database(Typechecked):
         self.createTables()
         return Format(self.cur.execute(f"SELECT game FROM Division WHERE divisionId = {divisionId}").fetchone()[0])
     
-    def getPlayers(self, searchCriteria: SearchCriteria) -> List[Tuple[int, str, int, str]]:
+    def getPlayers(self, searchCriteria: SearchCriteria) -> List[DatabaseTypes.PlayerWithDateLastPlayed]:
         self.createTables()
         return self.cur.execute(
             "SELECT pInfo.memberId, pInfo.playerName, pInfo.currentSkillLevel, pInfo.datePlayed FROM (" +

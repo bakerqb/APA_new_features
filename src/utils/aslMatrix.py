@@ -3,16 +3,18 @@ from src.converter.PlayerMatchWithASLConverter import PlayerMatchWithASLConverte
 from utils.utils import *
 from src.dataClasses.Format import Format
 from tabulate import tabulate
-from typing import List
+from typing import List, Dict
 from src.dataClasses.PlayerMatch import PlayerMatch
 from statistics import median
 import os
 import json
+from typeguard import typechecked
 
 db = Database()
 playerMatchWithASLConverter = PlayerMatchWithASLConverter()
 
-def createASLMatrix(format: Format, expectedPtsMethod: str) -> list:
+@typechecked
+def createASLMatrix(format: Format, expectedPtsMethod: str) -> List[List[float | int]]:
         db = Database()
 
         playerMatchesSql = db.getPlayerMatches(None, None, None, None, format, None, None, None, None, None)
@@ -110,7 +112,8 @@ def createASLMatrix(format: Format, expectedPtsMethod: str) -> list:
 
         return matrix
 
-def roundNumber(ptsList: List[int], numGames: int, isAverage: bool):
+@typechecked
+def roundNumber(ptsList: List[int], numGames: int, isAverage: bool) -> float | int:
     finalNumber = 0
     if isAverage:
         finalNumber = round(sum(ptsList)/numGames, 1)
@@ -120,12 +123,12 @@ def roundNumber(ptsList: List[int], numGames: int, isAverage: bool):
         finalNumber = int(finalNumber)
     return finalNumber
 
-
-
-def getPointsScoredByASLPlayers(index, playerMatches: List[PlayerMatch]):
+@typechecked
+def getPointsScoredByASLPlayers(index, playerMatches: List[PlayerMatch]) -> List[int]:
     return list(map(lambda playerMatch: playerMatch.getPlayerResults()[index].getScore().getTeamPtsEarned(), playerMatches))
 
-def parseExistingASLMatrix(aslMatrixFilePath: str):
+@typechecked
+def parseExistingASLMatrix(aslMatrixFilePath: str) -> Dict:
     if os.path.exists(aslMatrixFilePath):
         file = open(aslMatrixFilePath, "r")
         contents = json.load(file)

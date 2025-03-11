@@ -10,13 +10,14 @@ from dataClasses.Format import Format
 from utils.utils import *
 from utils.asl import *
 from src.srcMain.Typechecked import Typechecked
+from src.srcMain.DatabaseTypes import DatabaseTypes
 
 
 class PlayerMatchWithASLConverter(Typechecked):
     def __init__(self):
         pass
     
-    def toPlayerMatchWithSql(self, sqlRow: tuple) -> PlayerMatch:
+    def toPlayerMatchWithSql(self, sqlRow: DatabaseTypes.PlayerMatch) -> PlayerMatch:
         sessionId, sessionSeason, sessionYear = sqlRow[:3]
         divisionId, divisionName, dayOfWeek, format = sqlRow[3:7]
         teamMatchId, datePlayed, playerMatchId, teamId1, teamNum1, teamName1 = sqlRow[7:13]

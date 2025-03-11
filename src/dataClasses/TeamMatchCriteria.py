@@ -1,6 +1,6 @@
 from dataClasses.Player import Player
 from utils.utils import *
-from typing import List, Set
+from typing import List, Set, Dict, Tuple
 from dataClasses.Team import Team
 from src.exceptions.InvalidTeamMatchCriteria import InvalidTeamMatchCriteria
 from src.srcMain.Typechecked import Typechecked
@@ -126,7 +126,7 @@ class TeamMatchCriteria(Typechecked):
             else:
                 break
 
-    def resetAvailableMatches(self, originalAvailableMatches: dict, restrictiveMatchSet: tuple) -> dict:
+    def resetAvailableMatches(self, originalAvailableMatches: Dict, restrictiveMatchSet: Tuple) -> Dict:
         newAvailableMatches = {}
         originalAvailableMatches.pop(restrictiveMatchSet)
         for matchSet, players in originalAvailableMatches.items():
