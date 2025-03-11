@@ -178,7 +178,7 @@ class ApaWebScraper(Typechecked):
                     else:
                         opponentTeamNum = teamNum1
                     
-                    return self.converter.toTeamWithSql(self.db.getTeamWithTeamNum(opponentTeamNum, self.db.getDivisionIdFromTeamId(teamId)))
+                    return self.converter.toTeamWithSql(self.db.getTeam(opponentTeamNum, self.db.getDivisionIdFromTeamId(teamId), None))
                 
     def scrapeAllEightBallThursDivisions(self) -> None:
         self.createWebDriver()

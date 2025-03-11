@@ -159,11 +159,11 @@ class ApaWebScraperWorker(Typechecked):
         teamsInfoHeader = self.driver.find_elements(By.CLASS_NAME, "teamName")
         teamNum1 = int(re.sub(r'\W+', '', teamsInfoHeader[0].text.split(' (')[1])[-2:])
         
-        team1 = self.converter.toTeamWithSql(self.db.getTeamWithTeamNum(teamNum1, divisionId))
+        team1 = self.converter.toTeamWithSql(self.db.getTeam(teamNum1, divisionId, None))
         if not team1:
             return []
         teamNum2 = int(re.sub(r'\W+', '', teamsInfoHeader[1].text.split(' (')[1])[-2:])
-        team2 = self.converter.toTeamWithSql(self.db.getTeamWithTeamNum(teamNum2, divisionId))
+        team2 = self.converter.toTeamWithSql(self.db.getTeam(teamNum2, divisionId, None))
         if not team2:
             return []
 
@@ -247,14 +247,14 @@ class ApaWebScraperWorker(Typechecked):
             playerResults = []
             
             # TODO: Figure out how to find the memberId/currentSkillLevel of a player who once belonged to a team but no longer does
-            player1Info = db.getPlayerBasedOnTeamIdAndPlayerName(team1.getTeamId(), playerName1)
+            player1Info = db.getPlayer(team1.getTeamId(), playerName1, None)
             if player1Info is None:
                 # TODO: Figure out if there's another way to get player info for a player who isn't on a team anymore
                 continue
             memberId1, playerName1, currentSkillLevel1 = player1Info
             player1 = Player(memberId1, playerName1, currentSkillLevel1)
             
-            player2Info = db.getPlayerBasedOnTeamIdAndPlayerName(team2.getTeamId(), playerName2)
+            player2Info = db.getPlayer(team2.getTeamId(), playerName2, None)
             if player2Info is None:
                 # TODO: Figure out if there's another way to get player info for a player who isn't on a team anymore
                 continue

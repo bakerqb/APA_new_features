@@ -89,8 +89,8 @@ def matchups():
     matchNumber = int(request.args.get('matchNumber'))
     format = db.getFormat(divisionId)
 
-    team1 = converter.toTeamWithSql(db.getTeamWithTeamId(teamId1))
-    team2 = converter.toTeamWithSql(db.getTeamWithTeamId(teamId2))
+    team1 = converter.toTeamWithSql(db.getTeam(None, None, teamId1))
+    team2 = converter.toTeamWithSql(db.getTeam(None, None, teamId2))
 
     teamPlayerPairings = []
     for key in list(request.args.keys()):
@@ -102,14 +102,14 @@ def matchups():
     except InvalidTeamMatchCriteria:
         return redirect(f"/matchupTeams?teamId1={teamId1}&teamId2={teamId2}&sessionId={sessionId}&divisionId={divisionId}")
     
-    team1Roster = list(map(lambda memberId: converter.toPlayerWithSql(db.getPlayerBasedOnMemberId(memberId)), team1memberIds))
-    team2Roster = list(map(lambda memberId: converter.toPlayerWithSql(db.getPlayerBasedOnMemberId(memberId)), team2memberIds))
+    team1Roster = list(map(lambda memberId: converter.toPlayerWithSql(db.getPlayer(None, None, memberId)), team1memberIds))
+    team2Roster = list(map(lambda memberId: converter.toPlayerWithSql(db.getPlayer(None, None, memberId)), team2memberIds))
     team1.setPlayers(team1Roster)
     team2.setPlayers(team2Roster)
 
     putupPlayer = None
     if putupMemberId is not None:
-        putupPlayer = converter.toPlayerWithSql(db.getPlayerBasedOnMemberId(putupMemberId))
+        putupPlayer = converter.toPlayerWithSql(db.getPlayer(None, None, putupMemberId))
     try:
         teamMatchCriteria = TeamMatchCriteria(request.args.getlist('teamMatchCriteria'), team1, team2, matchNumber, putupPlayer)
         teamMatchup = TeamMatchup(team1, team2, putupPlayer, matchNumber, format)
@@ -160,8 +160,8 @@ def matchupTeams():
 
     db = Database()
     converter = Converter()
-    team1 = converter.toTeamWithSql(db.getTeamWithTeamId(teamId1))
-    team2 = converter.toTeamWithSql(db.getTeamWithTeamId(teamId2))
+    team1 = converter.toTeamWithSql(db.getTeam(None, None, teamId1))
+    team2 = converter.toTeamWithSql(db.getTeam(None, None, teamId2))
     division = converter.toDivisionWithSql(db.getDivision(divisionId))
     data = {
         "team1": team1,

@@ -28,12 +28,12 @@ class UseCase(Typechecked):
         format = Format(self.config.getConfig().get("format"))
         teamResultsDb = self.db.getPlayerMatches(None, None, teamId, None, format, None, None, None, None, None)
         teamResultsPlayerMatches = list(map(lambda playerMatch: self.playerMatchWithASLConverter.toPlayerMatchWithSql(playerMatch), teamResultsDb))
-        team = self.converter.toTeamWithSql(self.db.getTeamWithTeamId(teamId))
+        team = self.converter.toTeamWithSql(self.db.getTeam(None, None, teamId))
         results = TeamResults(team, teamResultsPlayerMatches, list(map(lambda player: self.converter.toPlayerWithSql(player), self.db.getTeamRoster(teamId))), decorateWithASL)
         return results
     
     def getPlayerMatchesForPlayer(self, memberId: int) -> dict:
-        player = self.converter.toPlayerWithSql(self.db.getPlayerBasedOnMemberId(memberId))
+        player = self.converter.toPlayerWithSql(self.db.getPlayer(None, None, memberId))
         format = Format(self.config.getConfig().get("format"))
         player.setAdjustedSkillLevel(getAdjustedSkillLevel(player.getMemberId(), player.getCurrentSkillLevel(), None))
         return {
