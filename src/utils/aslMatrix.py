@@ -12,8 +12,7 @@ import json
 db = Database()
 playerMatchWithASLConverter = PlayerMatchWithASLConverter()
 
-
-def createASLMatrix(format: Format, expectedPtsMethod):
+def createASLMatrix(format: Format, expectedPtsMethod: str) -> list:
         db = Database()
 
         playerMatchesSql = db.getPlayerMatches(None, None, None, None, format, None, None, None, None, None)

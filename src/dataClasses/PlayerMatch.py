@@ -2,8 +2,9 @@ from dataClasses.Player import Player
 from utils.utils import *
 from typing import List
 from dataClasses.PlayerResult import PlayerResult
+from src.srcMain.Typechecked import Typechecked
 
-class PlayerMatch:
+class PlayerMatch(Typechecked):
     def __init__(self, playerResults: List[PlayerResult], playerMatchId: int, teamMatchId: int, datePlayed: str):
         self.playerResults = playerResults
         self.playerMatchId = playerMatchId
@@ -11,22 +12,22 @@ class PlayerMatch:
         self.datePlayed = datePlayed
         self.readableDatePlayed = toReadableDateTimeString(datePlayed)
 
-    def getPlayerResults(self):
+    def getPlayerResults(self) -> List[PlayerResult]:
         return self.playerResults
     
-    def getPlayerMatchId(self):
+    def getPlayerMatchId(self) -> int:
         return self.playerMatchId
     
-    def getTeamMatchId(self):
+    def getTeamMatchId(self) -> int:
         return self.teamMatchId
     
-    def getDatePlayed(self):
+    def getDatePlayed(self) -> str:
         return self.datePlayed
     
-    def getReadableDatePlayed(self):
+    def getReadableDatePlayed(self) -> str:
         return self.readableDatePlayed
     
-    def isPlayedBy(self, player: Player):
+    def isPlayedBy(self, player: Player) -> bool:
         for playerResult in self.playerResults:
             if playerResult.getPlayer().getPlayerName() == player.getPlayerName():
                 return True

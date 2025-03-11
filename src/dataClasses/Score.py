@@ -1,14 +1,16 @@
-class Score():
-    def __init__(self, teamPtsEarned: int, playerPtsEarned: int, playerPtsNeeded: int):
-        self.teamPtsEarned = int(teamPtsEarned)
-        self.playerPtsEarned = int(playerPtsEarned)
-        self.playerPtsNeeded = int(playerPtsNeeded)
+from src.srcMain.Typechecked import Typechecked
 
-    def getTeamPtsEarned(self):
+class Score(Typechecked):
+    def __init__(self, teamPtsEarned: int, playerPtsEarned: int, playerPtsNeeded: int):
+        self.teamPtsEarned = teamPtsEarned
+        self.playerPtsEarned = playerPtsEarned
+        self.playerPtsNeeded = playerPtsNeeded
+
+    def getTeamPtsEarned(self) -> int:
         return self.teamPtsEarned
     
-    def getPlayerPtsEarned(self):
+    def getPlayerPtsEarned(self) -> int:
         return self.playerPtsEarned
     
-    def getPlayerPtsNeeded(self):
+    def getPlayerPtsNeeded(self) -> int:
         return self.playerPtsNeeded

@@ -1,16 +1,17 @@
 from dataClasses.Player import Player
-from dataClasses.PotentialPlayerResult import PotentialPlayerResult
+from src.dataClasses.PotentialPlayerResult import PotentialPlayerResult
 from typing import List
+from src.srcMain.Typechecked import Typechecked
 
-class PotentialPlayerMatch:
+class PotentialPlayerMatch(Typechecked):
     def __init__(self, potentialPlayerResults: List[PotentialPlayerResult]):
         self.potentialPlayerResults = potentialPlayerResults
         
 
-    def getPotentialPlayerResults(self):
+    def getPotentialPlayerResults(self) -> List[PotentialPlayerResult]:
         return self.potentialPlayerResults
     
-    def isPlayedBy(self, player: Player):
+    def isPlayedBy(self, player: Player) -> bool:
         for playerResult in self.potentialPlayerResults:
             if playerResult.getPlayer().getPlayerName() == player.getPlayerName():
                 return True
@@ -21,7 +22,7 @@ class PotentialPlayerMatch:
             self.potentialPlayerResults.reverse()
         return self
 
-    def addPotentialPlayerResult(self, potentialPlayerResult):
+    def addPotentialPlayerResult(self, potentialPlayerResult: PotentialPlayerResult) -> None:
         self.potentialPlayerResults.append(potentialPlayerResult)
     
     

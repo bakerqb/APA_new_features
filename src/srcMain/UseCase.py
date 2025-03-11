@@ -5,12 +5,15 @@ from converter.Converter import Converter
 from converter.PlayerMatchWithASLConverter import PlayerMatchWithASLConverter
 from dataClasses.TeamResults import TeamResults
 from dataClasses.Format import Format
+from dataClasses.Division import Division
+from dataClasses.Session import Session
 from converter.PotentialTeamMatchConverter import PotentialTeamMatchConverter
 from utils.utils import *
 from utils.asl import *
 from utils.aslMatrix import *
+from srcMain.Typechecked import Typechecked
 
-class UseCase:
+class UseCase(Typechecked):
     def __init__(self):
         self.apaWebScraper = ApaWebScraper()
         self.config = Config()
@@ -20,14 +23,16 @@ class UseCase:
         self.potentialTeamMatchConverter = PotentialTeamMatchConverter()
 
     # ------------------------- Team Results -------------------------
-    def getTeamResults(self, teamId, decorateWithASL) -> dict:
-        teamResultsDb = self.db.getPlayerMatches(None, None, teamId, None, None, None, None, None, None, None)
+    def getTeamResults(self, teamId: int, decorateWithASL: bool) -> TeamResults:
+        
+        format = Format(self.config.getConfig().get("format"))
+        teamResultsDb = self.db.getPlayerMatches(None, None, teamId, None, format, None, None, None, None, None)
         teamResultsPlayerMatches = list(map(lambda playerMatch: self.playerMatchWithASLConverter.toPlayerMatchWithSql(playerMatch), teamResultsDb))
         team = self.converter.toTeamWithSql(self.db.getTeamWithTeamId(teamId))
         results = TeamResults(team, teamResultsPlayerMatches, list(map(lambda player: self.converter.toPlayerWithSql(player), self.db.getTeamRoster(teamId))), decorateWithASL)
         return results
     
-    def getPlayerMatchesForPlayer(self, memberId) -> dict:
+    def getPlayerMatchesForPlayer(self, memberId: int) -> dict:
         player = self.converter.toPlayerWithSql(self.db.getPlayerBasedOnMemberId(memberId))
         format = Format(self.config.getConfig().get("format"))
         player.setAdjustedSkillLevel(getAdjustedSkillLevel(player.getMemberId(), player.getCurrentSkillLevel(), None))
@@ -37,15 +42,15 @@ class UseCase:
         }
 
     # ------------------------- Divisions -------------------------
-    def getDivisions(self, sessionId):
+    def getDivisions(self, sessionId: int) -> List[Division]:
         return list(map(lambda division: self.converter.toDivisionWithSql(division), self.db.getDivisions(sessionId)))
 
     # ------------------------- Sessions -------------------------
-    def getSessions(self):
+    def getSessions(self) -> dict:
         return { "sessions": list(map(lambda session: self.converter.toSessionWithSql(session), self.db.getSessions())) }
     
     # ------------------------- Teams -------------------------
-    def getTeams(self, divisionId):
+    def getTeams(self, divisionId: int) -> dict:
         division = self.converter.toDivisionWithSql(self.db.getDivision(divisionId))
         return {
             "teams": list(map(lambda teamRow: self.converter.toTeamWithoutRosterWithSql(teamRow, division), self.db.getTeamsFromDivision(divisionId))),
@@ -53,7 +58,7 @@ class UseCase:
         }
     
     # ------------------------- Prediction Accuracy Tester -------------------------
-    def getPredictionAccuracy(self):
+    def getPredictionAccuracy(self) -> str:
         format = Format(self.config.getConfig().get("format"))
         playerMatchesSql = self.db.getPlayerMatches(None, None, None, None, format, None, None, None, None, None)
         teamMatches = self.converter.toTeamMatchesWithPlayerMatchesSql(playerMatchesSql)

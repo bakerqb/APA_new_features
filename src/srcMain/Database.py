@@ -5,8 +5,13 @@ from src.dataClasses.Team import Team
 from src.dataClasses.Division import Division
 from utils.utils import *
 from src.dataClasses.Format import Format
+from src.dataClasses.SearchCriteria import SearchCriteria
+from src.dataClasses.PlayerMatch import PlayerMatch
+from src.dataClasses.Session import Session
+from typing import Tuple
+from srcMain.Typechecked import Typechecked
 
-class Database:
+class Database(Typechecked):
     # ------------------------- Setup -------------------------
     def __init__(self):
         self.con = sqlite3.connect("results.db", check_same_thread=False)
@@ -148,7 +153,10 @@ class Database:
         self.con.commit()
 
     # ------------------------- Getting -------------------------
-    def getPlayerMatches(self, sessionId, divisionId, teamId, memberId, format: Format, limit, datePlayed, playerMatchId, adjustedSkillLevel1range, adjustedSkillLevel2range):
+    def getPlayerMatches(self, sessionId: int | None, divisionId: int | None, teamId: int | None,
+                         memberId: int | None, format: Format, limit: int | None, datePlayed: str | None,
+                         playerMatchId: int | None, adjustedSkillLevel1range: Tuple[int] | None,
+                         adjustedSkillLevel2range: Tuple[int] | None):
         return self.cur.execute(
             "SELECT s.sessionId, s.sessionSeason, s.sessionYear, d.divisionId, d.divisionName, d.dayOfWeek, d.game, " +
             "tm.teamMatchId, tm.datePlayed, pm.playerMatchId, t1.teamId, t1.teamNum, t1.teamName, " +
@@ -178,7 +186,7 @@ class Database:
             (f"LIMIT {limit}" if limit is not None else "")
         ).fetchall()
     
-    def getTeamRoster(self, teamId):
+    def getTeamRoster(self, teamId: int):
         return self.cur.execute(
             "SELECT p.memberId, p.playerName, p.currentSkillLevel " +
             "FROM Player p LEFT JOIN CurrentTeamPlayer c ON p.memberId = c.memberId " +
@@ -186,7 +194,7 @@ class Database:
             f"WHERE t.teamId = {teamId}"
         ).fetchall()
     
-    def getDivisions(self, sessionId):
+    def getDivisions(self, sessionId: int):
         return self.cur.execute(
             f"SELECT s.sessionId, s.sessionSeason, s.sessionYear, d.divisionId, d.divisionName, d.dayOfWeek, d.game " +
             "FROM Session s LEFT JOIN Division d ON s.sessionId = d.sessionId " +
@@ -201,7 +209,7 @@ class Database:
             f"SELECT datePlayed FROM TeamMatch WHERE teamMatchId = {teamMatchId}"
         ).fetchone()[0]
 
-    def getTeamMatches(self, divisionId):
+    def getTeamMatches(self, divisionId: int):
         return self.cur.execute(
             "SELECT tm.teamMatchId, d.divisionId " +
             "FROM Division d " +
@@ -215,10 +223,10 @@ class Database:
             ") AND tm.teamMatchId IS NOT NULL"
         ).fetchall()
     
-    def getTeamsFromDivision(self, divisionId):
+    def getTeamsFromDivision(self, divisionId: int):
         return self.cur.execute(f"SELECT * FROM Team WHERE divisionId = {divisionId}").fetchall()
     
-    def getTeamWithTeamNum(self, teamNum, divisionId):
+    def getTeamWithTeamNum(self, teamNum: int, divisionId: int):
         # Data comes in the format of list(divisionId, teamId, teamNum, teamName, memberId, playerName, currentSkillLevel)
         return self.cur.execute(
             "SELECT s.sessionId, s.sessionSeason, s.sessionYear, " +
@@ -232,7 +240,7 @@ class Database:
             f"WHERE t.teamNum={teamNum} AND t.divisionId={divisionId}"
         ).fetchall()
     
-    def getTeamWithTeamId(self, teamId):
+    def getTeamWithTeamId(self, teamId: int):
         # Data comes in the format of list(divisionId, teamId, teamNum, teamName, memberId, playerName, currentSkillLevel)
         return self.cur.execute(
             "SELECT s.sessionId, s.sessionSeason, s.sessionYear, " +
@@ -246,17 +254,17 @@ class Database:
             f"WHERE t.teamId={teamId}"
         ).fetchall()
     
-    def getTeamNum(self, teamId):
+    def getTeamNum(self, teamId: int):
         return self.cur.execute(
             f"SELECT teamNum FROM Team WHERE teamId = {teamId}"
         ).fetchone()[0]
     
-    def getDivisionIdFromTeamId(self, teamId):
+    def getDivisionIdFromTeamId(self, teamId: int):
         return self.cur.execute(
             f"SELECT divisionId FROM Team WHERE teamId = {teamId}"
         ).fetchone()[0]
     
-    def getPlayerBasedOnTeamIdAndPlayerName(self, teamId, playerName):
+    def getPlayerBasedOnTeamIdAndPlayerName(self, teamId: int, playerName: str):
         # Makes an assumption that no team will have two players with the exact same name
         return self.cur.execute(
             "SELECT p.memberId, p.playerName, p.currentSkillLevel " +
@@ -264,14 +272,14 @@ class Database:
             f"""WHERE c.teamId = {teamId} AND p.playerName = "{playerName}" """
         ).fetchone()
     
-    def getPlayerBasedOnMemberId(self, memberId):
+    def getPlayerBasedOnMemberId(self, memberId: int):
         return self.cur.execute(
             "SELECT memberId, playerName, currentSkillLevel " +
             "FROM Player " +
             f"WHERE memberId = {memberId}"
         ).fetchone()
     
-    def getDivision(self, divisionId):
+    def getDivision(self, divisionId: int):
         self.createTables()
         division = self.cur.execute(
             "SELECT s.sessionId, s.sessionSeason, s.sessionYear, d.divisionId, d.divisionName, d.dayOfWeek, d.game " + 
@@ -283,7 +291,7 @@ class Database:
             division = division[0]
         return division
     
-    def getSession(self, sessionId):
+    def getSession(self, sessionId: int) -> list:
         self.createTables()
         return self.cur.execute(f"SELECT * FROM Session WHERE sessionId = {sessionId}").fetchall()
     
@@ -292,11 +300,11 @@ class Database:
         sqlRows = self.getPlayerMatches(None, None, None, None, format, None, None, None, None, None)
         return sqlRows[0][0]
     
-    def getFormat(self, divisionId):
+    def getFormat(self, divisionId: int):
         self.createTables()
         return Format(self.cur.execute(f"SELECT game FROM Division WHERE divisionId = {divisionId}").fetchone()[0])
     
-    def getPlayers(self, searchCriteria):
+    def getPlayers(self, searchCriteria: SearchCriteria):
         self.createTables()
         results = self.cur.execute(
             "SELECT * FROM (" +
@@ -332,7 +340,7 @@ class Database:
                 new_results.append(result)
         return new_results
     
-    def getLastSessionIdPlayedByPlayer(self, memberId):
+    def getLastSessionIdPlayedByPlayer(self, memberId: int):
         self.createTables()
         results = self.cur.execute(
             "SELECT MAX(s.sessionId) FROM Session s " +
@@ -349,7 +357,7 @@ class Database:
     
 
     # ------------------------- Inserting -------------------------
-    def addPlayerMatch(self, playerMatch):
+    def addPlayerMatch(self, playerMatch: PlayerMatch):
         for playerResult in playerMatch.getPlayerResults():
             score = playerResult.getScore()
             self.cur.execute(
@@ -375,7 +383,7 @@ class Database:
         )
         self.con.commit()
     
-    def addTeamMatch(self, teamMatchId, apaDatetime, divisionId):
+    def addTeamMatch(self, teamMatchId: int, apaDatetime: str, divisionId: int):
         try:
             self.cur.execute(f"INSERT INTO TeamMatch VALUES ({teamMatchId}, '{apaDatetime}', {divisionId})")
             self.con.commit()
@@ -436,7 +444,7 @@ class Database:
                 )
         self.con.commit() 
 
-    def addSession(self, session):
+    def addSession(self, session: Session):
         self.createTables()
         
         try:
@@ -463,13 +471,13 @@ class Database:
 
 
     # ------------------------- Deleting -------------------------
-    def deleteSession(self, sessionId):
+    def deleteSession(self, sessionId: int):
         self.deleteDivision(sessionId, None)
         
         self.cur.execute(f"DELETE FROM Session WHERE sessionId = {sessionId}")
         self.con.commit()
 
-    def deleteDivision(self, sessionId, divisionId):
+    def deleteDivision(self, sessionId: int, divisionId: int):
         self.deleteTeam(sessionId, divisionId)
         self.deleteTeamMatch(sessionId, divisionId)
 
@@ -478,7 +486,7 @@ class Database:
     
         self.con.commit()
 
-    def deleteTeamMatch(self, sessionId, divisionId):
+    def deleteTeamMatch(self, sessionId: int, divisionId: int):
         self.deletePlayerMatch(sessionId, divisionId)
 
         if divisionId is None:
@@ -496,7 +504,7 @@ class Database:
             
         self.con.commit()
     
-    def deletePlayerMatch(self, sessionId, divisionId):
+    def deletePlayerMatch(self, sessionId: int, divisionId: int):
         self.deleteScore(sessionId, divisionId)
 
         if divisionId is None:
@@ -516,7 +524,7 @@ class Database:
             )
         self.con.commit()
     
-    def deleteScore(self, sessionId, divisionId):
+    def deleteScore(self, sessionId: int, divisionId: int):
         for i in range(2):
             if divisionId is None:
                 self.cur.execute(
@@ -538,7 +546,7 @@ class Database:
                 )
         self.con.commit()
     
-    def deleteTeam(self, sessionId, divisionId):
+    def deleteTeam(self, sessionId: int, divisionId: int):
         self.deleteCurrentTeamPlayer(sessionId, divisionId)
         
         if divisionId is None:
@@ -553,7 +561,7 @@ class Database:
             self.cur.execute(f"DELETE FROM Team WHERE divisionId = {divisionId}")
         self.con.commit()
 
-    def deleteTeamWithTeamId(self, teamId):
+    def deleteTeamWithTeamId(self, teamId: int):
         self.deleteCurrentTeamPlayerWithTeamId(teamId)
         
         self.cur.execute(
@@ -562,14 +570,14 @@ class Database:
 
         self.con.commit()
 
-    def deleteCurrentTeamPlayerWithTeamId(self, teamId):
+    def deleteCurrentTeamPlayerWithTeamId(self, teamId: int):
         self.cur.execute(
             f"DELETE FROM CurrentTeamPlayer WHERE teamId = {teamId}"
         )
         
         self.con.commit()
         
-    def deleteCurrentTeamPlayer(self, sessionId, divisionId):
+    def deleteCurrentTeamPlayer(self, sessionId: int, divisionId: int):
         if divisionId is None:
             self.cur.execute(
                 "DELETE FROM CurrentTeamPlayer WHERE teamId IN (" +
@@ -588,7 +596,7 @@ class Database:
         self.con.commit()
     
     # ------------------------- Checking -------------------------
-    def isValueInTeamMatchTable(self, teamMatchId):
+    def isValueInTeamMatchTable(self, teamMatchId: int):
         return self.cur.execute(f"SELECT COUNT(*) FROM TeamMatch WHERE teamMatchId = {teamMatchId}").fetchone()[0] > 0
 
     # ------------------------- Counting -------------------------
@@ -597,7 +605,7 @@ class Database:
 
     
     # ------------------------- Skill Level -------------------------
-    def updateASL(self, playerMatchId, teamMatchId, adjustedSkillLevel, playerResultId):
+    def updateASL(self, playerMatchId: int, teamMatchId: int, adjustedSkillLevel: int, playerResultId: int):
         self.cur.execute(
             "UPDATE PlayerMatch " +
             f"SET adjustedSkillLevel{playerResultId + 1} = {adjustedSkillLevel} " +

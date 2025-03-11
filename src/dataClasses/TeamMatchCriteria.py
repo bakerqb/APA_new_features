@@ -1,15 +1,15 @@
-from src.dataClasses.Player import Player
+from dataClasses.Player import Player
 from utils.utils import *
-from typing import List
-from src.dataClasses.Team import Team
+from typing import List, Set
+from dataClasses.Team import Team
 from src.exceptions.InvalidTeamMatchCriteria import InvalidTeamMatchCriteria
+from src.srcMain.Typechecked import Typechecked
 
-class TeamMatchCriteria:
-    def __init__(self, teamMatchCriteriaRawInput: str, team1: Team, team2: Team, matchNumber: int, putupPlayer: Player):
+class TeamMatchCriteria(Typechecked):
+    def __init__(self, teamMatchCriteriaRawInput: List[str], team1: Team, team2: Team, matchNumber: int, putupPlayer: Player | None):
         # Formatted as a list of set of ids, where the first element signifies which players cannot play in game 1
-        self.idsForGames = []
-        for i in range(NUM_PLAYERMATCHES_IN_TEAMMATCH):
-            self.idsForGames.append(set())
+        self.idsForGames = [set()] * NUM_PLAYERMATCHES_IN_TEAMMATCH
+
         for criteria in teamMatchCriteriaRawInput:
             id, matchNumberTemp = criteria.split('-')
             self.idsForGames[int(matchNumberTemp)].add(int(id))
@@ -20,7 +20,7 @@ class TeamMatchCriteria:
             self.furtherCriteria(team)
         print("here")
 
-    def furtherCriteria(self, team: Team):
+    def furtherCriteria(self, team: Team) -> None:
         changesMade = True
         while changesMade:
             changesMade = False
@@ -64,7 +64,7 @@ class TeamMatchCriteria:
                         changesMade = True
             self.idsForGames = tempIdsForGames
 
-    def getMemberIdsForGame(self, gameIndex: int) -> List[int]:
+    def getMemberIdsForGame(self, gameIndex: int) -> Set[int]:
         return self.idsForGames[gameIndex]
     
     def playerMustPlay(self, player: Player, matchIndex: int, numUniquePlayersFromStart: int) -> bool:
@@ -78,7 +78,7 @@ class TeamMatchCriteria:
                 return False
         return True
     
-    def validate(self, team1: Team, team2: Team, matchNumber: int, putupPlayer: Player):
+    def validate(self, team1: Team, team2: Team, matchNumber: int, putupPlayer: Player | None) -> None:
         self.validateAllPlayersAvailableForAtLeastOneMatch(team1, matchNumber)
         self.validateAllPlayersAvailableForAtLeastOneMatch(team2, matchNumber if putupPlayer is None else matchNumber + 1)
         self.validateAnyPlayersAvailableForMatch(team1, matchNumber)
@@ -86,7 +86,7 @@ class TeamMatchCriteria:
         self.validateMatchupCollisions(team1, matchNumber)
         self.validateMatchupCollisions(team2, matchNumber if putupPlayer is None else matchNumber + 1) 
     
-    def validateAllPlayersAvailableForAtLeastOneMatch(self, team: Team, matchNumber: int):
+    def validateAllPlayersAvailableForAtLeastOneMatch(self, team: Team, matchNumber: int) -> None:
         for player in team.getPlayers():
             isPlayerAvailable = False
             for idsForGame in self.idsForGames[matchNumber:]:
@@ -96,7 +96,7 @@ class TeamMatchCriteria:
             if not isPlayerAvailable:
                 raise InvalidTeamMatchCriteria(f"ERROR: {player.getPlayerName()} from team {team.getTeamName()} is unavailable for the rest of the matches")
 
-    def validateMatchupCollisions(self, team: Team, matchNumber: int):
+    def validateMatchupCollisions(self, team: Team, matchNumber: int) -> None:
         availableMatches = {}
         for player in team.getPlayers():
             availableMatchesForPlayer = []
@@ -126,7 +126,7 @@ class TeamMatchCriteria:
             else:
                 break
 
-    def resetAvailableMatches(self, originalAvailableMatches, restrictiveMatchSet):
+    def resetAvailableMatches(self, originalAvailableMatches: dict, restrictiveMatchSet: tuple) -> dict:
         newAvailableMatches = {}
         originalAvailableMatches.pop(restrictiveMatchSet)
         for matchSet, players in originalAvailableMatches.items():
@@ -139,7 +139,7 @@ class TeamMatchCriteria:
                 newAvailableMatches[tuple(newMatchSet)] = players
         return newAvailableMatches
 
-    def validateAnyPlayersAvailableForMatch(self, team: Team, matchNumber):
+    def validateAnyPlayersAvailableForMatch(self, team: Team, matchNumber: int) -> None:
         for matchNumberInQuestion in range(matchNumber, NUM_PLAYERMATCHES_IN_TEAMMATCH):
             
             someoneAvailableForMatch = False

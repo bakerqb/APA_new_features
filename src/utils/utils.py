@@ -1,6 +1,7 @@
 from datetime import datetime
 from src.dataClasses.Format import Format
 from typeguard import typechecked
+from typing import List
 
 EIGHT_BALL_SKILL_LEVEL_RANGE = range(2, 8)
 NINE_BALL_SKILL_LEVEL_RANGE = range(1, 10)
@@ -26,7 +27,7 @@ def nineBallSkillLevelMapper() -> dict:
         map[75] = 9
         return map
 
-def removeElements(words: list, removableWordList: list) -> list:
+def removeElements(words: List[str], removableWordList: List[str]) -> List[str]:
         for removableWord in removableWordList:
             words = list(filter((removableWord).__ne__, words)) 
         return words

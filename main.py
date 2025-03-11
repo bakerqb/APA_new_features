@@ -22,9 +22,9 @@ app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'sta
 @app.route("/results")
 def results():
     useCase = UseCase()
-    teamId = request.args.get('teamId')
-    divisionId = request.args.get('divisionId')
-    sessionId = request.args.get('sessionId')
+    teamId = int(request.args.get('teamId'))
+    divisionId = int(request.args.get('divisionId'))
+    sessionId = int(request.args.get('sessionId'))
 
     data = { 
         "teamResults": useCase.getTeamResults(teamId, True),
@@ -79,11 +79,13 @@ def deleteSession():
 def matchups():
     db = Database()
     converter = Converter()
-    teamId1 = request.args.get('teamId1')
-    teamId2 = request.args.get('teamId2')
+    teamId1 = int(request.args.get('teamId1'))
+    teamId2 = int(request.args.get('teamId2'))
     putupMemberId = request.args.get('putupMemberId')
-    sessionId = request.args.get('sessionId')
-    divisionId = request.args.get('divisionId')
+    if putupMemberId is not None:
+        putupMemberId = int(putupMemberId)
+    sessionId = int(request.args.get('sessionId'))
+    divisionId = int(request.args.get('divisionId'))
     matchNumber = int(request.args.get('matchNumber'))
     format = db.getFormat(divisionId)
 
@@ -133,12 +135,14 @@ def matchups():
 def keysToTeams(keys):
     if len(keys) == 0:
         raise InvalidTeamMatchCriteria("ERROR: No players selected")
-    teamId1 = keys[0].split('-')[0]
+    teamId1 = int(keys[0].split('-')[0])
     teamRoster1 = []
     teamRoster2 = []
     for key in keys:
         key = key.replace('-double-play', '') 
         teamId, memberId = key.split('-')
+        teamId = int(teamId)
+        memberId = int(memberId)
         if teamId == teamId1:
             teamRoster1.append(memberId)
         else:
@@ -148,10 +152,10 @@ def keysToTeams(keys):
 
 @app.route("/matchupTeams")
 def matchupTeams():
-    teamId1 = request.args.get('teamId1')
-    teamId2 = request.args.get('teamId2')
-    sessionId = request.args.get('sessionId')
-    divisionId = request.args.get('divisionId')
+    teamId1 = int(request.args.get('teamId1'))
+    teamId2 = int(request.args.get('teamId2'))
+    sessionId = int(request.args.get('sessionId'))
+    divisionId = int(request.args.get('divisionId'))
 
 
     db = Database()
@@ -174,9 +178,21 @@ def matchupTeams():
 @app.route("/players")
 def players():
     memberId = request.args.get('memberId')
+    if memberId == '' or memberId is None:
+        memberId = None
+    else:
+        memberId = int(memberId)
     playerName = request.args.get('playerName')
     minSkillLevel = request.args.get('minSkillLevel')
+    if minSkillLevel == '' or minSkillLevel is None:
+        minSkillLevel = None
+    else:
+        minSkillLevel = int(minSkillLevel)
     maxSkillLevel = request.args.get('maxSkillLevel')
+    if maxSkillLevel == '' or maxSkillLevel is None:
+        maxSkillLevel = None
+    else:
+        maxSkillLevel = int(maxSkillLevel)
     dateLastPlayed = request.args.get('dateLastPlayed')
 
     db = Database()
@@ -192,7 +208,7 @@ def players():
 @app.route("/session")
 def session():
     useCase = UseCase()
-    sessionId = request.args.get('sessionId')
+    sessionId = int(request.args.get('sessionId'))
     db = Database()
     converter = Converter()
     session = converter.toSessionWithSql(db.getSession(sessionId)[0])
@@ -218,7 +234,7 @@ def home1():
 @app.route("/playerMatches")
 def playerMatches():
     useCase = UseCase()
-    memberId = request.args.get('memberId')
+    memberId = int(request.args.get('memberId'))
     return render_template(
         jinja_environment.get_template('player.html'),
         url_for=url_for,
@@ -231,7 +247,7 @@ def division():
     useCase = UseCase()
     db = Database()
     converter = Converter()
-    divisionId = request.args.get('divisionId')
+    divisionId = int(request.args.get('divisionId'))
     format = db.getFormat(divisionId)
     sessionInQuestion = converter.toDivisionWithSql(db.getDivision(divisionId)).getSession()
     mostRecentSession = converter.toSessionWithSql(db.getSession(db.getMostRecentSessionId(format))[0])

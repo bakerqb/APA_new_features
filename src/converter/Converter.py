@@ -6,17 +6,19 @@ from dataClasses.Player import Player
 from dataClasses.TeamMatch import TeamMatch
 from utils.asl import *
 from utils.utils import *
-from typing import List
+from typing import List, Tuple
 from dataClasses.Format import Format
 from dataClasses.Score import Score
 from dataClasses.PlayerResult import PlayerResult
 from dataClasses.PlayerMatch import PlayerMatch
+from src.srcMain.Typechecked import Typechecked
 
-class Converter:
+
+class Converter(Typechecked):
     def __init__(self):
         pass
     
-    def toDivisionWithSql(self, sqlRow: list):
+    def toDivisionWithSql(self, sqlRow: tuple) -> Division:
         # Returns values in format: sessionId, sessionSeason, sessionYear, divisionId, divisionName, dayOfWeek, format
         if not sqlRow:
             return None
@@ -25,12 +27,12 @@ class Converter:
 
         return self.toDivisionWithDirectValues(sessionId, SessionSeason[sessionSeason], sessionYear, divisionId, divisionName, dayOfWeek, Format(format))
     
-    def toDivisionWithDirectValues(self, sessionId, sessionSeason: SessionSeason, sessionYear, divisionId, divisionName, dayOfWeek, format: Format):
+    def toDivisionWithDirectValues(self, sessionId: int, sessionSeason: SessionSeason, sessionYear: int, divisionId: int, divisionName: str, dayOfWeek: int, format: Format) -> Division:
         session = Session(sessionId, sessionSeason, sessionYear)
         division = Division(session, divisionId, divisionName, dayOfWeek, format)
         return division
     
-    def toSessionWithSql(self, sqlRow):
+    def toSessionWithSql(self, sqlRow: tuple) -> Session:
         # Returns values in format: sessionId, sessionSeason, sessionYear
         if not sqlRow:
             return None
@@ -38,7 +40,7 @@ class Converter:
         sessionId, sessionSeason, sessionYear = sqlRow
         return Session(sessionId, SessionSeason[sessionSeason], sessionYear)
     
-    def toTeamWithSql(self, sqlRows):
+    def toTeamWithSql(self, sqlRows: list) -> Team:
         # Data comes in the format of list(sessionId, sessionSeason, sessionYear, 
         # divisionId, divisionName, dayOfWeek, format, teamId, teamNum, 
         # teamName, memberId, playerName, currentSkillLevel)
@@ -58,16 +60,16 @@ class Converter:
             team.addPlayer(Player(memberId, playerName, currentSkillLevel))
         return team
     
-    def toTeamWithoutRosterWithSql(self, sqlRow, division):
+    def toTeamWithoutRosterWithSql(self, sqlRow: tuple, division: Division) -> Team:
         divisionId, teamId, teamNum, teamName = sqlRow
         return Team(division, teamId, teamNum, teamName, [])
     
-    def toPlayerWithSql(self, sqlRow):
+    def toPlayerWithSql(self, sqlRow: tuple) -> Player:
         # Data comes in the format of: memberId, playerName, currentSkillLevel
         memberId, playerName, currentSkillLevel = sqlRow
         return Player(memberId, playerName, currentSkillLevel)
     
-    def toPlayerMatchWithSql(self, sqlRow: list):
+    def toPlayerMatchWithSql(self, sqlRow: tuple) -> PlayerMatch:
         sessionId, sessionSeason, sessionYear = sqlRow[:3]
         divisionId, divisionName, dayOfWeek, format = sqlRow[3:7]
         teamMatchId, datePlayed, playerMatchId, teamId1, teamNum1, teamName1 = sqlRow[7:13]
@@ -95,7 +97,7 @@ class Converter:
         playerResults = [playerResult1, playerResult2]
         return PlayerMatch(playerResults, playerMatchId, teamMatchId, datePlayed)
     
-    def toTeamMatchesWithPlayerMatchesSql(self, sqlRows) -> List[TeamMatch]:
+    def toTeamMatchesWithPlayerMatchesSql(self, sqlRows: List[tuple]) -> List[TeamMatch]:
         teamMatchesMap = {}
         for sqlRow in sqlRows:
             playerMatch = self.toPlayerMatchWithSql(sqlRow)

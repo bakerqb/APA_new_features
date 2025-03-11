@@ -15,9 +15,13 @@ import concurrent.futures
 from utils.utils import *
 from utils.asl import *
 from src.dataClasses.SessionSeason import SessionSeason
+from src.dataClasses.Division import Division
+from src.dataClasses.Team import Team
+from src.srcMain.Typechecked import Typechecked
+from typing import List, Tuple
 
 
-class ApaWebScraper:
+class ApaWebScraper(Typechecked):
     ############### Start Up ###############
     def __init__(self):
         self.config = Config().getConfig()
@@ -25,7 +29,7 @@ class ApaWebScraper:
         self.driver = None
         self.db = Database()
     
-    def createWebDriver(self):
+    def createWebDriver(self) -> None:
         if self.driver is not None:
             return
         driver = webdriver.Chrome()
@@ -37,7 +41,7 @@ class ApaWebScraper:
         self.driver = driver
         self.login()
     
-    def login(self):
+    def login(self) -> None:
         # Go to signin page
         self.driver.get(self.config.get('apaWebsite').get('loginLink'))
 
@@ -58,7 +62,7 @@ class ApaWebScraper:
         noThanksButton.click()
 
     ############### Scraping Data for Division/Session ###############
-    def scrapeDivision(self, divisionId):
+    def scrapeDivision(self, divisionId: int) -> None:
         self.createWebDriver()
         print(f"Fetching results for division {divisionId}")
         self.driver.get(f"{self.config.get('apaWebsite').get('divisionBaseLink')}{divisionId}")
@@ -100,15 +104,15 @@ class ApaWebScraper:
         length = end - start
         print(f"scraping time: {length} seconds")
 
-    def scrapeTeamInfoAndTeamMatches(self, args):
+    def scrapeTeamInfoAndTeamMatches(self, args: List[Tuple[Division, str, int]]) -> None:
         apaWebScraperWorker = ApaWebScraperWorker()
         apaWebScraperWorker.scrapeTeamInfoAndTeamMatches(args)
     
-    def transformScrapeMatchLinksAllTeams(self, args):
+    def transformScrapeMatchLinksAllTeams(self, args: List[Tuple[int, int]]) -> None:
         apaWebScraperWorker = ApaWebScraperWorker()
         apaWebScraperWorker.scrapePlayerMatches(args)
 
-    def scrapeDivisionsForSession(self, sessionId):
+    def scrapeDivisionsForSession(self, sessionId: int) -> None:
         self.createWebDriver()
         self.driver.get(f"{self.config.get('apaWebsite').get('sessionBaseLink')}{sessionId}")
         time.sleep(4)
@@ -118,13 +122,13 @@ class ApaWebScraper:
         with concurrent.futures.ThreadPoolExecutor() as executor:
             executor.map(self.transformScrapeDivisionsForSession, divisionLinks)
     
-    def transformScrapeDivisionsForSession(self, divisionLink):
+    def transformScrapeDivisionsForSession(self, divisionLink: str) -> None:
         apaWebScraperWorker = ApaWebScraperWorker()
         apaWebScraperWorker.scrapeDivisionForSession(divisionLink)
 
 
     ############### Adding Values to Database ###############    
-    def addDivisionToDatabase(self):
+    def addDivisionToDatabase(self) -> Division:
         # Check if division/session already exists in the database
         divisionName = ' '.join(self.driver.find_element(By.CLASS_NAME, 'page-title').text.split(' ')[:-1])
         divisionId = removeElements(self.driver.current_url.split('/'), ["standings"])[-1]
@@ -149,7 +153,7 @@ class ApaWebScraper:
         return division
     
     ############### Finding Next Opponents ###############   
-    def getOpponentTeam(self, teamId):
+    def getOpponentTeam(self, teamId: int) -> Team:
         # Go to division link
         # Find and click on your team name
         # Go down their schedule and get the team name for the next match that hasn't been played
@@ -176,7 +180,7 @@ class ApaWebScraper:
                     
                     return self.converter.toTeamWithSql(self.db.getTeamWithTeamNum(opponentTeamNum, self.db.getDivisionIdFromTeamId(teamId)))
                 
-    def scrapeAllEightBallThursDivisions(self):
+    def scrapeAllEightBallThursDivisions(self) -> None:
         self.createWebDriver()
         
         
