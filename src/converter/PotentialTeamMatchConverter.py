@@ -6,12 +6,13 @@ from dataClasses.PotentialPlayerMatch import PotentialPlayerMatch
 from utils.utils import *
 import math
 from dataClasses.PotentialPlayerResult import PotentialPlayerResult
+from src.srcMain.Typechecked import Typechecked
 
-class PotentialTeamMatchConverter:
+class PotentialTeamMatchConverter(Typechecked):
     def __init__(self):
         pass
     
-    def toPotentialTeamMatchFromTeamMatch(self, teamMatch: TeamMatch, skillLevelMatrix, format: Format):
+    def toPotentialTeamMatchFromTeamMatch(self, teamMatch: TeamMatch, skillLevelMatrix, format: Format) -> PotentialTeamMatch:
         potentialPlayerMatches = []
         for playerMatch in teamMatch.getPlayerMatches():
             potentialPlayerMatch = self.toPotentialPlayerMatchFromPlayerMatch(playerMatch, skillLevelMatrix, format)
@@ -19,7 +20,7 @@ class PotentialTeamMatchConverter:
 
         return PotentialTeamMatch(potentialPlayerMatches)
     
-    def toPotentialPlayerMatchFromPlayerMatch(self, playerMatch: PlayerMatch, skillLevelMatrix, format: Format):
+    def toPotentialPlayerMatchFromPlayerMatch(self, playerMatch: PlayerMatch, skillLevelMatrix, format: Format) -> PotentialPlayerMatch:
         potentialPlayerResults = []
         playerResults = playerMatch.getPlayerResults()
         player1 = playerResults[0].getPlayer()

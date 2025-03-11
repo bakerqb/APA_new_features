@@ -1,24 +1,25 @@
-from dataClasses.Player import Player
+from dataClasses.Team import Team
 from dataClasses.PlayerMatch import PlayerMatch
 from utils.utils import *
 from typing import List
+from src.srcMain.Typechecked import Typechecked
 
-class TeamMatch:
+class TeamMatch(Typechecked):
     def __init__(self, playerMatches: List[PlayerMatch], teamMatchId: int, datePlayed: str):
         self.playerMatches = playerMatches
         self.teamMatchId = teamMatchId
         self.datePlayed = datePlayed
 
-    def getPlayerMatches(self):
+    def getPlayerMatches(self) -> List[PlayerMatch]:
         return self.playerMatches
     
-    def getTeamMatchId(self):
+    def getTeamMatchId(self) -> int:
         return self.teamMatchId
     
-    def getDatePlayed(self):
+    def getDatePlayed(self) -> str:
         return self.datePlayed
     
-    def getWinningTeams(self):
+    def getWinningTeams(self) -> List[Team]:
         team1, team2 = list(map(lambda playerResult: playerResult.getTeam(), self.playerMatches[0].getPlayerResults()))
         team1Pts = 0
         team2Pts = 0

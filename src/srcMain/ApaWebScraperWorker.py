@@ -20,15 +20,18 @@ from dataClasses.Team import Team
 from src.srcMain.Database import Database
 from dataClasses.Player import Player
 from dataClasses.PlayerMatch import PlayerMatch
+from dataClasses.Division import Division
 # sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 from utils.utils import *
 from utils.asl import *
 from dataClasses.Team import Team
 from src.dataClasses.Format import Format
 from src.dataClasses.SessionSeason import SessionSeason
+from src.srcMain.Typechecked import Typechecked
+from typing import Tuple
 
 
-class ApaWebScraperWorker:
+class ApaWebScraperWorker(Typechecked):
     ############### Startup ###############
     def __init__(self):
         self.config = Config().getConfig()
@@ -36,7 +39,7 @@ class ApaWebScraperWorker:
         self.driver = None
         self.db = Database()
     
-    def createWebDriver(self):
+    def createWebDriver(self) -> None:
         if self.driver is not None:
             return
         driver = webdriver.Chrome()
@@ -48,7 +51,7 @@ class ApaWebScraperWorker:
         self.driver = driver
         self.login()
     
-    def login(self):
+    def login(self) -> None:
         # Go to signin page
         self.driver.get(self.config.get('apaWebsite').get('loginLink'))
 
@@ -70,7 +73,7 @@ class ApaWebScraperWorker:
 
 
     ############### Team Scraping Functions ###############
-    def scrapeTeamInfo(self, division):
+    def scrapeTeamInfo(self, division: Division) -> Team:
         teamId = self.driver.current_url.split('/')[-1]
         time.sleep(1)
         data = self.driver.find_element(By.CLASS_NAME, 'page-title').text.split('\n')
@@ -81,7 +84,7 @@ class ApaWebScraperWorker:
 
         return Team(division, teamId, teamNum, teamName, roster)
     
-    def getRoster(self):
+    def getRoster(self) -> List[Player]:
         self.createWebDriver()
         time.sleep(1)
         rows = self.driver.find_element(By.XPATH, "//h2 [contains( text(), 'Team Roster')]").find_element(By.XPATH, "..").find_elements(By.TAG_NAME, 'table')[0].find_elements(By.TAG_NAME, "tr")
@@ -98,7 +101,7 @@ class ApaWebScraperWorker:
             roster.append(Player(memberId, playerName, currentSkillLevel))
         return roster
     
-    def scrapeTeamInfoAndTeamMatches(self, args):
+    def scrapeTeamInfoAndTeamMatches(self, args: Tuple[Division, str, int]) -> None:
         division, teamLink, divisionId = args
         self.driver = None
         self.createWebDriver()
@@ -110,7 +113,7 @@ class ApaWebScraperWorker:
         matchLinks = matchLinks + self.scrapeTeamMatchesForTeam('Playoffs', divisionId)
         print("Got team data")
 
-    def scrapeTeamMatchesForTeam(self, headerTitle, divisionId):
+    def scrapeTeamMatchesForTeam(self, headerTitle: str, divisionId: int) -> List[str]:
         self.createWebDriver()
         
         matchesHeader = self.driver.find_element(By.XPATH, "//h2 [contains( text(), '{}')]".format(headerTitle))
@@ -128,14 +131,14 @@ class ApaWebScraperWorker:
                 
         return matchLinks
     
-    def apaDateToDatetime(self, apaDate):
+    def apaDateToDatetime(self, apaDate: str) -> str:
         apaDate = apaDate.replace(',', '')
         month, day, year = apaDate.split(' ')
         return "{}-{}-{}".format(year, str(list(calendar.month_abbr).index(month)).zfill(2), day)
     
 
     ############### PlayerMatch Scraping Functions ###############
-    def scrapePlayerMatches(self, args):
+    def scrapePlayerMatches(self, args: Tuple[int, int]) -> None:
         teamMatchId, divisionId = args
         teamMatchLink = self.config.get('apaWebsite').get('teamMatchBaseLink') + str(teamMatchId)
         self.createWebDriver()
@@ -144,7 +147,7 @@ class ApaWebScraperWorker:
             self.db.addPlayerMatch(match)
         print("Total player matches in database = {}".format(str(self.db.countPlayerMatches())))
 
-    def getPlayerMatchesFromTeamMatch(self, link, divisionId):
+    def getPlayerMatchesFromTeamMatch(self, link: str, divisionId: int) -> List[PlayerMatch]:
         format = self.db.getFormat(divisionId)
         
         self.createWebDriver()
@@ -156,11 +159,11 @@ class ApaWebScraperWorker:
         teamsInfoHeader = self.driver.find_elements(By.CLASS_NAME, "teamName")
         teamNum1 = int(re.sub(r'\W+', '', teamsInfoHeader[0].text.split(' (')[1])[-2:])
         
-        team1 = self.converter.toTeamWithSql(self.db.getTeamWithTeamNum(teamNum1, divisionId))
+        team1 = self.converter.toTeamWithSql(self.db.getTeam(teamNum1, divisionId, None))
         if not team1:
             return []
         teamNum2 = int(re.sub(r'\W+', '', teamsInfoHeader[1].text.split(' (')[1])[-2:])
-        team2 = self.converter.toTeamWithSql(self.db.getTeamWithTeamNum(teamNum2, divisionId))
+        team2 = self.converter.toTeamWithSql(self.db.getTeam(teamNum2, divisionId, None))
         if not team2:
             return []
 
@@ -244,14 +247,14 @@ class ApaWebScraperWorker:
             playerResults = []
             
             # TODO: Figure out how to find the memberId/currentSkillLevel of a player who once belonged to a team but no longer does
-            player1Info = db.getPlayerBasedOnTeamIdAndPlayerName(team1.getTeamId(), playerName1)
+            player1Info = db.getPlayer(team1.getTeamId(), playerName1, None)
             if player1Info is None:
                 # TODO: Figure out if there's another way to get player info for a player who isn't on a team anymore
                 continue
             memberId1, playerName1, currentSkillLevel1 = player1Info
             player1 = Player(memberId1, playerName1, currentSkillLevel1)
             
-            player2Info = db.getPlayerBasedOnTeamIdAndPlayerName(team2.getTeamId(), playerName2)
+            player2Info = db.getPlayer(team2.getTeamId(), playerName2, None)
             if player2Info is None:
                 # TODO: Figure out if there's another way to get player info for a player who isn't on a team anymore
                 continue
@@ -267,7 +270,7 @@ class ApaWebScraperWorker:
         
         return playerMatches
     
-    def scrapeDivisionForSession(self, divisionLink):
+    def scrapeDivisionForSession(self, divisionLink: str) -> None:
         self.createWebDriver()
         self.driver.get(divisionLink)
         time.sleep(1)
@@ -290,7 +293,7 @@ class ApaWebScraperWorker:
         self.db.addDivision(division)
 
         
-    def areSkillLevelsLoaded(self, matchesDiv):
+    def areSkillLevelsLoaded(self, matchesDiv) -> bool:
         individualMatches = matchesDiv.find_elements(By.XPATH, "./*")
         for individualMatch in individualMatches:
             if 'LAG' not in individualMatch.text:
@@ -306,7 +309,7 @@ class ApaWebScraperWorker:
             return EIGHT_BALL_INCORRECT_SKILL_LEVEL not in [skillLevel1, skillLevel2]
         return False
     
-    def waitFor(self, seconds, function, param):
+    def waitFor(self, seconds: int, function, param) -> bool:
         while seconds > 0:
             if function(param):
                 return True

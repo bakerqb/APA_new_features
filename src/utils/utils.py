@@ -1,6 +1,7 @@
 from datetime import datetime
 from src.dataClasses.Format import Format
 from typeguard import typechecked
+from typing import List, Dict, Tuple
 
 EIGHT_BALL_SKILL_LEVEL_RANGE = range(2, 8)
 NINE_BALL_SKILL_LEVEL_RANGE = range(1, 10)
@@ -13,7 +14,8 @@ SKILL_LEVEL_CAP = 23
 NUM_SECTIONS_PER_SKILL_LEVEL = 3
 SECTIONS_PER_SKILL_LEVEL = [(0, 0.42), (0.42, 0.58), (0.58, 1)]
 
-def nineBallSkillLevelMapper() -> dict:
+@typechecked
+def nineBallSkillLevelMapper() -> Dict[int, int]:
         map = {}
         map[14] = 1
         map[19] = 2
@@ -26,12 +28,14 @@ def nineBallSkillLevelMapper() -> dict:
         map[75] = 9
         return map
 
-def removeElements(words: list, removableWordList: list) -> list:
+@typechecked
+def removeElements(words: List[str], removableWordList: List[str]) -> List[str]:
         for removableWord in removableWordList:
             words = list(filter((removableWord).__ne__, words)) 
         return words
 
-def eightBallGamesNeededMapper() -> dict:
+@typechecked
+def eightBallGamesNeededMapper() -> Dict[Tuple[int, int], Tuple[int, int]]:
     map = {}
     map[(2, 2)] = (2, 2)
     map[(2, 3)] = (2, 3)
@@ -151,15 +155,17 @@ def eightBallNewPlayerMapper(oldPlayerSkillLevel: int, newPlayerTeamPtsEarned: i
             return ((1, 2), (6, 6))
         else:
             return ((0, 2), (6, 6))
-     
-def toReadableDateTimeString(date) -> datetime:
+
+@typechecked  
+def toReadableDateTimeString(date: str) -> str:
     try:
         readableDate = datetime.strptime(date, "%Y-%m-%d").strftime("%B %-d, %Y")
         return readableDate
     except Exception:
         return date
 
-def getSkillLevelRangeForFormat(format: Format) -> int:
+@typechecked
+def getSkillLevelRangeForFormat(format: Format) -> range:
     if format == Format.EIGHT_BALL:
         return EIGHT_BALL_SKILL_LEVEL_RANGE
     elif format == Format.NINE_BALL:

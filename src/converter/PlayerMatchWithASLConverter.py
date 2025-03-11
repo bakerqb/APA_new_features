@@ -1,21 +1,23 @@
 from dataClasses.PlayerMatch import PlayerMatch
-from src.dataClasses.PlayerMatch import PlayerMatch
-from src.dataClasses.Session import Session
-from src.dataClasses.SessionSeason import SessionSeason
-from src.dataClasses.Division import Division
-from src.dataClasses.Team import Team
-from src.dataClasses.Player import Player
-from src.dataClasses.Score import Score
-from src.dataClasses.PlayerResult import PlayerResult
+from dataClasses.Session import Session
+from dataClasses.SessionSeason import SessionSeason
+from dataClasses.Division import Division
+from dataClasses.Team import Team
+from dataClasses.Player import Player
+from dataClasses.Score import Score
+from dataClasses.PlayerResult import PlayerResult
+from dataClasses.Format import Format
 from utils.utils import *
 from utils.asl import *
+from src.srcMain.Typechecked import Typechecked
+from src.srcMain.DatabaseTypes import DatabaseTypes
 
 
-class PlayerMatchWithASLConverter:
+class PlayerMatchWithASLConverter(Typechecked):
     def __init__(self):
         pass
     
-    def toPlayerMatchWithSql(self, sqlRow: list):
+    def toPlayerMatchWithSql(self, sqlRow: DatabaseTypes.PlayerMatch) -> PlayerMatch:
         sessionId, sessionSeason, sessionYear = sqlRow[:3]
         divisionId, divisionName, dayOfWeek, format = sqlRow[3:7]
         teamMatchId, datePlayed, playerMatchId, teamId1, teamNum1, teamName1 = sqlRow[7:13]

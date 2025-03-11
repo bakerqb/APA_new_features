@@ -5,16 +5,18 @@ from utils.utils import *
 import math
 from src.dataClasses.PotentialPlayerResult import PotentialPlayerResult
 from src.dataClasses.PotentialTeamMatch import PotentialTeamMatch
-from src.dataClasses.Player import Player
+from dataClasses.Player import Player
 from src.dataClasses.TeamMatchCriteria import TeamMatchCriteria
 from src.exceptions.InvalidTeamMatchCriteria import InvalidTeamMatchCriteria
+from dataClasses.Team import Team
 from typing import Tuple
 from typing import List
 import time
 from srcMain.Config import Config
+from srcMain.Typechecked import Typechecked
 
-class TeamMatchup():
-    def __init__(self, myTeam: Team, opponentTeam: Team, putupPlayer: Player, matchNumber: int, format: Format):
+class TeamMatchup(Typechecked):
+    def __init__(self, myTeam: Team, opponentTeam: Team, putupPlayer: Player | None, matchNumber: int, format: Format):
         self.myTeam = myTeam
         self.opponentTeam = opponentTeam
         self.doesMyTeamPutUp = putupPlayer is None
@@ -55,7 +57,7 @@ class TeamMatchup():
         return matchups
     
 
-    def asynchronousAlgorithm(self, putupPlayer: Player, teamMatchCriteria: TeamMatchCriteria, matchNumber: int, myPlayers: List[Player], theirPlayers: List[Player], soFarMatch: PotentialTeamMatch) -> PotentialTeamMatch:
+    def asynchronousAlgorithm(self, putupPlayer: Player | None, teamMatchCriteria: TeamMatchCriteria, matchNumber: int, myPlayers: List[Player], theirPlayers: List[Player], soFarMatch: PotentialTeamMatch) -> PotentialTeamMatch:
         # print("asynchronousAlgorithm matchNumber: ", matchNumber)
         if matchNumber >= NUM_PLAYERMATCHES_IN_TEAMMATCH:
             return soFarMatch
@@ -112,7 +114,7 @@ class TeamMatchup():
         return bestMatch
 
     
-    def findBestNextMatchup(self, chosenPlayer: Player, myPlayers: List[Player], theirPlayers: List[Player], potentialTeamMatch: PotentialTeamMatch, teamMatchCriteria: TeamMatchCriteria, matchNumber: int, originalMatchNumber: int) -> PotentialTeamMatch:
+    def findBestNextMatchup(self, chosenPlayer: Player | None, myPlayers: List[Player], theirPlayers: List[Player], potentialTeamMatch: PotentialTeamMatch, teamMatchCriteria: TeamMatchCriteria, matchNumber: int, originalMatchNumber: int) -> PotentialTeamMatch:
         # print("findBestNextMatchup matchNumber: ", matchNumber)
         # This function is used to find the matchup that would happen for match number <matchNumber>
         # The rest of the matchups that are generated from this function do not take into account teamMatchCriteria
@@ -141,7 +143,7 @@ class TeamMatchup():
         
         return bestPotentialTeamMatch
 
-    def getExpectedPts(self, player1: Player, player2: Player) -> Tuple[int]:
+    def getExpectedPts(self, player1: Player, player2: Player) -> Tuple[float, float]:
         asl1 = float(player1.getAdjustedSkillLevel())
         asl2 = float(player2.getAdjustedSkillLevel())
 
@@ -167,7 +169,7 @@ class TeamMatchup():
         index2 = ((skillLevel2 - skillLevelRange[0]) * NUM_SECTIONS_PER_SKILL_LEVEL) + asl2SectionIndex + 1 
         return (self.skillLevelMatrix[index1][index2], self.skillLevelMatrix[index2][index1])
 
-    def addPlayerMatch(self, player: Player, chosenPlayer: Player, newPotentialTeamMatch: PotentialTeamMatch):
+    def addPlayerMatch(self, player: Player, chosenPlayer: Player, newPotentialTeamMatch: PotentialTeamMatch) -> None:
         myPoints, theirPoints = self.getExpectedPts(player, chosenPlayer)
         if self.myTeam.isPlayerOnTeam(player):
             newPotentialTeamMatch.addPotentialPlayerResult(PotentialPlayerResult(player, self.myTeam, myPoints))
@@ -176,19 +178,19 @@ class TeamMatchup():
             newPotentialTeamMatch.addPotentialPlayerResult(PotentialPlayerResult(chosenPlayer, self.myTeam, theirPoints))
             newPotentialTeamMatch.addPotentialPlayerResult(PotentialPlayerResult(player, self.opponentTeam, myPoints))
 
-    def makeCopies(self, player: Player, myPlayers: List[Player], theirPlayers: List[Player], potentialTeamMatch: PotentialTeamMatch):
+    def makeCopies(self, player: Player, myPlayers: List[Player], theirPlayers: List[Player], potentialTeamMatch: PotentialTeamMatch) -> Tuple[List[Player], List[Player], PotentialTeamMatch]:
         tempMyPlayers = myPlayers.copy()
         tempMyPlayers.remove(player)
         tempTheirPlayers = theirPlayers.copy()
         tempPotentialTeamMatch = potentialTeamMatch.copy()
         return (tempMyPlayers, tempTheirPlayers, tempPotentialTeamMatch)
     
-    def getNumUniquePlayers(self, players: List[Player], soFarMatch: PotentialTeamMatch, amILookingAtMyOwnTeam: bool):
+    def getNumUniquePlayers(self, players: List[Player], soFarMatch: PotentialTeamMatch, amILookingAtMyOwnTeam: bool) -> int:
         allPlayers = players + soFarMatch.getPlayers(amILookingAtMyOwnTeam)
         allMemberIds = list(map(lambda player: player.getMemberId(), allPlayers))
         return len(set(allMemberIds))
     
-    def findEligiblePlayers(self, players: List[Player], matchNumber: int, teamMatchCriteria: TeamMatchCriteria, amILookingAtMyOwnTeam: bool, originalMatchNumber: int, soFarMatch: PotentialTeamMatch):
+    def findEligiblePlayers(self, players: List[Player], matchNumber: int, teamMatchCriteria: TeamMatchCriteria, amILookingAtMyOwnTeam: bool, originalMatchNumber: int, soFarMatch: PotentialTeamMatch) -> List[Player]:
         startTime = time.perf_counter()
         numUniquePlayersFromStart = self.getNumUniquePlayers(players, soFarMatch, amILookingAtMyOwnTeam)
         
@@ -261,7 +263,7 @@ class TeamMatchup():
         self.timeCounter[self.findEligiblePlayers.__name__] += endTime - startTime
         return eligiblePlayers
     
-    def validate(self):
+    def validate(self) -> None:
         if self.putupPlayer is not None and self.putupPlayer in self.opponentTeam.getPlayers():
             raise InvalidTeamMatchCriteria(f"ERROR: {self.putupPlayer.getPlayerName()} was just put up. They cannot also be selected from the list")
 
