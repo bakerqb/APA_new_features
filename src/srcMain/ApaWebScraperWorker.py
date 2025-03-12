@@ -1,7 +1,6 @@
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
 import time
 import sys
 import os
@@ -12,6 +11,7 @@ from dataClasses.Team import Team
 from converter.Converter import Converter
 from src.srcMain.Database import Database
 from src.srcMain.Config import Config
+from src.srcMain.DataFetcher import DataFetcher
 import calendar
 import re
 from dataClasses.PlayerResult import PlayerResult
@@ -38,6 +38,7 @@ class ApaWebScraperWorker(Typechecked):
         self.converter = Converter()
         self.driver = None
         self.db = Database()
+        self.dataFetcher = DataFetcher()
     
     def createWebDriver(self) -> None:
         if self.driver is not None:
@@ -159,11 +160,11 @@ class ApaWebScraperWorker(Typechecked):
         teamsInfoHeader = self.driver.find_elements(By.CLASS_NAME, "teamName")
         teamNum1 = int(re.sub(r'\W+', '', teamsInfoHeader[0].text.split(' (')[1])[-2:])
         
-        team1 = self.converter.toTeamWithSql(self.db.getTeam(teamNum1, divisionId, None))
+        team1 = self.dataFetcher.getTeam(teamNum1, divisionId, None)
         if not team1:
             return []
         teamNum2 = int(re.sub(r'\W+', '', teamsInfoHeader[1].text.split(' (')[1])[-2:])
-        team2 = self.converter.toTeamWithSql(self.db.getTeam(teamNum2, divisionId, None))
+        team2 = self.dataFetcher.getTeam(teamNum2, divisionId, None)
         if not team2:
             return []
 

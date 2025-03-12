@@ -25,9 +25,10 @@ class DataFetcher(Typechecked):
     def getPlayerMatches(self, sessionId: int | None, divisionId: int | None, teamId: int | None,
                          memberId: int | None, format: Format, limit: int | None, datePlayed: str | None,
                          playerMatchId: int | None, adjustedSkillLevel1range: Tuple[int] | None,
-                         adjustedSkillLevel2range: Tuple[int] | None, player: Player | None) -> List[PlayerMatch]:
+                         adjustedSkillLevel2range: Tuple[int] | None, player: Player | None, withAsl: bool) -> List[PlayerMatch]:
+        preferredConverter = self.playerMatchWithASLConverter if withAsl else self.converter
         playerMatchesDb = self.db.getPlayerMatches(sessionId, divisionId, teamId, memberId, format, limit, datePlayed, playerMatchId, adjustedSkillLevel1range, adjustedSkillLevel2range)
-        playerMatches = list(map(lambda playerMatch: self.playerMatchWithASLConverter.toPlayerMatchWithSql(playerMatch) if player is None else self.playerMatchWithASLConverter.toPlayerMatchWithSql(playerMatch).properPlayerResultOrderWithPlayer(player), playerMatchesDb))
+        playerMatches = list(map(lambda playerMatch: preferredConverter.toPlayerMatchWithSql(playerMatch) if player is None else preferredConverter.toPlayerMatchWithSql(playerMatch).properPlayerResultOrderWithPlayer(player), playerMatchesDb))
         return playerMatches
     
     def getTeamMatchesWithoutASL(self, sessionId: int | None, divisionId: int | None, teamId: int | None,
@@ -52,7 +53,7 @@ class DataFetcher(Typechecked):
     
     def getTeamResults(self, teamId: int) -> TeamResults:
         format = Format(self.config.getConfig().get("format"))
-        playerMatches = self.getPlayerMatches(None, None, teamId, None, format, None, None, None, None, None, None)
+        playerMatches = self.getPlayerMatches(None, None, teamId, None, format, None, None, None, None, None, None, True)
         team = self.getTeam(None, None, teamId)
         teamPlayers = self.getTeamPlayers(teamId)
         results = TeamResults(team, playerMatches, teamPlayers)

@@ -90,14 +90,14 @@ class ApaWebScraper(Typechecked):
 
         format = self.dataFetcher.getFormatForDivision(divisionId)
         # Now set all the adjusted skills
-        playerMatches = list(map(lambda playerMatch: self.converter.toPlayerMatchWithSql(playerMatch), self.db.getPlayerMatches(None, divisionId, None, None, format, None, None, None, None, None)))
+        playerMatches = self.dataFetcher.getPlayerMatches(None, divisionId, None, None, format, None, None, None, None, None, None, True)
        
         for playerMatch in playerMatches:
             for index, playerResult in enumerate(playerMatch.getPlayerResults()):
                 self.db.updateASL(
                     playerMatch.getPlayerMatchId(),
                     playerMatch.getTeamMatchId(),
-                    getAdjustedSkillLevel(playerResult.getPlayer().getMemberId(), playerResult.getSkillLevel(), playerMatch.getDatePlayed()),
+                    playerResult.getAdjustedSkillLevel(),
                     index
                 )
             
@@ -138,7 +138,7 @@ class ApaWebScraper(Typechecked):
         sessionElement = self.driver.find_element(By.CLASS_NAME, "m-b-10")
         sessionSeason, sessionYear = sessionElement.text.split(' ')
         sessionId = int(sessionElement.find_elements(By.TAG_NAME, "a")[0].get_attribute('href').split('/')[-1])
-        division = self.converter.toDivisionWithSql(self.db.getDivision(divisionId))
+        division = self.dataFetcher(divisionId)
         if division is not None:
             return division
         
@@ -181,7 +181,7 @@ class ApaWebScraper(Typechecked):
                     else:
                         opponentTeamNum = teamNum1
                     
-                    return self.converter.toTeamWithSql(self.db.getTeam(opponentTeamNum, self.db.getDivisionIdFromTeamId(teamId), None))
+                    return self.dataFetcher.getTeam(opponentTeamNum, self.db.getDivisionIdFromTeamId(teamId), None)
                 
     def scrapeAllEightBallThursDivisions(self) -> None:
         self.createWebDriver()

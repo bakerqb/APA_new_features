@@ -240,7 +240,7 @@ def playerMatches():
 
     player = dataFetcher.getPlayer(None, None, memberId)
     format = dataFetcher.getConfigFormat()
-    playerMatches = dataFetcher.getPlayerMatches(None, None, None, memberId, format, None, None, None, None, None, player)
+    playerMatches = dataFetcher.getPlayerMatches(None, None, None, memberId, format, None, None, None, None, None, player, True)
     data = {
         "player": player,
         "playerMatches": playerMatches
