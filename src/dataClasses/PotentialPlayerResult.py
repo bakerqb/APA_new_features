@@ -2,7 +2,7 @@ from dataClasses.Player import Player
 from dataClasses.Team import Team
 from src.srcMain.Typechecked import Typechecked
 
-class PotentialPlayerResult(Typechecked):
+class PotentialPlayerResult:
     def __init__(self, player: Player, team: Team, expectedPts: float):      
         self.player = player
         self.team = team

@@ -15,7 +15,7 @@ import time
 from srcMain.Config import Config
 from srcMain.Typechecked import Typechecked
 
-class TeamMatchup(Typechecked):
+class TeamMatchup:
     def __init__(self, myTeam: Team, opponentTeam: Team, putupPlayer: Player | None, matchNumber: int, format: Format):
         self.myTeam = myTeam
         self.opponentTeam = opponentTeam
