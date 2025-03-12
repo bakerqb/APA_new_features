@@ -1,5 +1,5 @@
 from dataClasses.PotentialPlayerMatch import PotentialPlayerMatch
-from src.dataClasses.PotentialPlayerResult import PotentialPlayerResult
+from dataClasses.PotentialPlayerResult import PotentialPlayerResult
 from dataClasses.Player import Player
 from dataClasses.Team import Team
 from typing import List

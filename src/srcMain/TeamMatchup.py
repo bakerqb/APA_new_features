@@ -1,10 +1,10 @@
-from src.dataClasses.Team import Team
+from dataClasses.Team import Team
 from utils.asl import *
 from utils.aslMatrix import *
 from utils.utils import *
 import math
-from src.dataClasses.PotentialPlayerResult import PotentialPlayerResult
-from src.dataClasses.PotentialTeamMatch import PotentialTeamMatch
+from dataClasses.PotentialPlayerResult import PotentialPlayerResult
+from dataClasses.PotentialTeamMatch import PotentialTeamMatch
 from dataClasses.Player import Player
 from src.dataClasses.TeamMatchCriteria import TeamMatchCriteria
 from src.exceptions.InvalidTeamMatchCriteria import InvalidTeamMatchCriteria
@@ -28,13 +28,21 @@ class TeamMatchup(Typechecked):
             'removeDuplicatePlayersExceptLowest': 0,
             self.findEligiblePlayers.__name__: 0,
             'skillLevelCap': 0,
-            'doublePlay': 0
+            'doublePlay': 0,
+            self.getExpectedPts.__name__: 0,
+            self.makeCopies.__name__: 0,
+            "pointDifference": 0,
+            "async0": 0,
+            "async1": 0,
+            "async2": 0,
+            "async3": 0,
+            "async4": 0,
         }
         self.config = Config().getConfig()
         
         self.validate()
 
-        if self.format == Format.EIGHT_BALL:
+        if self.format.value == Format.EIGHT_BALL.value:
             if self.putupPlayer is not None:
                 self.putupPlayer.setAdjustedSkillLevel(getAdjustedSkillLevel(putupPlayer.getMemberId(), putupPlayer.getCurrentSkillLevel(), None, None))
 
@@ -77,8 +85,10 @@ class TeamMatchup(Typechecked):
                 if bestMatch is None or potentialTeamMatch.pointDifference(amILookingAtMyOwnTeam) > bestMatch.pointDifference(amILookingAtMyOwnTeam):
                     bestMatch = potentialTeamMatch
         else:
-            
+            startTime = time.perf_counter()
             unrealisticTeamMatch = self.findBestNextMatchup(putupPlayer, tempMyPlayers, tempTheirPlayers, soFarMatch, teamMatchCriteria, matchNumber, matchNumber)
+            endTime = time.perf_counter()
+            self.timeCounter[f"async{matchNumber}"] += endTime - startTime
             firstPotentialPlayerMatch = unrealisticTeamMatch.getPotentialPlayerMatches()[len(soFarMatch.getPotentialPlayerMatches())]
             playerResult1, playerResult2 = firstPotentialPlayerMatch.getPotentialPlayerResults()
             tempSoFarMatch = soFarMatch.copy()
@@ -110,7 +120,7 @@ class TeamMatchup(Typechecked):
             if putupPlayer is None:
                 tempTheirPlayers.remove(theirPlayer)
             bestMatch = self.asynchronousAlgorithm(None, teamMatchCriteria, matchNumber + 1, tempTheirPlayers, tempMyPlayers, tempSoFarMatch)
-            bestMatch = bestMatch
+            # bestMatch = bestMatch
         return bestMatch
 
     
@@ -138,12 +148,17 @@ class TeamMatchup(Typechecked):
                     else self.findBestNextMatchup(player, tempTheirPlayers, tempMyPlayers, tempPotentialTeamMatch, teamMatchCriteria, matchNumber, originalMatchNumber)
                 )
             
+            startTime = time.perf_counter()
             if bestPotentialTeamMatch is None or tempPotentialTeamMatch.pointDifference(amILookingAtMyOwnTeam) > bestPotentialTeamMatch.pointDifference(amILookingAtMyOwnTeam):
                 bestPotentialTeamMatch = tempPotentialTeamMatch
+            endTime = time.perf_counter()
+            self.timeCounter["pointDifference"] += endTime - startTime
         
         return bestPotentialTeamMatch
 
     def getExpectedPts(self, player1: Player, player2: Player) -> Tuple[float, float]:
+        startTime = time.perf_counter()
+        
         asl1 = float(player1.getAdjustedSkillLevel())
         asl2 = float(player2.getAdjustedSkillLevel())
 
@@ -166,8 +181,13 @@ class TeamMatchup(Typechecked):
                 break
         
         index1 = ((skillLevel1 - skillLevelRange[0]) * NUM_SECTIONS_PER_SKILL_LEVEL) + asl1SectionIndex + 1 
-        index2 = ((skillLevel2 - skillLevelRange[0]) * NUM_SECTIONS_PER_SKILL_LEVEL) + asl2SectionIndex + 1 
-        return (self.skillLevelMatrix[index1][index2], self.skillLevelMatrix[index2][index1])
+        index2 = ((skillLevel2 - skillLevelRange[0]) * NUM_SECTIONS_PER_SKILL_LEVEL) + asl2SectionIndex + 1
+        expectedPts = (self.skillLevelMatrix[index1][index2], self.skillLevelMatrix[index2][index1])
+        
+        endTime = time.perf_counter()
+        self.timeCounter[self.getExpectedPts.__name__] += endTime - startTime
+
+        return expectedPts
 
     def addPlayerMatch(self, player: Player, chosenPlayer: Player, newPotentialTeamMatch: PotentialTeamMatch) -> None:
         myPoints, theirPoints = self.getExpectedPts(player, chosenPlayer)
@@ -179,10 +199,13 @@ class TeamMatchup(Typechecked):
             newPotentialTeamMatch.addPotentialPlayerResult(PotentialPlayerResult(player, self.opponentTeam, myPoints))
 
     def makeCopies(self, player: Player, myPlayers: List[Player], theirPlayers: List[Player], potentialTeamMatch: PotentialTeamMatch) -> Tuple[List[Player], List[Player], PotentialTeamMatch]:
+        startTime = time.perf_counter()
         tempMyPlayers = myPlayers.copy()
         tempMyPlayers.remove(player)
         tempTheirPlayers = theirPlayers.copy()
         tempPotentialTeamMatch = potentialTeamMatch.copy()
+        endTime = time.perf_counter()
+        self.timeCounter[self.makeCopies.__name__] += endTime - startTime
         return (tempMyPlayers, tempTheirPlayers, tempPotentialTeamMatch)
     
     def getNumUniquePlayers(self, players: List[Player], soFarMatch: PotentialTeamMatch, amILookingAtMyOwnTeam: bool) -> int:

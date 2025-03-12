@@ -4,7 +4,7 @@ import dataClasses.Player as Player
 from src.srcMain.Typechecked import Typechecked
 
 class PlayerResult(Typechecked):
-    def __init__(self, team: Team, player: Player, skillLevel: int, score: Score, adjustedSkillLevel: float):      
+    def __init__(self, team: Team, player: Player, skillLevel: int, score: Score, adjustedSkillLevel: float | None):      
         self.team = team
         self.player = player
         self.skillLevel = skillLevel

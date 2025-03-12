@@ -1,10 +1,10 @@
 from src.srcMain.Database import Database
 from src.converter.PlayerMatchWithASLConverter import PlayerMatchWithASLConverter
 from utils.utils import *
-from src.dataClasses.Format import Format
+from dataClasses.Format import Format
 from tabulate import tabulate
 from typing import List, Dict
-from src.dataClasses.PlayerMatch import PlayerMatch
+from dataClasses.PlayerMatch import PlayerMatch
 from statistics import median
 import os
 import json

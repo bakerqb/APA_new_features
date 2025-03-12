@@ -1,5 +1,5 @@
 from dataClasses.Player import Player
-from src.dataClasses.PotentialPlayerResult import PotentialPlayerResult
+from dataClasses.PotentialPlayerResult import PotentialPlayerResult
 from typing import List
 from src.srcMain.Typechecked import Typechecked
 
