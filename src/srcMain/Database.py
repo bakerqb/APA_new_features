@@ -1,13 +1,13 @@
 import sqlite3
 from tabulate import tabulate
 from src.srcMain.Config import Config
-from src.dataClasses.Team import Team
-from src.dataClasses.Division import Division
+from dataClasses.Team import Team
+from dataClasses.Division import Division
 from utils.utils import *
-from src.dataClasses.Format import Format
-from src.dataClasses.SearchCriteria import SearchCriteria
-from src.dataClasses.PlayerMatch import PlayerMatch
-from src.dataClasses.Session import Session
+from dataClasses.Format import Format
+from dataClasses.SearchCriteria import SearchCriteria
+from dataClasses.PlayerMatch import PlayerMatch
+from dataClasses.Session import Session
 from typing import Tuple
 from srcMain.Typechecked import Typechecked
 from src.srcMain.DatabaseTypes import DatabaseTypes
@@ -275,9 +275,9 @@ class Database(Typechecked):
         ).fetchone()
         return division
     
-    def getSession(self, sessionId: int) -> List[DatabaseTypes.Session]:
+    def getSession(self, sessionId: int) -> DatabaseTypes.Session:
         self.createTables()
-        return self.cur.execute(f"SELECT * FROM Session WHERE sessionId = {sessionId}").fetchall()
+        return self.cur.execute(f"SELECT * FROM Session WHERE sessionId = {sessionId}").fetchone()
     
     def getMostRecentSessionId(self, format: Format) -> int:
         self.createTables()
@@ -455,7 +455,9 @@ class Database(Typechecked):
         self.cur.execute(f"DELETE FROM Session WHERE sessionId = {sessionId}")
         self.con.commit()
 
-    def deleteDivision(self, sessionId: int, divisionId: int) -> None:
+    def deleteDivision(self, sessionId: int | None, divisionId: int | None) -> None:
+        assert(sessionId is not None or divisionId is not None)
+        
         self.deleteTeam(sessionId, divisionId)
         self.deleteTeamMatch(sessionId, divisionId)
 
@@ -464,7 +466,9 @@ class Database(Typechecked):
     
         self.con.commit()
 
-    def deleteTeamMatch(self, sessionId: int, divisionId: int) -> None:
+    def deleteTeamMatch(self, sessionId: int | None, divisionId: int | None) -> None:
+        assert(sessionId is not None or divisionId is not None)
+        
         self.deletePlayerMatch(sessionId, divisionId)
 
         if divisionId is None:
@@ -482,7 +486,9 @@ class Database(Typechecked):
             
         self.con.commit()
     
-    def deletePlayerMatch(self, sessionId: int, divisionId: int) -> None:
+    def deletePlayerMatch(self, sessionId: int | None, divisionId: int | None) -> None:
+        assert(sessionId is not None or divisionId is not None)
+
         self.deleteScore(sessionId, divisionId)
 
         if divisionId is None:
@@ -502,7 +508,9 @@ class Database(Typechecked):
             )
         self.con.commit()
     
-    def deleteScore(self, sessionId: int, divisionId: int) -> None:
+    def deleteScore(self, sessionId: int | None, divisionId: int | None) -> None:
+        assert(sessionId is not None or divisionId is not None)
+        
         for i in range(2):
             if divisionId is None:
                 self.cur.execute(
@@ -524,7 +532,9 @@ class Database(Typechecked):
                 )
         self.con.commit()
     
-    def deleteTeam(self, sessionId: int, divisionId: int) -> None:
+    def deleteTeam(self, sessionId: int | None, divisionId: int | None) -> None:
+        assert(sessionId is not None or divisionId is not None)
+        
         self.deleteCurrentTeamPlayer(sessionId, divisionId)
         
         if divisionId is None:
@@ -555,7 +565,9 @@ class Database(Typechecked):
         
         self.con.commit()
         
-    def deleteCurrentTeamPlayer(self, sessionId: int, divisionId: int) -> None:
+    def deleteCurrentTeamPlayer(self, sessionId: int | None, divisionId: int | None) -> None:
+        assert(sessionId is not None or divisionId is not None)
+        
         if divisionId is None:
             self.cur.execute(
                 "DELETE FROM CurrentTeamPlayer WHERE teamId IN (" +
@@ -583,7 +595,7 @@ class Database(Typechecked):
 
     
     # ------------------------- Adjusted Skill Level -------------------------
-    def updateASL(self, playerMatchId: int, teamMatchId: int, adjustedSkillLevel: int, playerResultId: int) -> None:
+    def updateASL(self, playerMatchId: int, teamMatchId: int, adjustedSkillLevel: float, playerResultId: int) -> None:
         self.cur.execute(
             "UPDATE PlayerMatch " +
             f"SET adjustedSkillLevel{playerResultId + 1} = {adjustedSkillLevel} " +

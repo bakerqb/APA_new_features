@@ -2,17 +2,18 @@ import os
 import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from src.srcMain.UseCase import UseCase
 from src.srcMain.Database import Database
 from src.srcMain.ApaWebScraper import ApaWebScraper
 from src.srcMain.TeamMatchup import TeamMatchup
-from src.converter.Converter import Converter
 from waitress import serve
 from flask import Flask, render_template, request, url_for, redirect
 import jinja2
 from src.dataClasses.SearchCriteria import SearchCriteria
 from src.dataClasses.TeamMatchCriteria import TeamMatchCriteria
 from src.exceptions.InvalidTeamMatchCriteria import InvalidTeamMatchCriteria
+from src.srcMain.DataFetcher import DataFetcher
+from src.converter.PotentialTeamMatchConverter import PotentialTeamMatchConverter
+from src.utils.aslMatrix import *
 
 jinja_environment = jinja2.Environment(autoescape=True,
     loader=jinja2.FileSystemLoader(os.path.join(os.path.dirname(__file__), 'templates')))
@@ -21,13 +22,13 @@ app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'sta
 
 @app.route("/results")
 def results():
-    useCase = UseCase()
+    dataFetcher = DataFetcher()
     teamId = int(request.args.get('teamId'))
     divisionId = int(request.args.get('divisionId'))
     sessionId = int(request.args.get('sessionId'))
 
     data = { 
-        "teamResults": useCase.getTeamResults(teamId),
+        "teamResults": dataFetcher.getTeamResults(teamId),
         "divisionId": divisionId,
         "sessionId": sessionId
     }
@@ -47,38 +48,38 @@ def home():
 
 @app.route("/scrapeSession")
 def scrapeSession():
-    sessionId = request.args.get('sessionId')
+    sessionId = int(request.args.get('sessionId'))
     apaWebScraper = ApaWebScraper()
     apaWebScraper.scrapeDivisionsForSession(sessionId)
     return redirect(f"/session?sessionId={sessionId}")
 
 @app.route("/scrapeDivision")
 def scrapeDivision():
-    sessionId = request.args.get('sessionId')
-    divisionId = request.args.get('divisionId')
+    sessionId = int(request.args.get('sessionId'))
+    divisionId = int(request.args.get('divisionId'))
     apaWebScraper = ApaWebScraper()
     apaWebScraper.scrapeDivision(divisionId)
     return redirect(f"/division?sessionId={sessionId}&divisionId={divisionId}")
 
 @app.route("/deleteDivision")
 def deleteDivision():
-    sessionId = request.args.get('sessionId')
-    divisionId = request.args.get('divisionId')
+    sessionId = int(request.args.get('sessionId'))
+    divisionId = int(request.args.get('divisionId'))
     db = Database()
     db.deleteDivision(None, divisionId)
     return redirect(f"/division?sessionId={sessionId}&divisionId={divisionId}")
 
 @app.route("/deleteSession")
 def deleteSession():
-    sessionId = request.args.get('sessionId')
+    sessionId = int(request.args.get('sessionId'))
     db = Database()
     db.deleteSession(sessionId)
     return redirect("/home1")
 
 @app.route("/matchups")
 def matchups():
-    db = Database()
-    converter = Converter()
+    dataFetcher = DataFetcher()
+
     teamId1 = int(request.args.get('teamId1'))
     teamId2 = int(request.args.get('teamId2'))
     putupMemberId = request.args.get('putupMemberId')
@@ -87,10 +88,11 @@ def matchups():
     sessionId = int(request.args.get('sessionId'))
     divisionId = int(request.args.get('divisionId'))
     matchNumber = int(request.args.get('matchNumber'))
-    format = db.getFormat(divisionId)
+    teamMatchCriteriaRawData = request.args.getlist('teamMatchCriteria')
 
-    team1 = converter.toTeamWithSql(db.getTeam(None, None, teamId1))
-    team2 = converter.toTeamWithSql(db.getTeam(None, None, teamId2))
+    format = dataFetcher.getFormatForDivision(divisionId)
+    team1 = dataFetcher.getTeam(None, None, teamId1)
+    team2 = dataFetcher.getTeam(None, None, teamId2)
 
     teamPlayerPairings = []
     for key in list(request.args.keys()):
@@ -102,16 +104,14 @@ def matchups():
     except InvalidTeamMatchCriteria:
         return redirect(f"/matchupTeams?teamId1={teamId1}&teamId2={teamId2}&sessionId={sessionId}&divisionId={divisionId}")
     
-    team1Roster = list(map(lambda memberId: converter.toPlayerWithSql(db.getPlayer(None, None, memberId)), team1memberIds))
-    team2Roster = list(map(lambda memberId: converter.toPlayerWithSql(db.getPlayer(None, None, memberId)), team2memberIds))
+    team1Roster = list(map(lambda memberId: dataFetcher.getPlayer(None, None, memberId), team1memberIds))
+    team2Roster = list(map(lambda memberId: dataFetcher.getPlayer(None, None, memberId), team2memberIds))
     team1.setPlayers(team1Roster)
     team2.setPlayers(team2Roster)
-
-    putupPlayer = None
-    if putupMemberId is not None:
-        putupPlayer = converter.toPlayerWithSql(db.getPlayer(None, None, putupMemberId))
+    putupPlayer = dataFetcher.getPlayer(None, None, putupMemberId) if putupMemberId is not None else None
+    
     try:
-        teamMatchCriteria = TeamMatchCriteria(request.args.getlist('teamMatchCriteria'), team1, team2, matchNumber, putupPlayer)
+        teamMatchCriteria = TeamMatchCriteria(teamMatchCriteriaRawData, team1, team2, matchNumber, putupPlayer)
         teamMatchup = TeamMatchup(team1, team2, putupPlayer, matchNumber, format)
     except InvalidTeamMatchCriteria:
         return redirect(f"/matchupTeams?teamId1={teamId1}&teamId2={teamId2}&sessionId={sessionId}&divisionId={divisionId}")
@@ -157,12 +157,11 @@ def matchupTeams():
     sessionId = int(request.args.get('sessionId'))
     divisionId = int(request.args.get('divisionId'))
 
+    dataFetcher = DataFetcher()
+    team1 = dataFetcher.getTeam(None, None, teamId1)
+    team2 = dataFetcher.getTeam(None, None, teamId2)
+    division = dataFetcher.getDivision(divisionId)
 
-    db = Database()
-    converter = Converter()
-    team1 = converter.toTeamWithSql(db.getTeam(None, None, teamId1))
-    team2 = converter.toTeamWithSql(db.getTeam(None, None, teamId2))
-    division = converter.toDivisionWithSql(db.getDivision(divisionId))
     data = {
         "team1": team1,
         "team2": team2,
@@ -207,14 +206,13 @@ def players():
 
 @app.route("/session")
 def session():
-    useCase = UseCase()
+    dataFetcher = DataFetcher()
     sessionId = int(request.args.get('sessionId'))
-    db = Database()
-    converter = Converter()
-    session = converter.toSessionWithSql(db.getSession(sessionId)[0])
+    session = dataFetcher.getSession(sessionId)
+    divisions = dataFetcher.getDivisions(sessionId)
     data = {
         "session": session,
-        "divisions": useCase.getDivisions(sessionId)
+        "divisions": divisions
     }
     return render_template(
         jinja_environment.get_template('session.html'),
@@ -224,47 +222,91 @@ def session():
 
 @app.route("/home1")
 def home1():
-    useCase = UseCase()
+    dataFetcher = DataFetcher()
+    data = {
+        "sessions": dataFetcher.getSessions()
+    }
+    
     return render_template(
         jinja_environment.get_template('home1.html'),
         url_for=url_for,
-        **useCase.getSessions()
+        **data
     )
 
 @app.route("/playerMatches")
 def playerMatches():
-    useCase = UseCase()
     memberId = int(request.args.get('memberId'))
+    dataFetcher = DataFetcher()
+
+    player = dataFetcher.getPlayer(None, None, memberId)
+    format = dataFetcher.getConfigFormat()
+    playerMatches = dataFetcher.getPlayerMatches(None, None, None, memberId, format, None, None, None, None, None, player)
+    data = {
+        "player": player,
+        "playerMatches": playerMatches
+    }
+
     return render_template(
         jinja_environment.get_template('player.html'),
         url_for=url_for,
-        **useCase.getPlayerMatchesForPlayer(memberId)
+        **data
     )
 
 
 @app.route("/division")
 def division():
-    useCase = UseCase()
-    db = Database()
-    converter = Converter()
+    dataFetcher = DataFetcher()
     divisionId = int(request.args.get('divisionId'))
-    format = db.getFormat(divisionId)
-    sessionInQuestion = converter.toDivisionWithSql(db.getDivision(divisionId)).getSession()
-    mostRecentSession = converter.toSessionWithSql(db.getSession(db.getMostRecentSessionId(format))[0])
-    previousSession = mostRecentSession.getPreviousSession()
-    displayTeamMatchupFeature = sessionInQuestion == mostRecentSession or sessionInQuestion == previousSession
+
+    division = dataFetcher.getDivision(divisionId)
+    teams = dataFetcher.getTeams(division)
+    shouldDisplayTeamMatchupFeature = dataFetcher.shouldDisplayTeamMatchupFeature(divisionId)
+    data = {
+        "teams": teams,
+        "division": division,
+        "shouldDisplayTeamMatchupFeature": shouldDisplayTeamMatchupFeature
+    }
 
     return render_template(
         jinja_environment.get_template('division.html'),
         url_for=url_for,
-        displayTeamMatchupFeature=displayTeamMatchupFeature,
-        **useCase.getTeams(divisionId)
+        **data
     )
 
 @app.route("/predictionAccuracy")
 def predictionAccuracy():
-    useCase = UseCase()
-    return useCase.getPredictionAccuracy()
+    dataFetcher = DataFetcher()
+    potentialTeamMatchConverter = PotentialTeamMatchConverter()
+    format = dataFetcher.getConfigFormat()
+    teamMatches = dataFetcher.getTeamMatchesWithoutASL(None, None, None, None, format, None, None, None, None, None)
+
+    numCorrectlyPredictedMatches = 0
+    numTeamMatchesNotResultingInTie = len(teamMatches)
+    skillLevelMatrix = createASLMatrix(format, dataFetcher.getExpectedPtsMethod())
+
+    # For each of the teamMatches:
+    #   Determine who actually won the match
+    #   Create PotentialTeamMatch with the actual matchups including the expected points value for each matchup
+    #   If the team expected to win actually won, increase the counter by 1
+    for teamMatch in teamMatches:
+        actualWinningTeams = teamMatch.getWinningTeams()
+        if len(actualWinningTeams) == 2:
+            numTeamMatchesNotResultingInTie -= 1
+            continue
+        else:
+            actualWinningTeam = actualWinningTeams[0]
+            potentialTeamMatch = potentialTeamMatchConverter.toPotentialTeamMatchFromTeamMatch(teamMatch, skillLevelMatrix, format)
+            expectedWinningTeams = potentialTeamMatch.getExpectedWinningTeams()
+            if len(expectedWinningTeams) == 2:
+                numTeamMatchesNotResultingInTie -= 1
+                continue
+            else: 
+                expectedWinningTeam = expectedWinningTeams[0]
+                if actualWinningTeam == expectedWinningTeam:
+                    numCorrectlyPredictedMatches += 1
+        
+    correctlyPredictedPercentage = numCorrectlyPredictedMatches/numTeamMatchesNotResultingInTie
+    return str(correctlyPredictedPercentage)
 
 if __name__ == "__main__":
     serve(app, host="127.0.0.1", port=8000)

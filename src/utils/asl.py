@@ -1,7 +1,7 @@
 from src.srcMain.Database import Database
 from src.converter.Converter import Converter
 from utils.utils import *
-from src.dataClasses.Format import Format
+from dataClasses.Format import Format
 
 db = Database()
 converter = Converter()

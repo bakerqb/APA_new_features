@@ -78,6 +78,10 @@ class Converter(Typechecked):
 
         # adjustedSkillLevel1 = getAdjustedSkillLevel(memberId1, currentSkillLevel1, datePlayed)
         # adjustedSkillLevel2 = getAdjustedSkillLevel(memberId2, currentSkillLevel2, datePlayed)
+        if adjustedSkillLevel1 == "NULL":
+            adjustedSkillLevel1 = None
+        if adjustedSkillLevel2 == "NULL":
+            adjustedSkillLevel2 = None
         
         session = Session(sessionId, SessionSeason[sessionSeason], sessionYear)
         division = Division(session, divisionId, divisionName, dayOfWeek, Format(format))

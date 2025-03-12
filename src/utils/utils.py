@@ -1,5 +1,5 @@
 from datetime import datetime
-from src.dataClasses.Format import Format
+from dataClasses.Format import Format
 from typeguard import typechecked
 from typing import List, Dict, Tuple
 
@@ -166,7 +166,7 @@ def toReadableDateTimeString(date: str) -> str:
 
 @typechecked
 def getSkillLevelRangeForFormat(format: Format) -> range:
-    if format == Format.EIGHT_BALL:
+    if format.value == Format.EIGHT_BALL.value:
         return EIGHT_BALL_SKILL_LEVEL_RANGE
-    elif format == Format.NINE_BALL:
+    elif format.value == Format.NINE_BALL.value:
         return NINE_BALL_SKILL_LEVEL_RANGE

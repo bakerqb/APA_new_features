@@ -1,4 +1,4 @@
-from src.dataClasses.Format import Format
+from dataClasses.Format import Format
 from dataClasses.Session import Session
 from src.srcMain.Typechecked import Typechecked
 

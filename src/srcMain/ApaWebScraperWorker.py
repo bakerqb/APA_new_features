@@ -25,8 +25,8 @@ from dataClasses.Division import Division
 from utils.utils import *
 from utils.asl import *
 from dataClasses.Team import Team
-from src.dataClasses.Format import Format
-from src.dataClasses.SessionSeason import SessionSeason
+from dataClasses.Format import Format
+from dataClasses.SessionSeason import SessionSeason
 from src.srcMain.Typechecked import Typechecked
 from typing import Tuple
 
@@ -74,8 +74,8 @@ class ApaWebScraperWorker(Typechecked):
 
     ############### Team Scraping Functions ###############
     def scrapeTeamInfo(self, division: Division) -> Team:
-        teamId = self.driver.current_url.split('/')[-1]
-        time.sleep(1)
+        teamId = int(self.driver.current_url.split('/')[-1])
+        time.sleep(3)
         data = self.driver.find_element(By.CLASS_NAME, 'page-title').text.split('\n')
         teamName = data[0]
         teamNum = int(re.sub(r'\W+', '', data[1]))
@@ -86,7 +86,7 @@ class ApaWebScraperWorker(Typechecked):
     
     def getRoster(self) -> List[Player]:
         self.createWebDriver()
-        time.sleep(1)
+        time.sleep(3)
         rows = self.driver.find_element(By.XPATH, "//h2 [contains( text(), 'Team Roster')]").find_element(By.XPATH, "..").find_elements(By.TAG_NAME, 'table')[0].find_elements(By.TAG_NAME, "tr")
         roster = []
         for row in rows[1:]:
@@ -115,7 +115,7 @@ class ApaWebScraperWorker(Typechecked):
 
     def scrapeTeamMatchesForTeam(self, headerTitle: str, divisionId: int) -> List[str]:
         self.createWebDriver()
-        
+        time.sleep(5)
         matchesHeader = self.driver.find_element(By.XPATH, "//h2 [contains( text(), '{}')]".format(headerTitle))
         matches = matchesHeader.find_element(By.XPATH, "..").find_elements(By.TAG_NAME, "a")
         
@@ -123,7 +123,7 @@ class ApaWebScraperWorker(Typechecked):
         for match in matches:
             if '|' in match.text:
                 link = match.get_attribute("href")
-                teamMatchId = link.split("/")[-1]
+                teamMatchId = int(link.split("/")[-1])
                 apaDatetime = self.apaDateToDatetime(match.text.split(' | ')[-1])
                 if not self.db.isValueInTeamMatchTable(teamMatchId):
                     matchLinks.append(link)
@@ -153,7 +153,7 @@ class ApaWebScraperWorker(Typechecked):
         self.createWebDriver()
         self.driver.get(link)
 
-        if format == Format.EIGHT_BALL:
+        if format.value == Format.EIGHT_BALL.value:
             time.sleep(9)
 
         teamsInfoHeader = self.driver.find_elements(By.CLASS_NAME, "teamName")
@@ -177,33 +177,33 @@ class ApaWebScraperWorker(Typechecked):
         
         playerMatches = []
         playerMatchId = 0
-        teamMatchId = link.split('/')[-1]
+        teamMatchId = int(link.split('/')[-1])
         datePlayed = self.db.getDatePlayed(teamMatchId)
         for individualMatch in individualMatches:
             if 'LAG' not in individualMatch.text:
                 continue
             playerMatchId += 1
             mapper = None
-            if format == Format.NINE_BALL:
+            if format.value == Format.NINE_BALL.value:
                 mapper = nineBallSkillLevelMapper()
             
             textElements = individualMatch.text.split('\n')
 
             removableWordList = ['LAG', 'SL', 'Pts Earned']
-            if format == Format.EIGHT_BALL:
+            if format.value == Format.EIGHT_BALL.value:
                 removableWordList.append('GW/GMW')
-            elif format == Format.NINE_BALL:
+            elif format.value == Format.NINE_BALL.value:
                 removableWordList.append('PE/PN')
             textElements = removeElements(textElements, removableWordList)
             
             playerName1 = textElements[0].replace('"', "'")
             playerName2 = textElements[6].replace('"', "'")
             skillLevel1 = int(textElements[1])
-            skillLevel2 = int(textElements[5])
-            if format == Format.EIGHT_BALL and EIGHT_BALL_INCORRECT_SKILL_LEVEL in [skillLevel1, skillLevel2]:
+            skillLevel2 =int(textElements[5])
+            if format.value == Format.EIGHT_BALL.value and EIGHT_BALL_INCORRECT_SKILL_LEVEL in [skillLevel1, skillLevel2]:
                 print("ERROR: scraped skill level incorrectly")
                 exit(1)
-            if format == Format.NINE_BALL.value:
+            if format.value == Format.NINE_BALL.value:
                 skillLevel1 = mapper.get(playerPtsNeeded1)
             teamPtsEarned1 = int(textElements[2])
             teamPtsEarned2 = int(textElements[7])
@@ -213,7 +213,7 @@ class ApaWebScraperWorker(Typechecked):
             score1 = list(map(lambda pointAmount: int(pointAmount), scoreElements[0].split('/')))
             score2 = list(map(lambda pointAmount: int(pointAmount), scoreElements[1].split('/')))
             if len(score1) == 1 or len(score2) == 1:
-                if format == Format.EIGHT_BALL:
+                if format.value == Format.EIGHT_BALL.value:
                     isFirstResultOfNewPlayer = skillLevel1 == NEW_PLAYER_SCRAPED_SKILL_LEVEL
                     oldPlayerSkillLevel = skillLevel2 if isFirstResultOfNewPlayer else skillLevel1
                     newPlayerTeamPtsEarned = teamPtsEarned1 if isFirstResultOfNewPlayer else teamPtsEarned2
@@ -234,7 +234,7 @@ class ApaWebScraperWorker(Typechecked):
             
             playerPtsEarned2, playerPtsNeeded2 = score2
             
-            if format == Format.NINE_BALL:
+            if format.value == Format.NINE_BALL.value:
                 skillLevel2 = mapper.get(playerPtsNeeded2)
             
             
@@ -309,7 +309,7 @@ class ApaWebScraperWorker(Typechecked):
             return EIGHT_BALL_INCORRECT_SKILL_LEVEL not in [skillLevel1, skillLevel2]
         return False
     
-    def waitFor(self, seconds: int, function, param) -> bool:
+    def waitFor(self, seconds: float, function, param) -> bool:
         while seconds > 0:
             if function(param):
                 return True

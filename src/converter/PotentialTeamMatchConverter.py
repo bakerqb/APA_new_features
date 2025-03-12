@@ -1,5 +1,4 @@
 from dataClasses.PlayerMatch import PlayerMatch
-from src.dataClasses.PlayerMatch import PlayerMatch
 from dataClasses.TeamMatch import TeamMatch
 from dataClasses.PotentialTeamMatch import PotentialTeamMatch
 from dataClasses.PotentialPlayerMatch import PotentialPlayerMatch

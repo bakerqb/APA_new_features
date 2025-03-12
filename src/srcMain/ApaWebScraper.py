@@ -14,9 +14,10 @@ import re
 import concurrent.futures
 from utils.utils import *
 from utils.asl import *
-from src.dataClasses.SessionSeason import SessionSeason
-from src.dataClasses.Division import Division
-from src.dataClasses.Team import Team
+from dataClasses.SessionSeason import SessionSeason
+from dataClasses.Division import Division
+from dataClasses.Team import Team
+from src.srcMain.DataFetcher import DataFetcher
 from src.srcMain.Typechecked import Typechecked
 from typing import List, Tuple
 
@@ -28,6 +29,7 @@ class ApaWebScraper(Typechecked):
         self.converter = Converter()
         self.driver = None
         self.db = Database()
+        self.dataFetcher = DataFetcher()
     
     def createWebDriver(self) -> None:
         if self.driver is not None:
@@ -86,15 +88,16 @@ class ApaWebScraper(Typechecked):
             with concurrent.futures.ThreadPoolExecutor() as executor:
                 executor.map(self.transformScrapeMatchLinksAllTeams, self.db.getTeamMatches(divisionId))
 
+        format = self.dataFetcher.getFormatForDivision(divisionId)
         # Now set all the adjusted skills
-        playerMatches = list(map(lambda playerMatch: self.converter.toPlayerMatchWithSql(playerMatch), self.db.getPlayerMatches(None, divisionId, None, None, None, None, None, None, None, None)))
+        playerMatches = list(map(lambda playerMatch: self.converter.toPlayerMatchWithSql(playerMatch), self.db.getPlayerMatches(None, divisionId, None, None, format, None, None, None, None, None)))
        
         for playerMatch in playerMatches:
             for index, playerResult in enumerate(playerMatch.getPlayerResults()):
                 self.db.updateASL(
                     playerMatch.getPlayerMatchId(),
                     playerMatch.getTeamMatchId(),
-                    getAdjustedSkillLevel(playerResult.getPlayer().getMemberId(), playerResult.getSkillLevel(), playerMatch.getDatePlayed(), playerMatch.getPlayerMatchId()),
+                    getAdjustedSkillLevel(playerResult.getPlayer().getMemberId(), playerResult.getSkillLevel(), playerMatch.getDatePlayed()),
                     index
                 )
             
@@ -104,11 +107,11 @@ class ApaWebScraper(Typechecked):
         length = end - start
         print(f"scraping time: {length} seconds")
 
-    def scrapeTeamInfoAndTeamMatches(self, args: List[Tuple[Division, str, int]]) -> None:
+    def scrapeTeamInfoAndTeamMatches(self, args: Tuple[Division, str, int]) -> None:
         apaWebScraperWorker = ApaWebScraperWorker()
         apaWebScraperWorker.scrapeTeamInfoAndTeamMatches(args)
     
-    def transformScrapeMatchLinksAllTeams(self, args: List[Tuple[int, int]]) -> None:
+    def transformScrapeMatchLinksAllTeams(self, args: Tuple[int, int]) -> None:
         apaWebScraperWorker = ApaWebScraperWorker()
         apaWebScraperWorker.scrapePlayerMatches(args)
 
@@ -131,10 +134,10 @@ class ApaWebScraper(Typechecked):
     def addDivisionToDatabase(self) -> Division:
         # Check if division/session already exists in the database
         divisionName = ' '.join(self.driver.find_element(By.CLASS_NAME, 'page-title').text.split(' ')[:-1])
-        divisionId = removeElements(self.driver.current_url.split('/'), ["standings"])[-1]
+        divisionId = int(removeElements(self.driver.current_url.split('/'), ["standings"])[-1])
         sessionElement = self.driver.find_element(By.CLASS_NAME, "m-b-10")
         sessionSeason, sessionYear = sessionElement.text.split(' ')
-        sessionId = sessionElement.find_elements(By.TAG_NAME, "a")[0].get_attribute('href').split('/')[-1]
+        sessionId = int(sessionElement.find_elements(By.TAG_NAME, "a")[0].get_attribute('href').split('/')[-1])
         division = self.converter.toDivisionWithSql(self.db.getDivision(divisionId))
         if division is not None:
             return division

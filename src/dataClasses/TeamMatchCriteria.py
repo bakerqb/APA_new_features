@@ -8,7 +8,7 @@ from src.srcMain.Typechecked import Typechecked
 class TeamMatchCriteria(Typechecked):
     def __init__(self, teamMatchCriteriaRawInput: List[str], team1: Team, team2: Team, matchNumber: int, putupPlayer: Player | None):
         # Formatted as a list of set of ids, where the first element signifies which players cannot play in game 1
-        self.idsForGames = [set()] * NUM_PLAYERMATCHES_IN_TEAMMATCH
+        self.idsForGames = [set() for i in range(NUM_PLAYERMATCHES_IN_TEAMMATCH)]
 
         for criteria in teamMatchCriteriaRawInput:
             id, matchNumberTemp = criteria.split('-')
@@ -108,23 +108,9 @@ class TeamMatchCriteria(Typechecked):
             else:
                 availableMatches[tuple(availableMatchesForPlayer)] = [player]
         
-        while True:
-            restrictiveMatchSet = None
-            for matchSet, players in availableMatches.items():
-                '''
-                if len(matchSet) < len(players):
-                    raise InvalidTeamMatchCriteria(f"ERROR: {list(map(lambda player: player.getPlayerName(), players))} all need to play in matches {list(matchSet)}, which is not possible")
-                '''
-
+        for matchSet, players in availableMatches.items():
                 if len(matchSet) == 0:
                     raise InvalidTeamMatchCriteria(f"ERROR: {list(map(lambda player: player.getPlayerName(), players))} can't play any matches")
-                if len(matchSet) == len(players):
-                    restrictiveMatchSet = matchSet
-                    break
-            if restrictiveMatchSet is not None:
-                availableMatches = self.resetAvailableMatches(availableMatches, restrictiveMatchSet)
-            else:
-                break
 
     def resetAvailableMatches(self, originalAvailableMatches: Dict, restrictiveMatchSet: Tuple) -> Dict:
         newAvailableMatches = {}
