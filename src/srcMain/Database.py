@@ -1,6 +1,5 @@
 import sqlite3
 from tabulate import tabulate
-from src.srcMain.Config import Config
 from dataClasses.Team import Team
 from dataClasses.Division import Division
 from utils.utils import *
@@ -17,7 +16,6 @@ class Database(Typechecked):
     def __init__(self):
         self.con = sqlite3.connect("results.db", check_same_thread=False)
         self.cur = self.con.cursor()
-        self.config = Config().getConfig()
 
     def refreshAllTables(self) -> None:
         self.dropTables()

@@ -5,7 +5,7 @@ from dataClasses.Team import Team
 from typing import List
 from src.srcMain.Typechecked import Typechecked
 
-class PotentialTeamMatch:
+class PotentialTeamMatch(Typechecked):
     def __init__(self, potentialPlayerMatches: List[PotentialPlayerMatch]):
         self.potentialPlayerMatches = potentialPlayerMatches
 

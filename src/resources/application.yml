@@ -12,6 +12,7 @@ waitTimes:
 # 8-ball, 9-ball, or masters
 format: 8-ball
 debugMode: true
+typecheck: false
 
 predictionAccuracy:
   # When calculating expected points, if two skill level types have over 326 games between them, use the average of all their points scored

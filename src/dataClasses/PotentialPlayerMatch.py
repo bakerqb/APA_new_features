@@ -3,7 +3,7 @@ from dataClasses.PotentialPlayerResult import PotentialPlayerResult
 from typing import List
 from src.srcMain.Typechecked import Typechecked
 
-class PotentialPlayerMatch:
+class PotentialPlayerMatch(Typechecked):
     def __init__(self, potentialPlayerResults: List[PotentialPlayerResult]):
         self.potentialPlayerResults = potentialPlayerResults
         
