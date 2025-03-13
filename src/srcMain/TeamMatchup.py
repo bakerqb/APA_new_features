@@ -57,7 +57,7 @@ class TeamMatchup(Typechecked):
     def start(self, teamMatchCriteria: TeamMatchCriteria, matchNumber: int) -> PotentialTeamMatch:
         startTime = time.perf_counter()
         self.myTeam.getPlayers().sort()
-        self.myTeam.getPlayers().sort()
+        self.opponentTeam.getPlayers().sort()
         matchups = self.asynchronousAlgorithm(self.putupPlayer, teamMatchCriteria, matchNumber, self.myTeam.getPlayers(), self.opponentTeam.getPlayers(), PotentialTeamMatch([]))
         endTime = time.perf_counter()
         self.timeCounter[self.start.__name__] += endTime - startTime
