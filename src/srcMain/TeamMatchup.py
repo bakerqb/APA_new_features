@@ -44,7 +44,7 @@ class TeamMatchup(Typechecked):
 
         if self.format.value == Format.EIGHT_BALL.value:
             if self.putupPlayer is not None:
-                self.putupPlayer.setAdjustedSkillLevel(getAdjustedSkillLevel(putupPlayer.getMemberId(), putupPlayer.getCurrentSkillLevel(), None, None))
+                self.putupPlayer.setAdjustedSkillLevel(getAdjustedSkillLevel(putupPlayer.getMemberId(), putupPlayer.getCurrentSkillLevel(), None))
 
             for player in self.myTeam.getPlayers():
                 player.setAdjustedSkillLevel(getAdjustedSkillLevel(player.getMemberId(), player.getCurrentSkillLevel(), None))
@@ -57,7 +57,7 @@ class TeamMatchup(Typechecked):
     def start(self, teamMatchCriteria: TeamMatchCriteria, matchNumber: int) -> PotentialTeamMatch:
         startTime = time.perf_counter()
         self.myTeam.getPlayers().sort()
-        self.myTeam.getPlayers().sort()
+        self.opponentTeam.getPlayers().sort()
         matchups = self.asynchronousAlgorithm(self.putupPlayer, teamMatchCriteria, matchNumber, self.myTeam.getPlayers(), self.opponentTeam.getPlayers(), PotentialTeamMatch([]))
         endTime = time.perf_counter()
         self.timeCounter[self.start.__name__] += endTime - startTime
@@ -81,8 +81,9 @@ class TeamMatchup(Typechecked):
             for player in self.findEligiblePlayers(tempMyPlayers, matchNumber, teamMatchCriteria, amILookingAtMyOwnTeam, matchNumber, soFarMatch):
                 anotherTempMyPlayers = tempMyPlayers.copy()
                 anotherTempMyPlayers.remove(player)
-                potentialTeamMatch = self.asynchronousAlgorithm(player, teamMatchCriteria, matchNumber, tempTheirPlayers, anotherTempMyPlayers, soFarMatch)
-                if bestMatch is None or potentialTeamMatch.pointDifference(amILookingAtMyOwnTeam) > bestMatch.pointDifference(amILookingAtMyOwnTeam):
+                anotherTempTheirPlayers = tempTheirPlayers.copy()
+                potentialTeamMatch = self.asynchronousAlgorithm(player, teamMatchCriteria, matchNumber, anotherTempTheirPlayers, anotherTempMyPlayers, soFarMatch)
+                if bestMatch is None or round(potentialTeamMatch.pointDifference(amILookingAtMyOwnTeam), 1) > round(bestMatch.pointDifference(amILookingAtMyOwnTeam), 1):
                     bestMatch = potentialTeamMatch
         else:
             startTime = time.perf_counter()
@@ -119,7 +120,9 @@ class TeamMatchup(Typechecked):
             tempMyPlayers.remove(myPlayer)
             if putupPlayer is None:
                 tempTheirPlayers.remove(theirPlayer)
-            bestMatch = self.asynchronousAlgorithm(None, teamMatchCriteria, matchNumber + 1, tempTheirPlayers, tempMyPlayers, tempSoFarMatch)
+                bestMatch = self.asynchronousAlgorithm(None, teamMatchCriteria, matchNumber + 1, tempTheirPlayers, tempMyPlayers, tempSoFarMatch)
+            else:
+                bestMatch = self.asynchronousAlgorithm(None, teamMatchCriteria, matchNumber + 1, tempMyPlayers, tempTheirPlayers, tempSoFarMatch)
             # bestMatch = bestMatch
         return bestMatch
 
@@ -149,7 +152,7 @@ class TeamMatchup(Typechecked):
                 )
             
             startTime = time.perf_counter()
-            if bestPotentialTeamMatch is None or tempPotentialTeamMatch.pointDifference(amILookingAtMyOwnTeam) > bestPotentialTeamMatch.pointDifference(amILookingAtMyOwnTeam):
+            if bestPotentialTeamMatch is None or round(tempPotentialTeamMatch.pointDifference(amILookingAtMyOwnTeam), 1) > round(bestPotentialTeamMatch.pointDifference(amILookingAtMyOwnTeam), 1):
                 bestPotentialTeamMatch = tempPotentialTeamMatch
             endTime = time.perf_counter()
             self.timeCounter["pointDifference"] += endTime - startTime
