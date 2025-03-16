@@ -225,7 +225,7 @@ class TeamMatchup(Typechecked):
         eligiblePlayers = []
         for player in players:
             skilLevelCapStartTime = time.perf_counter()
-            if teamMatchCriteria.playerMustPlay(player, matchNumber, numUniquePlayersFromStart):
+            if not noNeedToCheckTeamMatchCriteria and teamMatchCriteria.playerMustPlay(player, matchNumber, numUniquePlayersFromStart):
                 return [player]
 
             # Determine whether throwing that player would violate (or lead to a violation of) the 23 skill level cap rule

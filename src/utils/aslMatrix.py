@@ -20,7 +20,7 @@ def createASLMatrix(format: Format, expectedPtsMethod: str) -> List[List[float |
         playerMatchesSql = db.getPlayerMatches(None, None, None, None, format, None, None, None, None, None)
 
         numPlayerMatches = len(playerMatchesSql)
-        aslMatrixFilePath = os.path.abspath(__file__ + f"/../../resources/aslMatrix-{format.value}.json")
+        aslMatrixFilePath = os.path.abspath(__file__ + f"/../../resources/aslMatrix-{format.value}-{expectedPtsMethod}.json")
         existingASLMatrixData = parseExistingASLMatrix(aslMatrixFilePath)
         if numPlayerMatches <= existingASLMatrixData.get("numPlayerMatches") and expectedPtsMethod == existingASLMatrixData.get("expectedPtsMethod"):
             return existingASLMatrixData.get("aslMatrix")

@@ -138,7 +138,7 @@ class ApaWebScraper(Typechecked):
         sessionElement = self.driver.find_element(By.CLASS_NAME, "m-b-10")
         sessionSeason, sessionYear = sessionElement.text.split(' ')
         sessionId = int(sessionElement.find_elements(By.TAG_NAME, "a")[0].get_attribute('href').split('/')[-1])
-        division = self.dataFetcher(divisionId)
+        division = self.dataFetcher.getDivision(divisionId)
         if division is not None:
             return division
         
