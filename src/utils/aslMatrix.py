@@ -9,6 +9,8 @@ from statistics import median
 import os
 import json
 from typeguard import typechecked
+from itertools import combinations
+
 
 db = Database()
 playerMatchWithASLConverter = PlayerMatchWithASLConverter()
@@ -142,4 +144,36 @@ def parseExistingASLMatrix(aslMatrixFilePath: str) -> Dict:
         }
         return data
         
+def getMostValuableASLSkillLevels(aslMatrix: List[List[float | int]]):
+    skillLevelsMap = {}
+    for skillLevelResults in aslMatrix[1:]:
+        skillLevelCategory = skillLevelResults[0]
 
+        if round(skillLevelCategory % 1, 2) == 0:
+            skillLevelCategory = f"Weak {int(skillLevelCategory)}"
+        elif round(skillLevelCategory % 1, 2) == .42:
+            skillLevelCategory = f"Average {int(skillLevelCategory)}"
+        else:
+            skillLevelCategory = f"Strong {int(skillLevelCategory)}"
+        skillLevelsMap[skillLevelCategory] = float(sum(skillLevelResults[1:])/len(skillLevelResults[1:]))
+    sortedMap = sorted(skillLevelsMap.items(),key=lambda kv: (kv[1], kv[0]), reverse=True)
+
+    return sortedMap
+
+    combos = list(combinations(sortedMap, 5))
+    newCombos = []
+    for combo in combos:
+        if sum(map(lambda skillLevel: int(skillLevel[0][-1]), combo)) <= 23:
+            newCombos.append(combo)
+    
+    bestCombo = None
+    bestScore = None
+    bestLineups = []
+    for combo in newCombos:
+        score = sum(map(lambda skillLevel: skillLevel[1], combo))
+        if bestCombo is None or score >= bestScore:
+            bestCombo = combo
+            bestScore = score
+            bestLineups.append(combo)
+
+    return bestLineups

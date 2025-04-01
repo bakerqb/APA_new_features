@@ -36,6 +36,9 @@ def results():
     return render_template(
         jinja_environment.get_template('results.html'),
         url_for=url_for,
+        format=format,
+        int=int,
+        str=str,
         **data
     )
 
@@ -310,6 +313,12 @@ def predictionAccuracy():
         
     correctlyPredictedPercentage = numCorrectlyPredictedMatches/numTeamMatchesNotResultingInTie
     return str(correctlyPredictedPercentage)
+
+@app.route("/mvp")
+def getMostValuableSkillLevels():
+    dataFetcher = DataFetcher()
+    skillLevelMatrix = createASLMatrix(dataFetcher.getConfigFormat(), dataFetcher.getExpectedPtsMethod())
+    return getMostValuableASLSkillLevels(skillLevelMatrix)
 
 if __name__ == "__main__":
     serve(app, host="127.0.0.1", port=8000)

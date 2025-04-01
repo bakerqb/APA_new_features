@@ -8,10 +8,6 @@ converter = Converter()
 
 def getAdjustedSkillLevel(memberId, currentSkillLevel, datePlayed):
         # NOTE: this calculation is only for the 8-ball format currently
-        if memberId == 60903397:
-            return 4.2
-
-
         currentSkillLevel = int(currentSkillLevel)
         
         FORMAT = Format.EIGHT_BALL
