@@ -1,6 +1,7 @@
 apaWebsite:
   loginLink: https://accounts.poolplayers.com/login
   baseLink: https://league.poolplayers.com
+  chicagoCentralLink: https://league.poolplayers.com/centralchicago
   sessionBaseLink: https://league.poolplayers.com/centralchicago/divisions/session/
   teamBaseLink: https://league.poolplayers.com/centralchicago/team/
   teamMatchBaseLink: https://league.poolplayers.com/centralchicago/match/

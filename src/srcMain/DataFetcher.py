@@ -99,7 +99,10 @@ class DataFetcher(Typechecked):
     def shouldDisplayTeamMatchupFeature(self, divisionId: int) -> bool:
         format = self.getFormatForDivision(divisionId)
         sessionInQuestion = self.getDivision(divisionId).getSession()
-        mostRecentSession = self.converter.toSessionWithSql(db.getSession(db.getMostRecentSessionId(format)))
+        mostRecentSessionSql = db.getSession(db.getMostRecentSessionId(format))
+        if mostRecentSessionSql is None:
+            return False
+        mostRecentSession = self.converter.toSessionWithSql(mostRecentSessionSql)
         previousSession = mostRecentSession.getPreviousSession()
         return sessionInQuestion == mostRecentSession or sessionInQuestion == previousSession
     

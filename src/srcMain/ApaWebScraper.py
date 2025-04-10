@@ -117,14 +117,26 @@ class ApaWebScraper(Typechecked):
 
     def scrapeDivisionsForSession(self, sessionId: int) -> None:
         self.createWebDriver()
-        self.driver.get(f"{self.config.get('apaWebsite').get('sessionBaseLink')}{sessionId}")
-        print("Got to session page")
+
+        self.driver.get(self.config.get('apaWebsite').get('chicagoCentralLink'))
+        divisionElement = self.driver.find_elements(By.XPATH, "//span[contains(text(), 'Divisions')]")[0]
+        divisionElement.click()
+        time.sleep(2)
+        currentSessionOptionElement = self.driver.find_elements(By.XPATH, "//option[contains(text(), 'Current Session')]")[0]
+        randomOtherOption = currentSessionOptionElement.find_elements(By.XPATH, "../*")[1]
+        self.driver.execute_script(f"arguments[0].setAttribute('value', '{sessionId}')", randomOtherOption)
+        randomOtherOption.click()
+
         time.sleep(4)
         div = self.driver.find_element(By.CLASS_NAME, "m-b-30")
         aTags = div.find_elements(By.TAG_NAME, "a")
         divisionLinks = list(map(lambda aTag: aTag.get_attribute('href'), aTags))
+        for divisionLink in divisionLinks:
+            self.transformScrapeDivisionsForSession(divisionLink)
+        '''
         with concurrent.futures.ThreadPoolExecutor() as executor:
             executor.map(self.transformScrapeDivisionsForSession, divisionLinks)
+        '''
     
     def transformScrapeDivisionsForSession(self, divisionLink: str) -> None:
         apaWebScraperWorker = ApaWebScraperWorker()
