@@ -8,7 +8,6 @@ converter = Converter()
 
 def getAdjustedSkillLevel(memberId, currentSkillLevel, datePlayed):
         # NOTE: this calculation is only for the 8-ball format currently
-        
         currentSkillLevel = int(currentSkillLevel)
         
         FORMAT = Format.EIGHT_BALL
@@ -16,7 +15,7 @@ def getAdjustedSkillLevel(memberId, currentSkillLevel, datePlayed):
         NUM_GAMES_CONSIDERED_RECENT = 5
         SKILL_LEVEL_CHANGE_ADJUSTMENT = .25
         MAX_ADJUSTED_SCORE_OFFSET = .49
-        ADJUSTED_SCORE_OFFSET_THRESHOLD = .5
+        ADJUSTED_SCORE_OFFSET_THRESHOLD = .49
 
         playerResultsDb = db.getPlayerMatches(None, None, None, memberId, FORMAT, NUM_RELEVANT_PLAYERMATCHES, datePlayed, None, None, None)
         playerMatches = list(map(lambda playerMatch: converter.toPlayerMatchWithSql(playerMatch), playerResultsDb))
