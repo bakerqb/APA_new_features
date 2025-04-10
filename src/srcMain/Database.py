@@ -274,12 +274,16 @@ class Database(Typechecked):
         return division
     
     def getSession(self, sessionId: int) -> DatabaseTypes.Session:
+        if sessionId is None:
+            return None
         self.createTables()
         return self.cur.execute(f"SELECT * FROM Session WHERE sessionId = {sessionId}").fetchone()
     
     def getMostRecentSessionId(self, format: Format) -> int:
         self.createTables()
         sqlRows = self.getPlayerMatches(None, None, None, None, format, None, None, None, None, None)
+        if len(sqlRows) == 0:
+            return None
         return sqlRows[0][0]
     
     def getFormat(self, divisionId: int) -> Format:
@@ -424,7 +428,7 @@ class Database(Typechecked):
         self.createTables()
         
         try:
-            self.cur.execute(f"INSERT INTO Session VALUES ({session.getSessionId()}, '{session.getSessionSeason()}', {session.getSessionYear()})")
+            self.cur.execute(f"INSERT INTO Session VALUES ({session.getSessionId()}, '{session.getSessionSeason().value}', {session.getSessionYear()})")
         except Exception:
             pass
         self.con.commit()
@@ -441,7 +445,7 @@ class Database(Typechecked):
                 f"{division.getDivisionId()}, " +
                 f"'{division.getDivisionName()}', " + 
                 f"{division.getDayOfWeek()}, " +
-                f"'{division.getFormat()}')"
+                f"'{division.getFormat().value}')"
             )
             self.con.commit()  
 
