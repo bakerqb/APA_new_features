@@ -118,6 +118,7 @@ class ApaWebScraper(Typechecked):
     def scrapeDivisionsForSession(self, sessionId: int) -> None:
         self.createWebDriver()
         self.driver.get(f"{self.config.get('apaWebsite').get('sessionBaseLink')}{sessionId}")
+        print("Got to session page")
         time.sleep(4)
         div = self.driver.find_element(By.CLASS_NAME, "m-b-30")
         aTags = div.find_elements(By.TAG_NAME, "a")
@@ -138,7 +139,7 @@ class ApaWebScraper(Typechecked):
         sessionElement = self.driver.find_element(By.CLASS_NAME, "m-b-10")
         sessionSeason, sessionYear = sessionElement.text.split(' ')
         sessionId = int(sessionElement.find_elements(By.TAG_NAME, "a")[0].get_attribute('href').split('/')[-1])
-        division = self.dataFetcher(divisionId)
+        division = self.dataFetcher.getDivision(divisionId)
         if division is not None:
             return division
         

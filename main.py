@@ -36,6 +36,9 @@ def results():
     return render_template(
         jinja_environment.get_template('results.html'),
         url_for=url_for,
+        format=format,
+        int=int,
+        str=str,
         **data
     )
 
@@ -90,7 +93,7 @@ def matchups():
     matchNumber = int(request.args.get('matchNumber'))
     teamMatchCriteriaRawData = request.args.getlist('teamMatchCriteria')
 
-    format = dataFetcher.getFormatForDivision(divisionId)
+    format_ = dataFetcher.getFormatForDivision(divisionId)
     team1 = dataFetcher.getTeam(None, None, teamId1)
     team2 = dataFetcher.getTeam(None, None, teamId2)
 
@@ -112,7 +115,7 @@ def matchups():
     
     try:
         teamMatchCriteria = TeamMatchCriteria(teamMatchCriteriaRawData, team1, team2, matchNumber, putupPlayer)
-        teamMatchup = TeamMatchup(team1, team2, putupPlayer, matchNumber, format)
+        teamMatchup = TeamMatchup(team1, team2, putupPlayer, matchNumber, format_)
     except InvalidTeamMatchCriteria:
         return redirect(f"/matchupTeams?teamId1={teamId1}&teamId2={teamId2}&sessionId={sessionId}&divisionId={divisionId}")
     
@@ -129,6 +132,9 @@ def matchups():
     return render_template(
         jinja_environment.get_template('matchups.html'),
         url_for=url_for,
+        str=str,
+        format=format,
+        int=int,
         **data
     )
 
@@ -307,6 +313,12 @@ def predictionAccuracy():
         
     correctlyPredictedPercentage = numCorrectlyPredictedMatches/numTeamMatchesNotResultingInTie
     return str(correctlyPredictedPercentage)
+
+@app.route("/mvp")
+def getMostValuableSkillLevels():
+    dataFetcher = DataFetcher()
+    skillLevelMatrix = createASLMatrix(dataFetcher.getConfigFormat(), dataFetcher.getExpectedPtsMethod())
+    return getMostValuableASLSkillLevels(skillLevelMatrix)
 
 if __name__ == "__main__":
     serve(app, host="127.0.0.1", port=8000)
