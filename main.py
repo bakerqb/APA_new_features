@@ -26,6 +26,7 @@ def results():
     teamId = int(request.args.get('teamId'))
     divisionId = int(request.args.get('divisionId'))
     sessionId = int(request.args.get('sessionId'))
+    format_ = dataFetcher.getFormatForDivision(divisionId)
 
     data = { 
         "teamResults": dataFetcher.getTeamResults(teamId),
@@ -33,8 +34,10 @@ def results():
         "sessionId": sessionId
     }
 
+    template = 'results.html' if format_ != Format.MASTERS else 'resultsMasters.html'
+
     return render_template(
-        jinja_environment.get_template('results.html'),
+        jinja_environment.get_template(template),
         url_for=url_for,
         format=format,
         int=int,

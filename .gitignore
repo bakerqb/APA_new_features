@@ -6,4 +6,5 @@ chromedriver
 output.txt
 .DS_Store
 results.db
+apa_data.db
 src/main/main.py

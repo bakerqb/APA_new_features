@@ -81,11 +81,11 @@ class ApaWebScraperWorker(Typechecked):
         teamName = data[0]
         teamNum = int(re.sub(r'\W+', '', data[1]))
 
-        roster = self.getRoster()
+        roster = self.getRoster(division.getFormat())
 
         return Team(division, teamId, teamNum, teamName, roster)
     
-    def getRoster(self) -> List[Player]:
+    def getRoster(self, format: Format) -> List[Player]:
         self.createWebDriver()
         time.sleep(3)
         rows = self.driver.find_element(By.XPATH, "//h2 [contains( text(), 'Team Roster')]").find_element(By.XPATH, "..").find_elements(By.TAG_NAME, 'table')[0].find_elements(By.TAG_NAME, "tr")
@@ -94,11 +94,15 @@ class ApaWebScraperWorker(Typechecked):
             data = row.text.split('\n')
             playerName = data[0].replace('"', "'")
             memberId = int(re.sub(r'\W+', '', data[1]))
-            currentSkillLevel = data[2][0]
-            if currentSkillLevel == "-":
-                currentSkillLevel = DEFAULT_SKILL_LEVEL
+            currentSkillLevel = None
+            if format == Format.MASTERS:
+                currentSkillLevel = NEW_PLAYER_SCRAPED_SKILL_LEVEL
             else:
-                currentSkillLevel = int(currentSkillLevel)
+                currentSkillLevel = data[2][0]
+                if currentSkillLevel == "-":
+                    currentSkillLevel = DEFAULT_SKILL_LEVEL
+                else:
+                    currentSkillLevel = int(currentSkillLevel)
             roster.append(Player(memberId, playerName, currentSkillLevel))
         return roster
     
@@ -107,16 +111,15 @@ class ApaWebScraperWorker(Typechecked):
         self.driver = None
         self.createWebDriver()
         self.driver.get(teamLink)
+        time.sleep(5)
         teamInfo = self.scrapeTeamInfo(division)
         self.db.addTeamInfo(teamInfo)
 
-        matchLinks = self.scrapeTeamMatchesForTeam('Team Schedule & Results', divisionId)
-        matchLinks = matchLinks + self.scrapeTeamMatchesForTeam('Playoffs', divisionId)
+        self.scrapeTeamMatchesForTeam('Team Schedule & Results', divisionId)
+        self.scrapeTeamMatchesForTeam('Playoffs', divisionId)
         print("Got team data")
 
     def scrapeTeamMatchesForTeam(self, headerTitle: str, divisionId: int) -> List[str]:
-        self.createWebDriver()
-        time.sleep(5)
         matchesHeader = self.driver.find_element(By.XPATH, "//h2 [contains( text(), '{}')]".format(headerTitle))
         matches = matchesHeader.find_element(By.XPATH, "..").find_elements(By.TAG_NAME, "a")
         
@@ -128,7 +131,7 @@ class ApaWebScraperWorker(Typechecked):
                 apaDatetime = self.apaDateToDatetime(match.text.split(' | ')[-1])
                 if not self.db.isValueInTeamMatchTable(teamMatchId):
                     matchLinks.append(link)
-                    self.db.addTeamMatch(teamMatchId, apaDatetime, divisionId)
+                    self.db.addTempTeamMatch(teamMatchId, apaDatetime, divisionId)
                 
         return matchLinks
     
@@ -139,13 +142,14 @@ class ApaWebScraperWorker(Typechecked):
     
 
     ############### PlayerMatch Scraping Functions ###############
-    def scrapePlayerMatches(self, args: Tuple[int, int]) -> None:
-        teamMatchId, divisionId = args
+    def scrapePlayerMatches(self, args: Tuple[int, int, str]) -> None:
+        teamMatchId, divisionId, datePlayed = args
         teamMatchLink = self.config.get('apaWebsite').get('teamMatchBaseLink') + str(teamMatchId)
         self.createWebDriver()
         playerMatches = self.getPlayerMatchesFromTeamMatch(teamMatchLink, divisionId)
         for match in playerMatches:
             self.db.addPlayerMatch(match)
+        self.db.addTeamMatch(teamMatchId, datePlayed, divisionId)
         print("Total player matches in database = {}".format(str(self.db.countPlayerMatches())))
 
     def getPlayerMatchesFromTeamMatch(self, link: str, divisionId: int) -> List[PlayerMatch]:
@@ -156,6 +160,8 @@ class ApaWebScraperWorker(Typechecked):
 
         if format.value == Format.EIGHT_BALL.value:
             time.sleep(9)
+        if format == Format.MASTERS:
+            time.sleep(4)
 
         teamsInfoHeader = self.driver.find_elements(By.CLASS_NAME, "teamName")
         teamNum1 = int(re.sub(r'\W+', '', teamsInfoHeader[0].text.split(' (')[1])[-2:])
@@ -170,73 +176,79 @@ class ApaWebScraperWorker(Typechecked):
 
         matchesHeader = self.driver.find_element(By.XPATH, "//h3 [contains( text(), 'MATCH BREAKOUT')]")
         matchesDiv = matchesHeader.find_element(By.XPATH, "..")
-        if not self.waitFor(15, self.areSkillLevelsLoaded, matchesDiv):
+        if format != Format.MASTERS and not self.waitFor(15, self.areSkillLevelsLoaded, matchesDiv):
             print("ERROR: skill levels never loaded")
             exit(1)
         
-        individualMatches = matchesDiv.find_elements(By.XPATH, "./*")
+        individualMatchesText = list(map(lambda el: el.text, matchesDiv.find_elements(By.XPATH, "./*")))
         
         playerMatches = []
         playerMatchId = 0
         teamMatchId = int(link.split('/')[-1])
         datePlayed = self.db.getDatePlayed(teamMatchId)
-        for individualMatch in individualMatches:
-            if 'LAG' not in individualMatch.text:
+        for individualMatchText in individualMatchesText:
+            if 'LAG' not in individualMatchText:
                 continue
             playerMatchId += 1
             mapper = None
             if format.value == Format.NINE_BALL.value:
                 mapper = nineBallSkillLevelMapper()
             
-            textElements = individualMatch.text.split('\n')
+            textElements = individualMatchText.split('\n')
 
-            removableWordList = ['LAG', 'SL', 'Pts Earned']
-            if format.value == Format.EIGHT_BALL.value:
-                removableWordList.append('GW/GMW')
-            elif format.value == Format.NINE_BALL.value:
-                removableWordList.append('PE/PN')
+            removableWordList = ['LAG', 'SL', 'Pts Earned', 'Wins', 'Masters', 'GW/GMW', 'PE/PN']
             textElements = removeElements(textElements, removableWordList)
             
             playerName1 = textElements[0].replace('"', "'")
-            playerName2 = textElements[6].replace('"', "'")
-            skillLevel1 = int(textElements[1])
-            skillLevel2 =int(textElements[5])
+            playerName2 = textElements[3].replace('"', "'") if format == Format.MASTERS else textElements[6].replace('"', "'")
+            skillLevel1 = NEW_PLAYER_SCRAPED_SKILL_LEVEL if format == Format.MASTERS else int(textElements[1])
+            skillLevel2 = NEW_PLAYER_SCRAPED_SKILL_LEVEL if format == Format.MASTERS else int(textElements[5])
             if format.value == Format.EIGHT_BALL.value and EIGHT_BALL_INCORRECT_SKILL_LEVEL in [skillLevel1, skillLevel2]:
                 print("ERROR: scraped skill level incorrectly")
                 exit(1)
             if format.value == Format.NINE_BALL.value:
                 skillLevel1 = mapper.get(playerPtsNeeded1)
-            teamPtsEarned1 = int(textElements[2])
-            teamPtsEarned2 = int(textElements[7])
+            teamPtsEarned1 = int(textElements[1 if format == Format.MASTERS else 2])
+            teamPtsEarned2 = int(textElements[4 if format == Format.MASTERS else 7])
 
-            score = textElements[4]
-            scoreElements = score.split(' - ')
-            score1 = list(map(lambda pointAmount: int(pointAmount), scoreElements[0].split('/')))
-            score2 = list(map(lambda pointAmount: int(pointAmount), scoreElements[1].split('/')))
-            if len(score1) == 1 or len(score2) == 1:
-                if format.value == Format.EIGHT_BALL.value:
-                    isFirstResultOfNewPlayer = skillLevel1 == NEW_PLAYER_SCRAPED_SKILL_LEVEL
-                    oldPlayerSkillLevel = skillLevel2 if isFirstResultOfNewPlayer else skillLevel1
-                    newPlayerTeamPtsEarned = teamPtsEarned1 if isFirstResultOfNewPlayer else teamPtsEarned2
-                    oldPlayerTeamPtsEarned = teamPtsEarned2 if isFirstResultOfNewPlayer else teamPtsEarned1
-                    newPlayerScore, oldPlayerScore = eightBallNewPlayerMapper(oldPlayerSkillLevel, newPlayerTeamPtsEarned, oldPlayerTeamPtsEarned)
-                    score1 = newPlayerScore if isFirstResultOfNewPlayer else oldPlayerScore
-                    score2 = oldPlayerScore if isFirstResultOfNewPlayer else newPlayerScore
-                else:
-                    score1.insert(0, 0)
-                    score2.insert(0, 0)
-            
-            if skillLevel1 == NEW_PLAYER_SCRAPED_SKILL_LEVEL:
-                skillLevel1 = DEFAULT_SKILL_LEVEL
-            if skillLevel2 == NEW_PLAYER_SCRAPED_SKILL_LEVEL:
-                skillLevel2 = DEFAULT_SKILL_LEVEL
+            playerPtsEarned1 = None
+            playerPtsEarned2 = None
+            playerPtsNeeded1  = None
+            playerPtsNeeded2  = None
+            if format == Format.MASTERS:
+                playerPtsEarned1 = teamPtsEarned1
+                playerPtsEarned2 = teamPtsEarned2
+                playerPtsNeeded1 = MASTERS_PTS_NEEDED
+                playerPtsNeeded2 = MASTERS_PTS_NEEDED
+            else:
+                score = textElements[4]
+                scoreElements = score.split(' - ')
+                score1 = list(map(lambda pointAmount: int(pointAmount), scoreElements[0].split('/')))
+                score2 = list(map(lambda pointAmount: int(pointAmount), scoreElements[1].split('/')))
+                if len(score1) == 1 or len(score2) == 1:
+                    if format.value == Format.EIGHT_BALL.value:
+                        isFirstResultOfNewPlayer = skillLevel1 == NEW_PLAYER_SCRAPED_SKILL_LEVEL
+                        oldPlayerSkillLevel = skillLevel2 if isFirstResultOfNewPlayer else skillLevel1
+                        newPlayerTeamPtsEarned = teamPtsEarned1 if isFirstResultOfNewPlayer else teamPtsEarned2
+                        oldPlayerTeamPtsEarned = teamPtsEarned2 if isFirstResultOfNewPlayer else teamPtsEarned1
+                        newPlayerScore, oldPlayerScore = eightBallNewPlayerMapper(oldPlayerSkillLevel, newPlayerTeamPtsEarned, oldPlayerTeamPtsEarned)
+                        score1 = newPlayerScore if isFirstResultOfNewPlayer else oldPlayerScore
+                        score2 = oldPlayerScore if isFirstResultOfNewPlayer else newPlayerScore
+                    else:
+                        score1.insert(0, 0)
+                        score2.insert(0, 0)
+                
+                if skillLevel1 == NEW_PLAYER_SCRAPED_SKILL_LEVEL:
+                    skillLevel1 = DEFAULT_SKILL_LEVEL
+                if skillLevel2 == NEW_PLAYER_SCRAPED_SKILL_LEVEL:
+                    skillLevel2 = DEFAULT_SKILL_LEVEL
 
-            playerPtsEarned1, playerPtsNeeded1 = score1
-            
-            playerPtsEarned2, playerPtsNeeded2 = score2
-            
-            if format.value == Format.NINE_BALL.value:
-                skillLevel2 = mapper.get(playerPtsNeeded2)
+                playerPtsEarned1, playerPtsNeeded1 = score1
+                
+                playerPtsEarned2, playerPtsNeeded2 = score2
+                
+                if format.value == Format.NINE_BALL.value:
+                    skillLevel2 = mapper.get(playerPtsNeeded2)
             
             
 

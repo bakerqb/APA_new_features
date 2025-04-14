@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{{ teamResults.getTeam().getTeamName() }}</title>
+</head>
+<!--link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}"-->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+<link href='http://fonts.googleapis.com/css?family=Overpass:400,300,700' rel='stylesheet' type='text/css'>
+
+<body style="background-image: url(https://m.media-amazon.com/images/I/712ZcffjFLL._AC_SX679_.jpg)">
+    <a style="color:black" href="/division?division={{sessionId}}&divisionId={{divisionId}}">
+        <svg xmlns="http://www.w3.org/2000/svg" width="400" height="200px" fill="currentColor"
+            class="bi bi-arrow-return-left" viewBox="0 0 16 16" style="border-color:black">
+            <path fill-rule=" evenodd"
+                d="M14.5 1.5a.5.5 0 0 1 .5.5v4.8a2.5 2.5 0 0 1-2.5 2.5H2.707l3.347 3.346a.5.5 0 0 1-.708.708l-4.2-4.2a.5.5 0 0 1 0-.708l4-4a.5.5 0 1 1 .708.708L2.707 8.3H12.5A1.5 1.5 0 0 0 14 6.8V2a.5.5 0 0 1 .5-.5" />
+        </svg>
+    </a>
+
+    <header class="p-3 mb-3">
+        <div class="container-fluid p-2 bg-dark text-white border border-4">
+            <h1 class="text-center" style="font-size: 7rem; font-family: 'Overpass'">{{
+                teamResults.getTeam().getTeamName() }}</h1>
+
+            <ul class="row p-2 nav gap-3  nav-justified">
+                {% for playerName in teamResults.getPlayerMatchesPerPlayer().keys() %}
+                <li class="align-self-center nav-item badge rounded-pill border bg-secondary-subtle">
+                    <b>
+
+                        <a class="nav-link text-black" style="font-size: 10px" href="#{{playerName}}">{{playerName}}</a>
+                    </b>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </header>
+
+
+    {% for playerName, item in teamResults.getPlayerMatchesPerPlayer().items() %}
+
+    <div class="container p-5">
+        <a id="{{playerName}}">
+            <div class="d-flex row justify-content-center">
+                <div class="col-md-8 bg-dark text-white align-self-center rounded-top border-bottom">
+                    <div class="d-flex row align-self-center justify-content-center text-center">
+                        <div class="col-md-7 align-self-center" style="font-family: 'Overpass'">
+                            <h1>{{ playerName }}</h1>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </a>
+        {% for playerMatch in item.get('playerMatches') %}
+        <div class="row p-2 rounded bg-dark text-white">
+            <div
+                class="col-md-5 rounded border align-self-center {{'bg-secondary' if playerMatch.getPlayerResults()[0].getScore().getTeamPtsEarned() < 7 else 'bg-success'}}">
+                <div class="row">
+
+
+                    <div class="align-self-center col-md-6">
+                        <div class="row-md-6">
+                            <h4>{{playerMatch.getPlayerResults()[0].getPlayer().getPlayerName()}}
+                            </h4>
+                        </div>
+                        <div class="row-md-6">
+                            <p>{{playerMatch.getPlayerResults()[0].getTeam().getTeamName()}}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-2 bg-dark align-self-center">
+
+                    </div>
+                    <div class="col-md-2 border rounded text-center bg-dark" style="color:white">
+                        <div class="row">
+                            <h1>{{playerMatch.getPlayerResults()[0].getScore().getTeamPtsEarned()}}</h1>
+                        </div>
+                        <div class="row">
+                            <h6>Pts</h6>
+                        </div>
+                    </div>
+
+
+                </div>
+
+            </div>
+            <div class="justify-content-center text-center align-self-center col-md-2 mx-auto">
+                <div class="row border-bottom">
+                    <div class="col-md-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                            class="bi bi-calendar-event" viewBox="0 0 16 16">
+                            <path
+                                d="M11 6.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5z" />
+                            <path
+                                d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z" />
+                        </svg>
+                    </div>
+                    <div class="col-md-10">
+                        <h5>{{playerMatch.getReadableDatePlayed()}}</h5>
+                    </div>
+
+                </div>
+                <div class="row">
+                    <div class="align-self-center col-md-3">
+
+                        <h6>Match</h6>
+                    </div>
+                    <div class="col-md-6">
+
+                        <h3>{{playerMatch.getPlayerMatchId()}}</h3>
+                    </div>
+                </div>
+            </div>
+            <div
+                class="col-md-5 rounded border align-self-center {{'bg-secondary' if playerMatch.getPlayerResults()[1].getScore().getTeamPtsEarned() < 7 else 'bg-success'}}">
+                <div class="row flex-row-reverse">
+
+                    <div class="d-flex align-self-center col-md-1"
+                        style="margin: 0px; float: none; width: 100px; height: 75px;">
+
+                    </div>
+                    <div class="align-self-center col-md-6">
+                        <div class="row-md-6">
+                            <h4>{{playerMatch.getPlayerResults()[1].getPlayer().getPlayerName()}}
+                            </h4>
+                        </div>
+                        <div class="row-md-6">
+                            <p>{{playerMatch.getPlayerResults()[1].getTeam().getTeamName()}}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-2 border rounded text-center bg-dark" style="color:white">
+                        <div class="row">
+                            <h1>{{playerMatch.getPlayerResults()[1].getScore().getTeamPtsEarned()}}</h1>
+                        </div>
+                        <div class="row">
+                            <h6>Pts</h6>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endfor %}
+
+</body>
+
+</html>

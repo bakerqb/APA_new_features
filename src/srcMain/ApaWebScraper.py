@@ -67,6 +67,7 @@ class ApaWebScraper(Typechecked):
     def scrapeDivision(self, divisionId: int) -> None:
         self.createWebDriver()
         print(f"Fetching results for division {divisionId}")
+        
         self.driver.get(f"{self.config.get('apaWebsite').get('divisionBaseLink')}{divisionId}")
         time.sleep(1)
         division = self.addDivisionToDatabase()
@@ -78,28 +79,37 @@ class ApaWebScraper(Typechecked):
         
         argsList = ((division, teamLink, divisionId) for teamLink in teamLinks)
         start = time.time()
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            executor.map(self.scrapeTeamInfoAndTeamMatches, argsList) 
-        print("finished first mapping")
-        if self.config.get('debugMode'):
-            for args in self.db.getTeamMatches(divisionId):
-                self.transformScrapeMatchLinksAllTeams(args)
+        
+        
+        self.db.deleteTempTeamMatch(None, divisionId)
+        if not self.config.get('concurrentMode'):
+            for args in argsList:
+                self.scrapeTeamInfoAndTeamMatches(args)
         else:
             with concurrent.futures.ThreadPoolExecutor() as executor:
-                executor.map(self.transformScrapeMatchLinksAllTeams, self.db.getTeamMatches(divisionId))
-
+                executor.map(self.scrapeTeamInfoAndTeamMatches, argsList) 
+        print("finished first mapping")
+        
+        if not self.config.get('concurrentMode'):
+            for args in self.db.getUnscrapedTempTeamMatches(divisionId, None):
+                self.transformScrapeMatchLinksAllTeams(args[:2])
+        else:
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                executor.map(self.transformScrapeMatchLinksAllTeams, self.db.getUnscrapedTempTeamMatches(divisionId, None))
+        
         format = self.dataFetcher.getFormatForDivision(divisionId)
-        # Now set all the adjusted skills
-        playerMatches = self.dataFetcher.getPlayerMatches(None, divisionId, None, None, format, None, None, None, None, None, None, True)
-       
-        for playerMatch in playerMatches:
-            for index, playerResult in enumerate(playerMatch.getPlayerResults()):
-                self.db.updateASL(
-                    playerMatch.getPlayerMatchId(),
-                    playerMatch.getTeamMatchId(),
-                    playerResult.getAdjustedSkillLevel(),
-                    index
-                )
+        if format != Format.MASTERS:
+            # Now set all the adjusted skills
+            playerMatches = self.dataFetcher.getPlayerMatches(None, divisionId, None, None, format, None, None, None, None, None, None, True)
+        
+            for playerMatch in playerMatches:
+                for index, playerResult in enumerate(playerMatch.getPlayerResults()):
+                    self.db.updateASL(
+                        playerMatch.getPlayerMatchId(),
+                        playerMatch.getTeamMatchId(),
+                        playerResult.getAdjustedSkillLevel(),
+                        index
+                    )
             
 
         end = time.time()
