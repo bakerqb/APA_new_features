@@ -13,6 +13,7 @@ waitTimes:
 # 8-ball, 9-ball, or masters
 format: 8-ball
 debugMode: true
+concurrentMode: true
 typecheck: false
 
 predictionAccuracy:

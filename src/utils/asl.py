@@ -16,6 +16,7 @@ def getAdjustedSkillLevel(memberId, currentSkillLevel, datePlayed):
         SKILL_LEVEL_CHANGE_ADJUSTMENT = .25
         MAX_ADJUSTED_SCORE_OFFSET = .49
         ADJUSTED_SCORE_OFFSET_THRESHOLD = .49
+        AVERAGE_OFFSET = .5
 
         playerResultsDb = db.getPlayerMatches(None, None, None, memberId, FORMAT, NUM_RELEVANT_PLAYERMATCHES, datePlayed, None, None, None)
         playerMatches = list(map(lambda playerMatch: converter.toPlayerMatchWithSql(playerMatch), playerResultsDb))
@@ -134,7 +135,7 @@ def getAdjustedSkillLevel(memberId, currentSkillLevel, datePlayed):
         
         adjustedScoreOffset = float(f'{adjustedScoreOffset:.2f}')
 
-        return round(int(currentSkillLevel) + ADJUSTED_SCORE_OFFSET_THRESHOLD + adjustedScoreOffset, 2)
+        return round(int(currentSkillLevel) + AVERAGE_OFFSET + adjustedScoreOffset, 2)
 
 
 ############ Currently unused methods ############

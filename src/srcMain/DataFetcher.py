@@ -52,9 +52,10 @@ class DataFetcher(Typechecked):
         return players
     
     def getTeamResults(self, teamId: int) -> TeamResults:
-        format = Format(self.config.getConfig().get("format"))
-        playerMatches = self.getPlayerMatches(None, None, teamId, None, format, None, None, None, None, None, None, True)
         team = self.getTeam(None, None, teamId)
+        format = team.getDivision().getFormat()
+        playerMatches = self.getPlayerMatches(None, None, teamId, None, format, None, None, None, None, None, None, True)
+        
         teamPlayers = self.getTeamPlayers(teamId)
         results = TeamResults(team, playerMatches, teamPlayers)
         return results

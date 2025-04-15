@@ -14,7 +14,7 @@ from src.srcMain.DatabaseTypes import DatabaseTypes
 class Database(Typechecked):
     # ------------------------- Setup -------------------------
     def __init__(self):
-        self.con = sqlite3.connect("results.db", check_same_thread=False)
+        self.con = sqlite3.connect("apa_data.db", check_same_thread=False)
         self.cur = self.con.cursor()
 
     def refreshAllTables(self) -> None:
@@ -131,6 +131,16 @@ class Database(Typechecked):
 
         try:
             self.cur.execute(
+                "CREATE TABLE TempTeamMatch (" +
+                "teamMatchId INTEGER PRIMARY KEY, " +
+                "datePlayed DATETIME, " +
+                "divisionId INTEGER)"
+            )
+        except Exception:
+            pass
+
+        try:
+            self.cur.execute(
                 "CREATE TABLE PlayerMatch(" +
                 "playerMatchId INTEGER, teamMatchId INTEGER, teamId1 TEXT, " +
                 "memberId1 INTEGER, skillLevel1 INTEGER, adjustedSkillLevel1 INTEGER, scoreId1 INTEGER, " + 
@@ -205,7 +215,7 @@ class Database(Typechecked):
     
     def getDatePlayed(self, teamMatchId: int) -> str:
         return self.cur.execute(
-            f"SELECT datePlayed FROM TeamMatch WHERE teamMatchId = {teamMatchId}"
+            f"SELECT datePlayed FROM TempTeamMatch WHERE teamMatchId = {teamMatchId}"
         ).fetchone()[0]
 
     def getTeamMatches(self, divisionId: int) -> List[DatabaseTypes.TeamMatch]:
@@ -220,6 +230,16 @@ class Database(Typechecked):
                 "ON pm.teamMatchId = tm.teamMatchId " +
                 f"WHERE tm.divisionId = {divisionId}" +
             ") AND tm.teamMatchId IS NOT NULL"
+        ).fetchall()
+    
+    def getUnscrapedTempTeamMatches(self, divisionId: int, teamMatchId: int | None) -> List[DatabaseTypes.TeamMatch]:
+        return self.cur.execute(
+            "SELECT ttm.teamMatchId, d.divisionId, ttm.datePlayed " +
+            "FROM Division d " +
+            f"LEFT JOIN TempTeamMatch ttm ON ttm.divisionId = d.divisionId " +
+            f"WHERE d.divisionId = {divisionId} " +
+            f"AND ttm.teamMatchId NOT IN (SELECT teamMatchId FROM TeamMatch WHERE divisionId = {divisionId}) " +
+            ("" if teamMatchId is None else f"AND teamMatchId = {teamMatchId}")
         ).fetchall()
     
     def getTeamsFromDivision(self, divisionId: int) -> List[DatabaseTypes.TeamWithoutRoster]:
@@ -340,9 +360,13 @@ class Database(Typechecked):
     def addPlayerMatch(self, playerMatch: PlayerMatch) -> None:
         for playerResult in playerMatch.getPlayerResults():
             score = playerResult.getScore()
-            self.cur.execute(
-                f"INSERT INTO Score VALUES (NULL, {score.getTeamPtsEarned()}, {score.getPlayerPtsEarned()}, {score.getPlayerPtsNeeded()})"
-            )
+            try:
+                self.cur.execute(
+                    f"INSERT INTO Score VALUES (NULL, {score.getTeamPtsEarned()}, {score.getPlayerPtsEarned()}, {score.getPlayerPtsNeeded()})"
+                )
+            except Exception as e:
+                print(e)
+                pass
 
         scoreId = int(self.cur.execute("SELECT last_insert_rowid() FROM Score").fetchone()[0])
         
@@ -357,18 +381,32 @@ class Database(Typechecked):
         skillLevel2 = playerMatch.getPlayerResults()[1].getSkillLevel()
         scoreId2 = str(scoreId)
 
-
-        self.cur.execute(
-            f"""INSERT INTO PlayerMatch VALUES ({playerMatchId}, {teamMatchId}, {teamId1}, {memberId1}, {skillLevel1}, "NULL", {scoreId1}, {teamId2}, {memberId2}, {skillLevel2}, "NULL", {scoreId2})"""
-        )
+        try:
+            self.cur.execute(f"DELETE FROM PlayerMatch WHERE teamMatchId = {teamMatchId} and playerMatchId = {playerMatchId}")
+            self.cur.execute(
+                f"""INSERT INTO PlayerMatch VALUES ({playerMatchId}, {teamMatchId}, {teamId1}, {memberId1}, {skillLevel1}, "NULL", {scoreId1}, {teamId2}, {memberId2}, {skillLevel2}, "NULL", {scoreId2})"""
+            )
+        except Exception as e:
+            print(e)
+            pass
         self.con.commit()
     
     def addTeamMatch(self, teamMatchId: int, apaDatetime: str, divisionId: int) -> None:
         try:
             self.cur.execute(f"INSERT INTO TeamMatch VALUES ({teamMatchId}, '{apaDatetime}', {divisionId})")
-            self.con.commit()
+            
         except Exception:
             pass
+        self.con.commit()
+    
+    def addTempTeamMatch(self, teamMatchId: int, apaDatetime: str, divisionId: int) -> None:
+        try:
+            self.createTables()
+            self.cur.execute(f"INSERT INTO TempTeamMatch VALUES ({teamMatchId}, '{apaDatetime}', {divisionId})")
+            
+        except Exception:
+            pass
+        self.con.commit()
     
     def addTeamInfo(self, team: Team) -> None:
         divisionId = team.getDivision().getDivisionId()
@@ -376,10 +414,10 @@ class Database(Typechecked):
         teamId = team.getTeamId()
         teamNum = team.getTeamNum()
         teamName = team.getTeamName()
-        self.deleteTeamWithTeamId(teamId)
         self.addTeam(divisionId, teamId, teamNum, teamName)
         #TODO: Delete all currentTeamPlayer entries belonging to the team and re-add all the players
         # That way the table stays current
+        format = team.getDivision().getFormat()
         
         for player in team.getPlayers():
             memberId = player.getMemberId()
@@ -387,7 +425,7 @@ class Database(Typechecked):
             currentSkillLevel = player.getCurrentSkillLevel()
 
             self.addCurrentTeamPlayer(teamId, memberId)
-            self.addPlayer(memberId, playerName, currentSkillLevel, sessionId)
+            self.addPlayer(memberId, playerName, currentSkillLevel, sessionId, format)
 
     def addTeam(self, divisionId: int, teamId: int, teamNum: int, teamName: str) -> None:
         self.createTables()
@@ -395,7 +433,8 @@ class Database(Typechecked):
             self.cur.execute(
                 f"""INSERT INTO Team VALUES ({divisionId}, {teamId}, {teamNum}, "{teamName}")"""
             )
-        except Exception:
+        except Exception as e:
+            print(e)
             pass
 
         self.con.commit()
@@ -406,11 +445,12 @@ class Database(Typechecked):
             self.cur.execute(
                 f"INSERT INTO CurrentTeamPlayer VALUES ({teamId}, {memberId})"
             )
-        except Exception:
+        except Exception as e:
+            print(e)
             pass
         self.con.commit()
 
-    def addPlayer(self, memberId: int, playerName: str, currentSkillLevel: int, sessionId: int) -> None:
+    def addPlayer(self, memberId: int, playerName: str, currentSkillLevel: int, sessionId: int, format: Format) -> None:
         self.createTables()
         try:
             self.cur.execute(
@@ -418,7 +458,7 @@ class Database(Typechecked):
             )
         except Exception:
             mostRecentlyPlayedSessionByPlayer = self.getLastSessionIdPlayedByPlayer(memberId)
-            if mostRecentlyPlayedSessionByPlayer is None or sessionId >= mostRecentlyPlayedSessionByPlayer:
+            if (mostRecentlyPlayedSessionByPlayer is None or sessionId >= mostRecentlyPlayedSessionByPlayer) and format != Format.MASTERS:
                 self.cur.execute(
                     f"""UPDATE Player SET currentSkillLevel = {currentSkillLevel}, playerName = "{playerName}" WHERE memberId = {memberId}"""
                 )
@@ -487,6 +527,24 @@ class Database(Typechecked):
             )
             
         self.con.commit()
+
+    def deleteTempTeamMatch(self, sessionId: int | None, divisionId: int | None) -> None:
+        assert(sessionId is not None or divisionId is not None)
+
+        if divisionId is None:
+            self.cur.execute(
+                "DELETE FROM TempTeamMatch WHERE divisionId IN (" +
+                    "SELECT divisionId FROM Division d " +
+                    "LEFT JOIN Session s ON s.sessionId = d.sessionId " +
+                    f"WHERE s.sessionId = {sessionId}" +
+                ")"
+            )
+        else:
+            self.cur.execute(
+                f"DELETE FROM TempTeamMatch WHERE divisionId = {divisionId}"
+            )
+            
+        self.con.commit()
     
     def deletePlayerMatch(self, sessionId: int | None, divisionId: int | None) -> None:
         assert(sessionId is not None or divisionId is not None)
@@ -549,22 +607,6 @@ class Database(Typechecked):
             )
         else:
             self.cur.execute(f"DELETE FROM Team WHERE divisionId = {divisionId}")
-        self.con.commit()
-
-    def deleteTeamWithTeamId(self, teamId: int) -> None:
-        self.deleteCurrentTeamPlayerWithTeamId(teamId)
-        
-        self.cur.execute(
-            f"DELETE FROM Team WHERE teamId = {teamId}"
-        )
-
-        self.con.commit()
-
-    def deleteCurrentTeamPlayerWithTeamId(self, teamId: int) -> None:
-        self.cur.execute(
-            f"DELETE FROM CurrentTeamPlayer WHERE teamId = {teamId}"
-        )
-        
         self.con.commit()
         
     def deleteCurrentTeamPlayer(self, sessionId: int | None, divisionId: int | None) -> None:
