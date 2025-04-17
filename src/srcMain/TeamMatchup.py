@@ -16,12 +16,12 @@ from srcMain.Config import Config
 from srcMain.Typechecked import Typechecked
 
 class TeamMatchup(Typechecked):
-    def __init__(self, myTeam: Team, opponentTeam: Team, putupPlayer: Player | None, matchNumber: int, format: Format):
+    def __init__(self, myTeam: Team, opponentTeam: Team, putupPlayer: Player | None, matchIndex: int, format: Format):
         self.myTeam = myTeam
         self.opponentTeam = opponentTeam
         self.doesMyTeamPutUp = putupPlayer is None
         self.putupPlayer = putupPlayer
-        self.matchNumber = matchNumber
+        self.matchIndex = matchIndex
         self.format = format
         self.timeCounter = {
             self.start.__name__: 0,
@@ -54,101 +54,111 @@ class TeamMatchup(Typechecked):
             
         self.skillLevelMatrix = createASLMatrix(self.format, self.config.get("predictionAccuracy").get("expectedPtsMethod"))
     
-    def start(self, teamMatchCriteria: TeamMatchCriteria, matchNumber: int) -> PotentialTeamMatch:
+    def start(self, teamMatchCriteria: TeamMatchCriteria, matchIndex: int) -> PotentialTeamMatch:
         startTime = time.perf_counter()
         self.myTeam.getPlayers().sort()
         self.opponentTeam.getPlayers().sort()
-        matchups = self.asynchronousAlgorithm(self.putupPlayer, teamMatchCriteria, matchNumber, self.myTeam.getPlayers(), self.opponentTeam.getPlayers(), PotentialTeamMatch([]))
+        throwIndexAddition = 0 if self.putupPlayer is None else 1
+        throwIndex = (matchIndex * 2) + throwIndexAddition
+        matchups = self.asynchronousAlgorithm(self.putupPlayer, teamMatchCriteria, throwIndex, self.myTeam.getPlayers(), self.opponentTeam.getPlayers(), PotentialTeamMatch([]), throwIndex)
         endTime = time.perf_counter()
         self.timeCounter[self.start.__name__] += endTime - startTime
         print(self.timeCounter)
         return matchups
     
+    def getThrowIndexAddition(self, putupPlayer: Player | None):
+        return 0 if putupPlayer is None else 1
+    
 
-    def asynchronousAlgorithm(self, putupPlayer: Player | None, teamMatchCriteria: TeamMatchCriteria, matchNumber: int, myPlayers: List[Player], theirPlayers: List[Player], soFarMatch: PotentialTeamMatch) -> PotentialTeamMatch:
-        # print("asynchronousAlgorithm matchNumber: ", matchNumber)
-        if matchNumber >= NUM_PLAYERMATCHES_IN_TEAMMATCH:
+    def asynchronousAlgorithm(self, putupPlayer: Player | None, teamMatchCriteria: TeamMatchCriteria, throwIndex: int, myPlayers: List[Player], theirPlayers: List[Player], soFarMatch: PotentialTeamMatch, originalThrowIndex: int) -> PotentialTeamMatch:
+        # Base case: 5 PlayerMatches have been decided
+        matchIndex = throwIndex // 2
+        if matchIndex >= NUM_PLAYERMATCHES_IN_TEAMMATCH:
             return soFarMatch
         
         amILookingAtMyOwnTeam = self.myTeam.isPlayerOnTeam(myPlayers[0])
-        
         bestMatch = None
+        bestPlayer = None
+        nextPutupPlayer = None
         tempMyPlayers = myPlayers.copy()
         tempTheirPlayers = theirPlayers.copy()
+        nextMyPlayers = None
+        nextTheirPlayers = None
 
-        if amILookingAtMyOwnTeam and putupPlayer is None:
-            # It's our team's throw first
-            for player in self.findEligiblePlayers(tempMyPlayers, matchNumber, teamMatchCriteria, amILookingAtMyOwnTeam, matchNumber, soFarMatch):
+        # The team with the "myPlayers" roster is throwing first. Loop through players for which one gives you the best score throughout the whole TeamMatch
+        if putupPlayer is None:
+            
+            for player in self.findEligiblePlayers(tempMyPlayers, throwIndex, teamMatchCriteria, amILookingAtMyOwnTeam, throwIndex, soFarMatch):
                 anotherTempMyPlayers = tempMyPlayers.copy()
                 anotherTempMyPlayers.remove(player)
                 anotherTempTheirPlayers = tempTheirPlayers.copy()
-                potentialTeamMatch = self.asynchronousAlgorithm(player, teamMatchCriteria, matchNumber, anotherTempTheirPlayers, anotherTempMyPlayers, soFarMatch)
+                potentialTeamMatch = self.findBestNextMatchup(player, anotherTempTheirPlayers, anotherTempMyPlayers, soFarMatch, teamMatchCriteria, throwIndex + 1, originalThrowIndex)
                 if bestMatch is None or round(potentialTeamMatch.pointDifference(amILookingAtMyOwnTeam), 1) > round(bestMatch.pointDifference(amILookingAtMyOwnTeam), 1):
                     bestMatch = potentialTeamMatch
+                    bestPlayer = player
+                    
+            tempMyPlayers.remove(bestPlayer)
+            nextPutupPlayer = bestPlayer
+            nextMyPlayers = tempTheirPlayers
+            nextTheirPlayers = tempMyPlayers
+        
+        # The team with the "myPlayers" roster is responding to a throw
         else:
-            startTime = time.perf_counter()
-            unrealisticTeamMatch = self.findBestNextMatchup(putupPlayer, tempMyPlayers, tempTheirPlayers, soFarMatch, teamMatchCriteria, matchNumber, matchNumber)
-            endTime = time.perf_counter()
-            self.timeCounter[f"async{matchNumber}"] += endTime - startTime
+            unrealisticTeamMatch = self.findBestNextMatchup(putupPlayer, tempMyPlayers, tempTheirPlayers, soFarMatch, teamMatchCriteria, throwIndex, originalThrowIndex)
             firstPotentialPlayerMatch = unrealisticTeamMatch.getPotentialPlayerMatches()[len(soFarMatch.getPotentialPlayerMatches())]
             playerResult1, playerResult2 = firstPotentialPlayerMatch.getPotentialPlayerResults()
-            tempSoFarMatch = soFarMatch.copy()
-            tempSoFarMatch.addPotentialPlayerResult(playerResult1)
-            tempSoFarMatch.addPotentialPlayerResult(playerResult2)
+            soFarMatch.addPotentialPlayerResult(playerResult1)
+            soFarMatch.addPotentialPlayerResult(playerResult2)
             
             # TODO: FIX THIS SECTION. It doesn't know which player is on which team. Probably use an if statment involving a combination of self.myTeam.getPlayers() and amILookinngAtMyOwnTeam
-            myPlayer = None
-            theirPlayer = None
+
             player1 = playerResult1.getPlayer() 
             player2 = playerResult2.getPlayer()
             if amILookingAtMyOwnTeam:
                 if player1 in self.myTeam.getPlayers():
-                    myPlayer = player1
-                    theirPlayer = player2
+                    bestPlayer = player1
                 else:
-                    myPlayer = player2
-                    theirPlayer = player1
+                    bestPlayer = player2
             else:
                 if player1 in self.myTeam.getPlayers():
-                    myPlayer = player2
-                    theirPlayer = player1
+                    bestPlayer = player2
                 else:
-                    myPlayer = player1
-                    theirPlayer = player2
-
+                    bestPlayer = player1
             
-            tempMyPlayers.remove(myPlayer)
-            if putupPlayer is None:
-                tempTheirPlayers.remove(theirPlayer)
-                bestMatch = self.asynchronousAlgorithm(None, teamMatchCriteria, matchNumber + 1, tempTheirPlayers, tempMyPlayers, tempSoFarMatch)
-            else:
-                bestMatch = self.asynchronousAlgorithm(None, teamMatchCriteria, matchNumber + 1, tempMyPlayers, tempTheirPlayers, tempSoFarMatch)
-            # bestMatch = bestMatch
-        return bestMatch
+            tempMyPlayers.remove(bestPlayer)
+            nextPutupPlayer = None
+            nextMyPlayers = tempMyPlayers
+            nextTheirPlayers = tempTheirPlayers
+            
+        
+        
+        return self.asynchronousAlgorithm(nextPutupPlayer, teamMatchCriteria, throwIndex + 1, nextMyPlayers, nextTheirPlayers, soFarMatch, originalThrowIndex + 1)
+        
 
     
-    def findBestNextMatchup(self, chosenPlayer: Player | None, myPlayers: List[Player], theirPlayers: List[Player], potentialTeamMatch: PotentialTeamMatch, teamMatchCriteria: TeamMatchCriteria, matchNumber: int, originalMatchNumber: int) -> PotentialTeamMatch:
-        # print("findBestNextMatchup matchNumber: ", matchNumber)
-        # This function is used to find the matchup that would happen for match number <matchNumber>
+    def findBestNextMatchup(self, putupPlayer: Player | None, myPlayers: List[Player], theirPlayers: List[Player], potentialTeamMatch: PotentialTeamMatch, teamMatchCriteria: TeamMatchCriteria, throwIndex: int, originalThrowIndex: int) -> PotentialTeamMatch:
+        
+        # This function is used to find the matchup that would happen for match index <throwIndex // 2>
         # The rest of the matchups that are generated from this function do not take into account teamMatchCriteria
         # because the opponent doesn't know the other team's order and only knows who can play that very match
         
         amILookingAtMyOwnTeam = self.myTeam.isPlayerOnTeam(myPlayers[0])
+        matchIndex = throwIndex // 2
 
         bestPotentialTeamMatch = None
-        for player in self.findEligiblePlayers(myPlayers, matchNumber, teamMatchCriteria, amILookingAtMyOwnTeam, originalMatchNumber, potentialTeamMatch):
+        for player in self.findEligiblePlayers(myPlayers, throwIndex, teamMatchCriteria, amILookingAtMyOwnTeam, originalThrowIndex, potentialTeamMatch):
             # Make copies of myPlayers, theirPlayers, and potentialTeamMatch
             tempMyPlayers, tempTheirPlayers, tempPotentialTeamMatch = self.makeCopies(player, myPlayers, theirPlayers, potentialTeamMatch)
             
             # If you don't throw first for this PlayerMatch, add the potential matchup to the potentialTeamMatch
-            if chosenPlayer is not None:
-                self.addPlayerMatch(player, chosenPlayer, tempPotentialTeamMatch)
+            if putupPlayer is not None:
+                self.addPlayerMatch(player, putupPlayer, tempPotentialTeamMatch)
 
-            if matchNumber < NUM_PLAYERMATCHES_IN_TEAMMATCH - 1 or chosenPlayer is None:
+            if matchIndex < NUM_PLAYERMATCHES_IN_TEAMMATCH - 1 or putupPlayer is None:
                 tempPotentialTeamMatch = (
-                    self.findBestNextMatchup(None, tempTheirPlayers, tempMyPlayers, tempPotentialTeamMatch, teamMatchCriteria, matchNumber + 1, originalMatchNumber)
-                    if chosenPlayer is not None 
-                    else self.findBestNextMatchup(player, tempTheirPlayers, tempMyPlayers, tempPotentialTeamMatch, teamMatchCriteria, matchNumber, originalMatchNumber)
+                    self.findBestNextMatchup(None, tempTheirPlayers, tempMyPlayers, tempPotentialTeamMatch, teamMatchCriteria, throwIndex + 1, originalThrowIndex)
+                    if putupPlayer is not None 
+                    else self.findBestNextMatchup(player, tempTheirPlayers, tempMyPlayers, tempPotentialTeamMatch, teamMatchCriteria, throwIndex + 1, originalThrowIndex)
                 )
             
             startTime = time.perf_counter()
@@ -216,16 +226,17 @@ class TeamMatchup(Typechecked):
         allMemberIds = list(map(lambda player: player.getMemberId(), allPlayers))
         return len(set(allMemberIds))
     
-    def findEligiblePlayers(self, players: List[Player], matchNumber: int, teamMatchCriteria: TeamMatchCriteria, amILookingAtMyOwnTeam: bool, originalMatchNumber: int, soFarMatch: PotentialTeamMatch) -> List[Player]:
+    def findEligiblePlayers(self, players: List[Player], throwIndex: int, teamMatchCriteria: TeamMatchCriteria, amILookingAtMyOwnTeam: bool, originalThrowIndex: int, soFarMatch: PotentialTeamMatch) -> List[Player]:
         startTime = time.perf_counter()
         numUniquePlayersFromStart = self.getNumUniquePlayers(players, soFarMatch, amILookingAtMyOwnTeam)
         
-        noNeedToCheckTeamMatchCriteria = amILookingAtMyOwnTeam and matchNumber != originalMatchNumber
+        needToCheckTeamMatchCriteria = throwIndex == originalThrowIndex or not amILookingAtMyOwnTeam
         
         eligiblePlayers = []
+        matchIndex = throwIndex // 2
         for player in players:
             skilLevelCapStartTime = time.perf_counter()
-            if not noNeedToCheckTeamMatchCriteria and teamMatchCriteria.playerMustPlay(player, matchNumber, numUniquePlayersFromStart):
+            if needToCheckTeamMatchCriteria and teamMatchCriteria.playerMustPlay(player, matchIndex, numUniquePlayersFromStart):
                 return [player]
 
             # Determine whether throwing that player would violate (or lead to a violation of) the 23 skill level cap rule
@@ -258,7 +269,7 @@ class TeamMatchup(Typechecked):
 
             removeEndTime = time.perf_counter()
             self.timeCounter['removeDuplicatePlayersExceptLowest'] += removeEndTime - removeStartTime
-            numMatchesLeftAfterChoosingPlayer =  NUM_PLAYERMATCHES_IN_TEAMMATCH - matchNumber - 1
+            numMatchesLeftAfterChoosingPlayer =  NUM_PLAYERMATCHES_IN_TEAMMATCH - matchIndex - 1
             sumRemainingSkillLevels = sum(list(map(lambda currentPlayer: currentPlayer.getCurrentSkillLevel(), remainingSkillLevels[:numMatchesLeftAfterChoosingPlayer])))
             sumSkillLevelsPlayedSoFar = soFarMatch.sumSkillLevels(amILookingAtMyOwnTeam)
             wouldExceedSkillLevelCap = sumRemainingSkillLevels + player.getCurrentSkillLevel() + sumSkillLevelsPlayedSoFar > SKILL_LEVEL_CAP
@@ -277,11 +288,11 @@ class TeamMatchup(Typechecked):
 
             # If we're deciding a putup an immediate next putup for our team, we need to check if the player is available that match
             # Otherwise, assume the opponent is making their decisions without knowledge of when our players are available
-            passesTeamMatchCriteriaCheck = player.getMemberId() not in teamMatchCriteria.getMemberIdsForGame(matchNumber)
+            passesTeamMatchCriteriaCheck = player.getMemberId() not in teamMatchCriteria.getMemberIdsForGame(matchIndex)
             if (
                 not wouldExceedSkillLevelCap and 
                 not wouldBreakDuplicateConstraint and
-                (noNeedToCheckTeamMatchCriteria or (not noNeedToCheckTeamMatchCriteria and passesTeamMatchCriteriaCheck))
+                (not needToCheckTeamMatchCriteria or (needToCheckTeamMatchCriteria and passesTeamMatchCriteriaCheck))
             ):
                 eligiblePlayers.append(player)
         
@@ -293,8 +304,8 @@ class TeamMatchup(Typechecked):
         if self.putupPlayer is not None and self.putupPlayer in self.opponentTeam.getPlayers():
             raise InvalidTeamMatchCriteria(f"ERROR: {self.putupPlayer.getPlayerName()} was just put up. They cannot also be selected from the list")
 
-        myTeamCorrectNumPlayers = NUM_PLAYERMATCHES_IN_TEAMMATCH - self.matchNumber
-        opponentTeamCorrectNumPlayers = NUM_PLAYERMATCHES_IN_TEAMMATCH - self.matchNumber if self.putupPlayer is None else NUM_PLAYERMATCHES_IN_TEAMMATCH - self.matchNumber - 1
+        myTeamCorrectNumPlayers = NUM_PLAYERMATCHES_IN_TEAMMATCH - self.matchIndex
+        opponentTeamCorrectNumPlayers = NUM_PLAYERMATCHES_IN_TEAMMATCH - self.matchIndex if self.putupPlayer is None else NUM_PLAYERMATCHES_IN_TEAMMATCH - self.matchIndex - 1
         
         '''
         if len(self.myTeam.getPlayers()) != myTeamCorrectNumPlayers:

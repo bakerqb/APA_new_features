@@ -71,8 +71,6 @@ class TeamMatchCriteria(Typechecked):
         if numUniquePlayersFromStart > NUM_PLAYERMATCHES_IN_TEAMMATCH:
             return False
         
-        if player.getMemberId() in self.idsForGames[matchIndex]:
-            return False
         for idsForGame in self.idsForGames[matchIndex + 1:]:
             if player.getMemberId() not in idsForGame:
                 return False
