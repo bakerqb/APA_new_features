@@ -308,10 +308,12 @@ class ApaWebScraperWorker(Typechecked):
         
     def areSkillLevelsLoaded(self, matchesDiv) -> bool:
         individualMatches = matchesDiv.find_elements(By.XPATH, "./*")
+        noMatchesPlayed = True
         for individualMatch in individualMatches:
             if 'LAG' not in individualMatch.text:
                 continue
-        
+            
+            noMatchesPlayed = False
             textElements = individualMatch.text.split('\n')
 
             removableWordList = ['LAG', 'SL', 'Pts Earned']
@@ -320,7 +322,7 @@ class ApaWebScraperWorker(Typechecked):
             skillLevel1 = int(textElements[1])
             skillLevel2 = int(textElements[5])
             return EIGHT_BALL_INCORRECT_SKILL_LEVEL not in [skillLevel1, skillLevel2]
-        return False
+        return noMatchesPlayed
     
     def waitFor(self, seconds: float, function, param) -> bool:
         while seconds > 0:
