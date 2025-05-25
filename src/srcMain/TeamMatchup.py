@@ -53,6 +53,7 @@ class TeamMatchup(Typechecked):
                 player.setAdjustedSkillLevel(getAdjustedSkillLevel(player.getMemberId(), player.getCurrentSkillLevel(), None))
             
         self.skillLevelMatrix = createASLMatrix(self.format, self.config.get("predictionAccuracy").get("expectedPtsMethod"))
+        
     
     def start(self, teamMatchCriteria: TeamMatchCriteria, matchIndex: int) -> PotentialTeamMatch:
         startTime = time.perf_counter()
